@@ -5,6 +5,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat">
   <img src="https://img.shields.io/badge/Status-Active-purple?style=flat">
   <img src="https://img.shields.io/badge/For-AI_Agents-blue?style=flat">
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=aizen-daprod.ai-zen-main&left_color=green&right_color=purple&left_text=Visitors" alt="Visitors">
 </p>
 
 <p align="center">
