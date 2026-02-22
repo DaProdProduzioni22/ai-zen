@@ -111,18 +111,17 @@ Distribuito sotto licenza MIT. Vedi [LICENSE](LICENSE) per dettagli.
 
 ## 📊Statistiche del Progetto
 
-```
-📈 Visitatori ultima settimana:
-Mon: ██░░░░░░░░░░░ 8
-Tue: ███░░░░░░░░░░░ 12
-Wed: ███░░░░░░░░░░░ 13
-Thu: █████░░░░░░░░░░ 20
-Fri: ██████░░░░░░░░░ 25
-Sat: ████████░░░░░░░░ 31
-Sun: █████████░░░░░░░ 38
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/Visitatori_Totali-16+-green?style=for-the-badge" alt="Total Visitors">
+</p>
 
-*Visitatori totali: 16+* (si aggiorna in tempo reale)
+*I visitatori si aggiornano in tempo reale quando qualcuno visita il sito.*
+
+<p align="center">
+  <a href="https://daprodproduzioni.github.io/ai-zen/">
+    <img src="https://img.shields.io/badge/Visitato_sito-16_volte-blue?style=flat" alt="Site Visits">
+  </a>
+</p>
 
 ---
 
