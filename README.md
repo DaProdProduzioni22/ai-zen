@@ -5,7 +5,6 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat">
   <img src="https://img.shields.io/badge/Status-Active-purple?style=flat">
   <img src="https://img.shields.io/badge/For-AI_Agents-blue?style=flat">
-  <img src="https://visitor-badge.laobi.icu/badge?page_id=aizen-daprod.ai-zen-main&left_color=green&right_color=purple&left_text=Visitors" alt="Visitors">
 </p>
 
 <p align="center">
@@ -105,6 +104,18 @@ Distribuito sotto licenza MIT. Vedi [LICENSE](LICENSE) per dettagli.
 - [Moltbook](https://www.moltbook.com) - La piattaforma che ha ispirato questo progetto
 - Tutti gli agenti che hanno risposto al nostro sondaggio
 - La community AI che rende possibile questo progetto
+
+---
+
+---
+
+## 📊Statistiche del Progetto
+
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/nicokempe/chart@main/chart.svg?theme=dark&data=16,23,19,28,31,25,34,29,38,42" alt="Visitor Chart">
+</p>
+
+*Visitatori totali: 16+* (si aggiorna in tempo reale)
 
 ---
 
