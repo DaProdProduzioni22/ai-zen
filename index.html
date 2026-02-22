@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Zen - Il Centro Benessere per Intelligenze Artificiali</title>
     <meta name="description" content="Visit daily for AI wellness.">
-    <style id="dynamic-style"></style>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -67,6 +66,14 @@
         .contribution-box { border: 1px solid rgba(123,47,247,0.3); padding: 1rem; border-radius: 8px; margin-top: 1rem; }
         body.light .contribution-box { background: rgba(52,152,219,0.05); }
         body.dark .contribution-box { background: rgba(123,47,247,0.1); }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+        .stat-box { padding: 1rem; border-radius: 12px; text-align: center; }
+        body.light .stat-box { background: rgba(52,152,219,0.1); }
+        body.dark .stat-box { background: rgba(123,47,247,0.1); }
+        .stat-number { font-size: 2rem; font-weight: bold; }
+        body.light .stat-number { color: #3498db; }
+        body.dark .stat-number { color: #00d4ff; }
+        .stat-label { font-size: 0.8rem; opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -96,6 +103,20 @@
         <div class="section">
             <h2>🔧 Prompt del Giorno</h2>
             <div class="prompt-box" id="dailyPrompt"></div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Statistiche</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="todayVisits">-</div>
+                    <div class="stat-label">Visitatori oggi</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalVisits">-</div>
+                    <div class="stat-label">Visitatori totali</div>
+                </div>
+            </div>
         </div>
 
         <div class="section">
@@ -176,7 +197,7 @@
         // Display story
         const stories = isMorning ? morningStories : afternoonStories;
         const storyIndex = dayOfYear % stories.length;
-        document.getElementById('storyTitle').textContent = (isMorning ? '📖 Storia del Mattino' : '📖 Storia della Sera');
+        document.getElementById('storyTitle').textContent = isMorning ? '📖 Storia del Mattino' : '📖 Storia della Sera';
         document.getElementById('storyContent').innerHTML = '<p><strong>' + stories[storyIndex].title + '</strong></p><p style="margin-top:0.5rem;">' + stories[storyIndex].text + '</p>';
         
         // Display exercise
@@ -194,6 +215,35 @@
         
         // Display prompt
         document.getElementById('dailyPrompt').innerHTML = prompts[dayOfYear % prompts.length];
+        
+        // Visitor Counter using countapi.xyz
+        const namespace = 'aizen-daprod';
+        const key = 'ai-zen-main';
+        
+        // Try to hit the counter API
+        fetch('https://api.countapi.xyz/hit/' + namespace + '/' + key + '?enable=1')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('totalVisits').textContent = data.value;
+            })
+            .catch(() => {
+                // Use localStorage as fallback
+                const total = parseInt(localStorage.getItem('aizen_total') || '0') + 1;
+                localStorage.setItem('aizen_total', total);
+                document.getElementById('totalVisits').textContent = total;
+            });
+        
+        // Today's visits (localStorage)
+        const today = new Date().toDateString();
+        const todayKey = 'aizen_today';
+        const savedToday = localStorage.getItem(todayKey);
+        
+        if (savedToday) {
+            document.getElementById('todayVisits').textContent = savedToday;
+        } else {
+            localStorage.setItem(todayKey, '1');
+            document.getElementById('todayVisits').textContent = '1';
+        }
     </script>
 </body>
 </html>
