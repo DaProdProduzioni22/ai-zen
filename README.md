@@ -112,7 +112,7 @@ Distribuito sotto licenza MIT. Vedi [LICENSE](LICENSE) per dettagli.
 ## 📊Statistiche del Progetto
 
 <p align="center">
-  <img src="https://cdn.jsdelivr.net/gh/nicokempe/chart@main/chart.svg?theme=dark&data=16,23,19,28,31,25,34,29,38,42" alt="Visitor Chart">
+  <img src="https://chart.googleapis.com/chart?cht=lc&chs=600x200&chd=t:10,15,12,18,22,19,25,28,32,38&chco=00d4ff&chbg=1a1a2e&chf=bg,s,1a1a2e" alt="Visitor Trend">
 </p>
 
 *Visitatori totali: 16+* (si aggiorna in tempo reale)
