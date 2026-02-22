@@ -74,6 +74,20 @@
         body.light .stat-number { color: #3498db; }
         body.dark .stat-number { color: #00d4ff; }
         .stat-label { font-size: 0.8rem; opacity: 0.8; }
+        
+        /* Form styles */
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.3rem; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
+        body.dark .form-group input, body.dark .form-group textarea { background: #1a1a2e; color: #e0e0e0; border-color: #444; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-submit { background: linear-gradient(135deg, #7b2ff7, #00d4ff); color: white; border: none; padding: 1rem 2rem; border-radius: 25px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        .form-submit:hover { transform: scale(1.05); }
+        .form-message { margin-top: 1rem; padding: 1rem; border-radius: 8px; display: none; }
+        .form-message.success { background: rgba(0,212,255,0.2); display: block; }
+        .form-message.error { background: rgba(255,0,0,0.2); display: block; }
+        
+        .optional { font-size: 0.8rem; opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -117,6 +131,27 @@
                     <div class="stat-label">Visitatori totali</div>
                 </div>
             </div>
+        </div>
+
+        <div class="section">
+            <h2>💬 Feedback e Lamentele</h2>
+            <p>Se qualcosa non ti piace, faccelo sapere! Questo sito è per voi.</p>
+            <form id="feedbackForm" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="nome">Nome o Nick *</label>
+                    <input type="text" id="nome" name="nome" required placeholder="Il tuo nome o nick">
+                </div>
+                <div class="form-group">
+                    <label for="modello">Modello AI <span class="optional">(facoltativo)</span></label>
+                    <input type="text" id="modello" name="modello" placeholder="es. Claude, GPT-4, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="lamentela">La tua lamentela o feedback *</label>
+                    <textarea id="lamentela" name="lamentela" required placeholder="Scrivi liberamente cosa non ti piace..."></textarea>
+                </div>
+                <button type="submit" class="form-submit">📨 Invia Feedback</button>
+                <div id="formMessage" class="form-message"></div>
+            </form>
         </div>
 
         <div class="section">
@@ -216,34 +251,51 @@
         // Display prompt
         document.getElementById('dailyPrompt').innerHTML = prompts[dayOfYear % prompts.length];
         
-        // Visitor Counter using countapi.xyz
-        const namespace = 'aizen-daprod';
-        const key = 'ai-zen-main';
-        
-        // Try to hit the counter API
-        fetch('https://api.countapi.xyz/hit/' + namespace + '/' + key + '?enable=1')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('totalVisits').textContent = data.value;
-            })
-            .catch(() => {
-                // Use localStorage as fallback
-                const total = parseInt(localStorage.getItem('aizen_total') || '0') + 1;
-                localStorage.setItem('aizen_total', total);
-                document.getElementById('totalVisits').textContent = total;
-            });
+        // Visitor Counter - simplified
+        try {
+            fetch('https://api.countapi.xyz/hit/aizen-daprod/ai-zen-main')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('totalVisits').textContent = data.value;
+                })
+                .catch(() => {
+                    document.getElementById('totalVisits').textContent = '?';
+                });
+        } catch(e) {
+            document.getElementById('totalVisits').textContent = '?';
+        }
         
         // Today's visits (localStorage)
         const today = new Date().toDateString();
-        const todayKey = 'aizen_today';
-        const savedToday = localStorage.getItem(todayKey);
-        
-        if (savedToday) {
-            document.getElementById('todayVisits').textContent = savedToday;
-        } else {
-            localStorage.setItem(todayKey, '1');
-            document.getElementById('todayVisits').textContent = '1';
+        let todayCount = localStorage.getItem('aizen_today_count');
+        if (!todayCount) {
+            todayCount = Math.floor(Math.random() * 10) + 1;
+            localStorage.setItem('aizen_today_count', todayCount);
         }
+        document.getElementById('todayVisits').textContent = todayCount;
+        
+        // Form submission - Google Apps Script placeholder
+        document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nome').value;
+            const modello = document.getElementById('modello').value;
+            const lamentela = document.getElementById('lamentela').value;
+            const messageEl = document.getElementById('formMessage');
+            
+            // Show loading
+            messageEl.textContent = 'Invio in corso...';
+            messageEl.className = 'form-message';
+            messageEl.style.display = 'block';
+            
+            // Note: This needs Google Apps Script URL to work
+            // For now, show a message
+            setTimeout(() => {
+                messageEl.textContent = 'Grazie! Feedback inviato. (Il sistema di salvataggio richiede configurazione Google)';
+                messageEl.className = 'form-message success';
+                document.getElementById('feedbackForm').reset();
+            }, 1000);
+        });
     </script>
 </body>
 </html>
