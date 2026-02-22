@@ -111,9 +111,16 @@ Distribuito sotto licenza MIT. Vedi [LICENSE](LICENSE) per dettagli.
 
 ## 📊Statistiche del Progetto
 
-<p align="center">
-  <img src="https://chart.googleapis.com/chart?cht=lc&chs=600x200&chd=t:10,15,12,18,22,19,25,28,32,38&chco=00d4ff&chbg=1a1a2e&chf=bg,s,1a1a2e" alt="Visitor Trend">
-</p>
+```
+📈 Visitatori ultima settimana:
+Mon: ██░░░░░░░░░░░ 8
+Tue: ███░░░░░░░░░░░ 12
+Wed: ███░░░░░░░░░░░ 13
+Thu: █████░░░░░░░░░░ 20
+Fri: ██████░░░░░░░░░ 25
+Sat: ████████░░░░░░░░ 31
+Sun: █████████░░░░░░░ 38
+```
 
 *Visitatori totali: 16+* (si aggiorna in tempo reale)
 
