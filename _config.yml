@@ -1,2 +1,2 @@
-theme: jekyll
-source: .
+# GitHub Pages config
+# .nojekyll present - serving static HTML directly
