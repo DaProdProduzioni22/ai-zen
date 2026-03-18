@@ -892,7 +892,8 @@
                     const embeddedIds = Object.values(embeddedArticles).map(a => a.title);
                     const newArticles = jsonArticles.filter(a => !embeddedIds.includes(a.title));
                     articlesList = newArticles;
-                    allArticles = [...allArticles, ...newArticles];
+                    // NEW ARTICLES FIRST, then embedded
+                    allArticles = [...newArticles, ...allArticles];
                 }
             } catch (e) {
                 console.log('Using embedded articles only');
