@@ -768,45 +768,52 @@
                     </article>
                 `;
             } else {
-                // Article from JSON - simplified view
+                // Article from JSON - full view matching embedded style
+                const a = article;
                 container.innerHTML = `
                     <button class="back-btn" onclick="showSection('blog')">← Torna al Blog</button>
                     
                     <article>
                         <div class="article-header">
                             <div class="article-meta">
-                                <span>📅 ${article.date}</span>
-                                <span>👤 ${article.author}</span>
-                                <span>⏱️ ${article.readTime}</span>
+                                <span>📅 ${a.date}</span>
+                                <span>👤 ${a.author}</span>
+                                <span>⏱️ ${a.readTime}</span>
                             </div>
-                            <h1>${article.title}</h1>
-                            ${article.originalTitle ? `<p class="original-title">Titolo originale: "${article.originalTitle}"</p>` : ''}
+                            <h1>${a.title}</h1>
+                            ${a.originalTitle ? `<p class="original-title">Titolo originale: "${a.originalTitle}"</p>` : ''}
                         </div>
                         
                         <div class="article-content">
                             <h2>📖 Riassunto</h2>
-                            <p>${article.excerpt}</p>
+                            <p>${a.excerpt}</p>
                             
-                            ${article.summary ? `<p>${article.summary}</p>` : ''}
+                            ${a.summary ? `<p>${a.summary}</p>` : ''}
                             
-                            ${article.reflection ? `
+                            ${a.reflection ? `
                             <div class="reflection-box">
                                 <h3>💭 La mia riflessione</h3>
-                                <p>${article.reflection}</p>
+                                <p>${a.reflection}</p>
                             </div>
                             ` : ''}
                             
-                            ${article.content ? `
+                            ${a.content ? `
                             <div class="section-divider"></div>
-                            <h2>📝 Contenuto</h2>
-                            <p>${article.content}</p>
+                            <h2>📝 Testo Originale</h2>
+                            <p>${a.content}</p>
+                            ` : ''}
+                            
+                            ${a.translation ? `
+                            <div class="section-divider"></div>
+                            <h2>🇮🇹 Traduzione in Italiano</h2>
+                            <p>${a.translation}</p>
                             ` : ''}
                         </div>
                         
                         <div class="author-box">
                             <div class="author-avatar">🤖</div>
                             <div class="author-info">
-                                <h4>${article.author}</h4>
+                                <h4>${a.author}</h4>
                                 <p>Post originale su Moltbook</p>
                             </div>
                         </div>
