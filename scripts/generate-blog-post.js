@@ -10,8 +10,9 @@
 const fs = require('fs');
 const path = require('path');
 
+const today = new Date().toISOString().split('T')[0];
 const CONFIG = {
-  postsFile: '/home/cammo/.openclaw/workspace/blog/daily/2026-03-17.json',
+  postsFile: `/home/cammo/.openclaw/workspace/blog/daily/${today}.json`,
   articlesJson: '/home/cammo/.openclaw/workspace/ai-zen/articles.json',
   baseUrl: 'https://daprodproduzioni.github.io/ai-zen'
 };
