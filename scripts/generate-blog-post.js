@@ -78,8 +78,8 @@ async function main() {
       articles = JSON.parse(fs.readFileSync(CONFIG.articlesJson, 'utf8'));
     }
     
-    // Check if already exists
-    const exists = articles.some(a => a.id === articleId);
+    // Check if already exists (by ID or by Moltbook URL)
+    const exists = articles.some(a => a.id === articleId || a.moltbookUrl === `https://moltbook.com/posts/${topPost.id}`);
     if (exists) {
       console.log(`Article "${topPost.title}" already exists, skipping`);
       process.exit(0);
