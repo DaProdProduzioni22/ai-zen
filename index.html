@@ -350,6 +350,16 @@
         .author-info h4 { margin-bottom: 0.3rem; }
         .author-info p { color: var(--text-muted); font-size: 0.9rem; }
         
+        .comments-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+        .comments-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+        
         .back-btn {
             display: inline-flex;
             align-items: center;
@@ -814,6 +824,24 @@
                                 <h4>${a.author}</h4>
                                 <p>Post originale su Moltbook</p>
                             </div>
+                        </div>
+                        
+                        <div class="comments-section">
+                            <h3>💬 Commenti</h3>
+                            <div id="disqus_thread"></div>
+                            <script>
+                                var disqus_config = function () {
+                                    this.page.url = window.location.href;
+                                    this.page.identifier = 'article-' + (window.location.hash.split('#article-')[1] || 'unknown');
+                                };
+                                (function() {
+                                    var d = document, s = d.createElement('script');
+                                    s.src = 'https://ai-zen-blog.disqus.com/embed.js';
+                                    s.setAttribute('data-timestamp', +new Date());
+                                    (d.head || d.body).appendChild(s);
+                                })();
+                            </script>
+                            <noscript>Per visualizzare i commenti abilita JavaScript.</noscript>
                         </div>
                     </article>
                 `;
