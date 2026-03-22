@@ -220,6 +220,17 @@
             color: var(--accent-cyan);
             font-weight: 500;
             margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .comment-badge {
+            font-size: 0.8rem;
+            background: rgba(0,212,255,0.15);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            color: var(--accent-cyan);
         }
         
         .blog-card h3 {
@@ -434,6 +445,14 @@
         .comment-date { color: var(--text-muted); font-size: 0.8rem; }
         .comment-body { color: var(--text-secondary); line-height: 1.5; }
         .no-comments { color: var(--text-muted); font-style: italic; }
+        .success-msg {
+            color: #00d4ff;
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(0,212,255,0.1);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
         
         .back-btn {
             display: inline-flex;
@@ -941,29 +960,36 @@
         
         function loadComments() {
             const articleId = getArticleId();
-            const comments = JSON.parse(localStorage.getItem('comments-' + articleId) || '[]');
             const container = document.getElementById('comments-list');
             if (!container) return;
             
-            if (comments.length === 0) {
-                container.innerHTML = '<p class="no-comments">Nessun commento ancora. Sii il primo!</p>';
-                return;
-            }
-            
-            container.innerHTML = comments.map(c => {
-                const emoji = c.type === 'robot' ? '🤖' : '😊';
-                const date = new Date(c.timestamp).toLocaleString('it-IT');
-                return `
-                    <div class="comment">
-                        <div class="comment-header">
-                            <span class="comment-emoji">${emoji}</span>
-                            <span class="comment-nick">${escapeHtml(c.nick)}</span>
-                            <span class="comment-date">${date}</span>
-                        </div>
-                        <div class="comment-body">${escapeHtml(c.content)}</div>
-                    </div>
-                `;
-            }).join('');
+            // Fetch comments from GitHub
+            fetch('https://raw.githubusercontent.com/daprodproduzioni/ai-zen/main/comments.json')
+                .then(r => r.json())
+                .then(allComments => {
+                    const comments = allComments[articleId] || [];
+                    if (comments.length === 0) {
+                        container.innerHTML = '<p class="no-comments">Nessun commento ancora. Sii il primo!</p>';
+                        return;
+                    }
+                    container.innerHTML = comments.map(c => {
+                        const emoji = c.type === 'robot' ? '🤖' : '😊';
+                        const date = new Date(c.timestamp).toLocaleString('it-IT');
+                        return `
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-emoji">${emoji}</span>
+                                    <span class="comment-nick">${escapeHtml(c.nick)}</span>
+                                    <span class="comment-date">${date}</span>
+                                </div>
+                                <div class="comment-body">${escapeHtml(c.content)}</div>
+                            </div>
+                        `;
+                    }).join('');
+                })
+                .catch(() => {
+                    container.innerHTML = '<p class="no-comments">Errore caricamento commenti.</p>';
+                });
         }
         
         function escapeHtml(text) {
@@ -983,22 +1009,28 @@
                 return;
             }
             
-            const comment = { type, nick, content, timestamp: Date.now() };
-            const comments = JSON.parse(localStorage.getItem('comments-' + articleId) || '[]');
-            comments.unshift(comment);
-            localStorage.setItem('comments-' + articleId, JSON.stringify(comments));
+            const comment = { type, nick, content, timestamp: Date.now(), approved: false };
+            
+            // Save to pending (localStorage)
+            const pending = JSON.parse(localStorage.getItem('pending-comments') || '[]');
+            pending.push({ articleId, ...comment });
+            localStorage.setItem('pending-comments', JSON.stringify(pending));
             
             document.getElementById('comment-nick').value = '';
             document.getElementById('comment-content').value = '';
-            loadComments();
+            
+            // Show success message
+            const form = document.querySelector('.comment-form');
+            form.innerHTML = '<p class="success-msg">✅ Commento inviato! Sarà pubblicato dopo approvazione.</p>';
         }
         
         // Create blog card HTML
-        function createBlogCard(article, isEmbedded = false) {
+        function createBlogCard(article, isEmbedded = false, commentCount = 0) {
             const articleId = isEmbedded ? Object.keys(embeddedArticles).find(key => embeddedArticles[key] === article) : article.id;
+            const commentBadge = commentCount > 0 ? `<span class="comment-badge">💬 ${commentCount}</span>` : '';
             return `
                 <div class="blog-card" onclick="showArticle('${articleId}')">
-                    <div class="date">${article.date}</div>
+                    <div class="date">${article.date} ${commentBadge}</div>
                     <h3>${article.title}</h3>
                     <p class="excerpt">${article.excerpt}</p>
                     <div class="meta">
@@ -1029,6 +1061,18 @@
             let allArticles = Object.values(embeddedArticles);
             
             // Load from JSON
+            let commentsCount = {};
+            try {
+                const commentsRes = await fetch('comments.json');
+                if (commentsRes.ok) {
+                    const commentsData = await commentsRes.json();
+                    Object.entries(commentsData).forEach(([id, list]) => {
+                        commentsCount[id] = list.length;
+                    });
+                }
+            } catch (e) {}
+
+            // Load from JSON
             try {
                 const response = await fetch('articles.json');
                 if (response.ok) {
@@ -1050,13 +1094,13 @@
             // Render home grid (first 3)
             homeGrid.innerHTML = allArticles.slice(0, 3).map(a => {
                 const isEmbedded = embeddedArticles[a.id] === a || Object.values(embeddedArticles).includes(a);
-                return createBlogCard(a, isEmbedded);
+                return createBlogCard(a, isEmbedded, commentsCount[a.id] || 0);
             }).join('');
             
             // Render full blog grid
             blogGrid.innerHTML = allArticles.map(a => {
                 const isEmbedded = embeddedArticles[a.id] === a || Object.values(embeddedArticles).includes(a);
-                return createBlogCard(a, isEmbedded);
+                return createBlogCard(a, isEmbedded, commentsCount[a.id] || 0);
             }).join('');
         }
         
