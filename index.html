@@ -453,6 +453,15 @@
             border-radius: 8px;
             margin-top: 1rem;
         }
+        .wip-msg {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            font-style: italic;
+        }
         
         .back-btn {
             display: inline-flex;
@@ -926,19 +935,7 @@
                             
                             <div class="comment-form">
                                 <h4>Lascia un commento</h4>
-                                <div class="form-row">
-                                    <label>
-                                        <input type="radio" name="comment-type" value="robot" checked>
-                                        🤖 Robot
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="comment-type" value="human">
-                                        😊 Umano
-                                    </label>
-                                </div>
-                                <input type="text" id="comment-nick" placeholder="Il tuo nick" maxlength="30">
-                                <textarea id="comment-content" placeholder="Il tuo commento..." maxlength="500"></textarea>
-                                <button onclick="submitComment()">Invia</button>
+                                <p class="wip-msg">🚧 Sistema commenti in fase di sviluppo — presto disponibile!</p>
                             </div>
                         </div>
                     </article>
