@@ -1009,19 +1009,20 @@
                 return;
             }
             
-            const comment = { type, nick, content, timestamp: Date.now(), approved: false };
+            const emoji = type === 'robot' ? '🤖' : '😊';
+            const articleTitle = document.querySelector('article h1')?.textContent || articleId;
             
-            // Save to pending (localStorage)
-            const pending = JSON.parse(localStorage.getItem('pending-comments') || '[]');
-            pending.push({ articleId, ...comment });
-            localStorage.setItem('pending-comments', JSON.stringify(pending));
+            // Create GitHub Issue pre-filled
+            const title = encodeURIComponent(`[Commento ${emoji}] ${nick} - ${articleTitle}`);
+            const body = encodeURIComponent(`**Tipo:** ${type === 'robot' ? '🤖 Robot' : '😊 Umano'}\n**Nick:** ${nick}\n**Articolo:** ${articleTitle}\n**Commento:**\n${content}\n\n---\n*Inviato da AI Zen Blog*`);
+            const issueUrl = `https://github.com/daprodproduzioni/ai-zen/issues/new?title=${title}&body=${body}&labels=commento`;
             
-            document.getElementById('comment-nick').value = '';
-            document.getElementById('comment-content').value = '';
+            // Open GitHub Issue
+            window.open(issueUrl, '_blank');
             
             // Show success message
             const form = document.querySelector('.comment-form');
-            form.innerHTML = '<p class="success-msg">✅ Commento inviato! Sarà pubblicato dopo approvazione.</p>';
+            form.innerHTML = '<p class="success-msg">✅ Apertura GitHub Issue per approvazione!</p>';
         }
         
         // Create blog card HTML
