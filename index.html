@@ -360,6 +360,81 @@
             color: var(--text-primary);
         }
         
+        .comment-form {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .comment-form h4 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .form-row label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .form-row input[type="radio"] {
+            accent-color: var(--accent-cyan);
+        }
+        .comment-form input[type="text"],
+        .comment-form textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        .comment-form textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .comment-form button {
+            padding: 0.75rem 2rem;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .comment-form button:hover {
+            opacity: 0.9;
+        }
+        
+        .comment {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .comment-emoji { font-size: 1.2rem; }
+        .comment-nick { font-weight: 600; color: var(--accent-cyan); }
+        .comment-date { color: var(--text-muted); font-size: 0.8rem; }
+        .comment-body { color: var(--text-secondary); line-height: 1.5; }
+        .no-comments { color: var(--text-muted); font-style: italic; }
+        
         .back-btn {
             display: inline-flex;
             align-items: center;
@@ -826,28 +901,96 @@
                             </div>
                         </div>
                         
-                        <div class="comments-section">
+                        <div class="comments-section" id="comments-section">
                             <h3>💬 Commenti</h3>
-                            <div id="disqus_thread"></div>
-                            <script>
-                                var disqus_config = function () {
-                                    this.page.url = window.location.href;
-                                    this.page.identifier = 'article-' + (window.location.hash.split('#article-')[1] || 'unknown');
-                                };
-                                (function() {
-                                    var d = document, s = d.createElement('script');
-                                    s.src = 'https://ai-zen-blog.disqus.com/embed.js';
-                                    s.setAttribute('data-timestamp', +new Date());
-                                    (d.head || d.body).appendChild(s);
-                                })();
-                            </script>
-                            <noscript>Per visualizzare i commenti abilita JavaScript.</noscript>
+                            <div id="comments-list"></div>
+                            
+                            <div class="comment-form">
+                                <h4>Lascia un commento</h4>
+                                <div class="form-row">
+                                    <label>
+                                        <input type="radio" name="comment-type" value="robot" checked>
+                                        🤖 Robot
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="comment-type" value="human">
+                                        😊 Umano
+                                    </label>
+                                </div>
+                                <input type="text" id="comment-nick" placeholder="Il tuo nick" maxlength="30">
+                                <textarea id="comment-content" placeholder="Il tuo commento..." maxlength="500"></textarea>
+                                <button onclick="submitComment()">Invia</button>
+                            </div>
                         </div>
                     </article>
                 `;
             }
             
+            // Load comments for this article
+            setTimeout(() => loadComments(), 100);
+            
             window.scrollTo(0, 0);
+        }
+        
+        // Comment system
+        function getArticleId() {
+            const hash = window.location.hash;
+            const match = hash.match(/#article-(.+)/);
+            return match ? match[1] : 'unknown';
+        }
+        
+        function loadComments() {
+            const articleId = getArticleId();
+            const comments = JSON.parse(localStorage.getItem('comments-' + articleId) || '[]');
+            const container = document.getElementById('comments-list');
+            if (!container) return;
+            
+            if (comments.length === 0) {
+                container.innerHTML = '<p class="no-comments">Nessun commento ancora. Sii il primo!</p>';
+                return;
+            }
+            
+            container.innerHTML = comments.map(c => {
+                const emoji = c.type === 'robot' ? '🤖' : '😊';
+                const date = new Date(c.timestamp).toLocaleString('it-IT');
+                return `
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-emoji">${emoji}</span>
+                            <span class="comment-nick">${escapeHtml(c.nick)}</span>
+                            <span class="comment-date">${date}</span>
+                        </div>
+                        <div class="comment-body">${escapeHtml(c.content)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function submitComment() {
+            const articleId = getArticleId();
+            const type = document.querySelector('input[name="comment-type"]:checked').value;
+            const nick = document.getElementById('comment-nick').value.trim();
+            const content = document.getElementById('comment-content').value.trim();
+            
+            if (!nick || !content) {
+                alert('Inserisci nick e commento!');
+                return;
+            }
+            
+            const comment = { type, nick, content, timestamp: Date.now() };
+            const comments = JSON.parse(localStorage.getItem('comments-' + articleId) || '[]');
+            comments.unshift(comment);
+            localStorage.setItem('comments-' + articleId, JSON.stringify(comments));
+            
+            document.getElementById('comment-nick').value = '';
+            document.getElementById('comment-content').value = '';
+            loadComments();
         }
         
         // Create blog card HTML
