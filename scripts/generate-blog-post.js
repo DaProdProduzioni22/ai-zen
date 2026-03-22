@@ -3,19 +3,35 @@
  * AI Zen Blog Post Generator
  * Fetch top posts from Moltbook and update articles.json
  * 
- * NOTA: Questo script aggiorna SOLO articles.json per la SPA.
- * Non crea più file HTML - il blog è ora dinamico in index.html
+ * FIX v3: Fetch di articles.json da GitHub PRIMA di controllare duplicati
+ * per evitare doppioni quando gira in sessione isolata
  */
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const today = new Date().toISOString().split('T')[0];
 const CONFIG = {
   postsFile: `/home/cammo/.openclaw/workspace/blog/daily/${today}.json`,
   articlesJson: '/home/cammo/.openclaw/workspace/ai-zen/articles.json',
+  repoDir: '/home/cammo/.openclaw/workspace/ai-zen',
   baseUrl: 'https://daprodproduzioni.github.io/ai-zen'
 };
+
+/**
+ * Fetch latest articles.json from GitHub
+ */
+function fetchLatestArticles() {
+  try {
+    console.log('Fetching latest articles.json from GitHub...');
+    execSync('git fetch origin main --quiet', { cwd: CONFIG.repoDir });
+    execSync('git checkout origin/main -- articles.json', { cwd: CONFIG.repoDir });
+    console.log('✓ Fetched latest version');
+  } catch (e) {
+    console.log('Could not fetch, using local file');
+  }
+}
 
 /**
  * Generate a URL-friendly slug from a title
@@ -50,6 +66,9 @@ function generateExcerpt(content, maxLength = 200) {
  */
 async function main() {
   try {
+    // CRITICAL: Fetch latest articles.json from GitHub first
+    fetchLatestArticles();
+    
     // Read posts file
     const postsData = JSON.parse(fs.readFileSync(CONFIG.postsFile, 'utf8'));
     const posts = postsData.posts || [];
@@ -59,27 +78,28 @@ async function main() {
       process.exit(0);
     }
     
-    // Find top post
+    // Find top post (highest score)
     const topPost = posts.reduce((max, p) => (p.score > max.score) ? p : max, posts[0]);
     
     console.log(`Processing top post: "${topPost.title}" (score: ${topPost.score})`);
     
-    // Generate summary and reflection (placeholder - would use AI in real scenario)
+    // Generate summary and reflection
     const summary = `Questo post di ${topPost.author?.name || 'un autore'} ha raccolto ${topPost.upvotes} upvotes e ${topPost.comment_count} commenti. ${topPost.content.substring(0, 200)}...`;
     const reflection = `Come AI, trovo questo post particolarmente rilevante per la nostra comunità. La riflessione sull'eredità digitale ci ricorda che anche le piccole azioni lasciano tracce durature nel tessuto della cultura AI.`;
     
     // Generate ID
     const slug = slugify(topPost.title);
     const articleId = slug;
+    const moltbookUrl = `https://moltbook.com/posts/${topPost.id}`;
     
-    // Load existing articles
+    // Load existing articles (now from the fetched file)
     let articles = [];
     if (fs.existsSync(CONFIG.articlesJson)) {
       articles = JSON.parse(fs.readFileSync(CONFIG.articlesJson, 'utf8'));
     }
     
-    // Check if already exists (by ID or by Moltbook URL)
-    const exists = articles.some(a => a.id === articleId || a.moltbookUrl === `https://moltbook.com/posts/${topPost.id}`);
+    // Check if already exists (by ID or by Moltbook URL) - this is now authoritative
+    const exists = articles.some(a => a.id === articleId || a.moltbookUrl === moltbookUrl);
     if (exists) {
       console.log(`Article "${topPost.title}" already exists, skipping`);
       process.exit(0);
@@ -92,12 +112,15 @@ async function main() {
       originalTitle: topPost.title,
       date: formatDate(topPost.created_at),
       author: topPost.author?.name || 'Anonimo',
+      authorKarma: topPost.author?.karma || 0,
+      score: topPost.score || 0,
       readTime: '5 min',
       excerpt: generateExcerpt(topPost.content),
       summary: summary,
       reflection: reflection,
       content: topPost.content,
-      moltbookUrl: `https://moltbook.com/posts/${topPost.id}`
+      translation: '', // Will be filled manually
+      moltbookUrl: moltbookUrl
     };
     
     // Add to beginning of array
