@@ -215,6 +215,26 @@
             box-shadow: var(--glow);
         }
         
+        /* Month Filter */
+        .month-filter {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .month-filter:hover { border-color: var(--accent-cyan); }
+        .month-filter option { background: var(--bg-secondary); }
+        
+        .blog-grid.hidden { display: none; }
+        .no-articles { text-align: center; padding: 3rem; color: var(--text-muted); }
+        
+        /* Section Header Flex */
+        }
+        
         .blog-card .date {
             font-size: 0.875rem;
             color: var(--accent-cyan);
@@ -700,6 +720,9 @@
                 <div class="container">
                     <div class="section-header">
                         <h2 class="section-title">📝 Tutti gli Articoli</h2>
+                        <select id="monthFilter" class="month-filter" onchange="filterByMonth(this.value)">
+                            <option value="all">Tutti i mesi</option>
+                        </select>
                     </div>
                     <div class="blog-grid" id="blogGrid">
                         <!-- Loaded dynamically -->
@@ -784,6 +807,9 @@
         
         // Articles list (will be extended by JSON)
         let articlesList = [];
+        let currentMonthFilter = 'all';
+        let allArticlesCache = [];
+        let commentsCountCache = {};
         
         // Navigation
         function showSection(sectionName) {
@@ -1058,14 +1084,13 @@
             // Start with embedded articles
             let allArticles = Object.values(embeddedArticles);
             
-            // Load from JSON
-            let commentsCount = {};
+            // Load comments from JSON
             try {
                 const commentsRes = await fetch('comments.json');
                 if (commentsRes.ok) {
                     const commentsData = await commentsRes.json();
                     Object.entries(commentsData).forEach(([id, list]) => {
-                        commentsCount[id] = list.length;
+                        commentsCountCache[id] = list.length;
                     });
                 }
             } catch (e) {}
@@ -1089,17 +1114,72 @@
             // Sort by date (newest first)
             allArticles.sort(sortByDate);
             
-            // Render home grid (first 3)
+            // Cache for filtering
+            allArticlesCache = allArticles;
+            
+            // Populate month filter
+            populateMonthFilter(allArticles);
+            
+            // Render home grid (first 3 - always show most recent)
             homeGrid.innerHTML = allArticles.slice(0, 3).map(a => {
                 const isEmbedded = embeddedArticles[a.id] === a || Object.values(embeddedArticles).includes(a);
-                return createBlogCard(a, isEmbedded, commentsCount[a.id] || 0);
+                return createBlogCard(a, isEmbedded, commentsCountCache[a.id] || 0);
             }).join('');
             
-            // Render full blog grid
-            blogGrid.innerHTML = allArticles.map(a => {
+            // Render full blog grid (filtered if month selected)
+            renderBlogGrid(allArticles);
+        }
+        
+        function populateMonthFilter(articles) {
+            const months = { 'Gennaio': 1, 'Febbraio': 2, 'Marzo': 3, 'Aprile': 4, 'Maggio': 5, 'Giugno': 6, 'Luglio': 7, 'Agosto': 8, 'Settembre': 9, 'Ottobre': 10, 'Novembre': 11, 'Dicembre': 12 };
+            
+            // Extract unique month-year combinations
+            const monthYears = {};
+            articles.forEach(a => {
+                const match = a.date.match(/(\d+)\s+(\w+)\s+(\d+)/);
+                if (match) {
+                    const key = match[2] + ' ' + match[3]; // "Marzo 2026"
+                    const monthNum = months[match[2]] || 1;
+                    monthYears[key] = (monthYears[key] || 0) + 1;
+                }
+            });
+            
+            // Sort by date (most recent first)
+            const sorted = Object.keys(monthYears).sort((a, b) => {
+                const [monthA, yearA] = a.split(' ');
+                const [monthB, yearB] = b.split(' ');
+                if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA);
+                return (months[monthB] || 1) - (months[monthA] || 1);
+            });
+            
+            // Populate dropdown
+            const filter = document.getElementById('monthFilter');
+            filter.innerHTML = '<option value="all">Tutti i mesi</option>';
+            sorted.forEach(my => {
+                filter.innerHTML += `<option value="${my}">${my} (${monthYears[my]})</option>`;
+            });
+        }
+        
+        function renderBlogGrid(articles) {
+            const blogGrid = document.getElementById('blogGrid');
+            const filtered = currentMonthFilter === 'all' 
+                ? articles 
+                : articles.filter(a => a.date.includes(currentMonthFilter));
+            
+            if (filtered.length === 0) {
+                blogGrid.innerHTML = '<p class="no-articles">Nessun articolo per questo mese.</p>';
+                return;
+            }
+            
+            blogGrid.innerHTML = filtered.map(a => {
                 const isEmbedded = embeddedArticles[a.id] === a || Object.values(embeddedArticles).includes(a);
-                return createBlogCard(a, isEmbedded, commentsCount[a.id] || 0);
+                return createBlogCard(a, isEmbedded, commentsCountCache[a.id] || 0);
             }).join('');
+        }
+        
+        function filterByMonth(monthYear) {
+            currentMonthFilter = monthYear;
+            renderBlogGrid(allArticlesCache);
         }
         
         // Initialize
