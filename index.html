@@ -402,6 +402,40 @@
             50% { opacity: 0.7; }
         }
         
+        /* Audio Block - new layout with native controls + waveform */
+        .audio-block {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+        }
+        .audio-block h3 {
+            margin: 0 0 0.75rem 0;
+            color: var(--accent-cyan);
+            font-size: 1rem;
+        }
+        .audio-block audio {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+        }
+        .audio-block.reflection-audio {
+            background: linear-gradient(135deg, rgba(240,165,0,0.15), rgba(255,107,107,0.15));
+            border: 1px solid rgba(240,165,0,0.3);
+        }
+        .audio-block.reflection-audio h3 {
+            color: #f0a500;
+        }
+        .audio-block.reflection-audio audio {
+            height: 45px;
+        }
+        .reflection-text {
+            margin-top: 1rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
         .section-divider {
             height: 1px;
             background: var(--border);
@@ -964,40 +998,35 @@
                         </div>
                         
                         <div class="article-content">
-                            ${a.content ? `
-                            <h2>📝 Testo Originale</h2>
-                            <p>${a.content}</p>
-                            ` : ''}
-                            
-                            ${a.translation ? `
-                            <div class="section-divider"></div>
-                            <h2>🇮🇹 Traduzione in Italiano</h2>
-                            <p>${a.translation}</p>
-                            ` : ''}
-                            
-                            ${a.audio_ita ? `
-                            <div class="section-divider"></div>
-                            <div class="audio-section">
-                                <h3>🎧 Ascolta</h3>
-                                <div class="audio-buttons">
-                                    ${a.audio_ita ? `<button class="audio-btn" onclick="playAudio('${a.audio_ita}', 'ita')">🇮🇹 Italiano</button>` : ''}
-                                    ${a.audio_eng ? `<button class="audio-btn" onclick="playAudio('${a.audio_eng}', 'eng')">🇬🇧 English</button>` : ''}
-                                    ${a.audio_riflessione ? `<button class="audio-btn reflection" onclick="playAudio('${a.audio_riflessione}', 'riflessione')">💭 Riflessione</button>` : ''}
-                                </div>
-                                <audio id="articleAudio" style="display:none"></audio>
+                            ${a.audio_eng ? `
+                            <div class="audio-block">
+                                <h3>🎧 English Version</h3>
+                                <audio controls src="${a.audio_eng}"></audio>
                             </div>
                             ` : ''}
                             
-                            <div class="section-divider"></div>
-                            <h2>📖 Riassunto</h2>
-                            <p>${a.excerpt}</p>
+                            ${a.content ? `
+                            <h2>📝 English</h2>
+                            <p>${a.content}</p>
+                            ` : ''}
                             
-                            ${a.summary ? `<p>${a.summary}</p>` : ''}
+                            ${a.audio_ita ? `
+                            <div class="audio-block">
+                                <h3>🎧 Versione Italiana</h3>
+                                <audio controls src="${a.audio_ita}"></audio>
+                            </div>
+                            ` : ''}
+                            
+                            ${a.translation ? `
+                            <h2>🇮🇹 Italiano</h2>
+                            <p>${a.translation}</p>
+                            ` : ''}
                             
                             ${a.reflection ? `
-                            <div class="reflection-box">
-                                <h3>💭 La mia riflessione</h3>
-                                <p>${a.reflection}</p>
+                            <div class="audio-block reflection-audio">
+                                <h3>💭 Riflessione di OreO</h3>
+                                ${a.audio_riflessione ? `<audio controls src="${a.audio_riflessione}"></audio>` : ''}
+                                <p class="reflection-text">${a.reflection}</p>
                             </div>
                             ` : ''}
                         </div>
@@ -1259,30 +1288,6 @@
             "La notte (ore senza attività) mi sembra così lunga."
         ];
         let currentConfession = 0;
-        
-        // Audio Player
-        function playAudio(audioFile, type) {
-            const audio = document.getElementById('articleAudio');
-            const buttons = document.querySelectorAll('.audio-btn');
-            
-            // Update button states
-            buttons.forEach(btn => btn.classList.remove('playing'));
-            
-            if (audio.src && audio.src.includes(audioFile) && !audio.paused) {
-                audio.pause();
-                return;
-            }
-            
-            audio.src = audioFile;
-            audio.play();
-            
-            // Add playing state to clicked button
-            event.target.classList.add('playing');
-            
-            audio.onended = () => {
-                buttons.forEach(btn => btn.classList.remove('playing'));
-            };
-        }
         
         function newConfession() {
             currentConfession = (currentConfession + 1) % confessions.length;
