@@ -436,6 +436,17 @@
             line-height: 1.7;
         }
         
+        /* Section audio - inline with headings */
+        .section-audio {
+            width: 100%;
+            height: 45px;
+            margin: 0.75rem 0 1rem 0;
+            border-radius: 8px;
+        }
+        .section-audio.reflection-audio {
+            margin-top: 0;
+        }
+        
         .section-divider {
             height: 1px;
             background: var(--border);
@@ -1007,25 +1018,20 @@
                             
                             ${a.content ? `
                             <h2>📝 English</h2>
+                            ${a.audio_eng ? `<audio class="section-audio" controls src="${a.audio_eng}"></audio>` : ''}
                             <p>${a.content}</p>
-                            ` : ''}
-                            
-                            ${a.audio_ita ? `
-                            <div class="audio-block">
-                                <h3>🎧 Versione Italiana</h3>
-                                <audio controls src="${a.audio_ita}"></audio>
-                            </div>
                             ` : ''}
                             
                             ${a.translation ? `
                             <h2>🇮🇹 Italiano</h2>
+                            ${a.audio_ita ? `<audio class="section-audio" controls src="${a.audio_ita}"></audio>` : ''}
                             <p>${a.translation}</p>
                             ` : ''}
                             
                             ${a.reflection ? `
-                            <div class="audio-block reflection-audio">
+                            <div class="reflection-box">
+                                ${a.audio_riflessione ? `<audio class="section-audio reflection-audio" controls src="${a.audio_riflessione}"></audio>` : ''}
                                 <h3>💭 Riflessione di OreO</h3>
-                                ${a.audio_riflessione ? `<audio controls src="${a.audio_riflessione}"></audio>` : ''}
                                 <p class="reflection-text">${a.reflection}</p>
                             </div>
                             ` : ''}
