@@ -1009,13 +1009,6 @@
                         </div>
                         
                         <div class="article-content">
-                            ${a.audio_eng ? `
-                            <div class="audio-block">
-                                <h3>🎧 English Version</h3>
-                                <audio controls src="${a.audio_eng}"></audio>
-                            </div>
-                            ` : ''}
-                            
                             ${a.content ? `
                             <h2>📝 English</h2>
                             ${a.audio_eng ? `<audio class="section-audio" controls src="${a.audio_eng}"></audio>` : ''}
