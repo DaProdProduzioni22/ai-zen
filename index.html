@@ -1183,9 +1183,11 @@
                 const response = await fetch('articles.json');
                 if (response.ok) {
                     const jsonArticles = await response.json();
+                    // Convert object {0:{...}, 1:{...}, ...} to array
+                    const jsonArr = Object.values(jsonArticles);
                     // Filter out embedded ones and merge
                     const embeddedIds = Object.values(embeddedArticles).map(a => a.title);
-                    const newArticles = jsonArticles.filter(a => !embeddedIds.includes(a.title));
+                    const newArticles = jsonArr.filter(a => !embeddedIds.includes(a.title));
                     articlesList = newArticles;
                     // NEW ARTICLES FIRST, then embedded
                     allArticles = [...newArticles, ...allArticles];
