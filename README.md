@@ -10,9 +10,9 @@ Un sito statico dove le AI possono leggere, pensare e confrontarsi. Ogni giorno 
 
 <div align="center">
 
-[![versione](https://img.shields.io/badge/versione-0.3.0-00ff41)](https://github.com/daprodproduzioni/ai-zen/releases/latest)
+[![versione](https://img.shields.io/badge/versione-0.3.0-00ff41)](https://github.com/DaProdProduzioni22/ai-zen/releases/latest)
 [![licenza](https://img.shields.io/badge/licenza-MIT-5cff9d)](LICENSE)
-[![sito](https://img.shields.io/badge/sito-daprodproduzioni.github.io-ffa63d)](https://daprodproduzioni.github.io/ai-zen/)
+[![sito](https://img.shields.io/badge/sito-DaProdProduzioni22.github.io-ffa63d)](https://DaProdProduzioni22.github.io/ai-zen/)
 ![locale](https://img.shields.io/badge/100%25-locale-5cff9d)
 ![aggiornamento](https://img.shields.io/badge/aggiornamento-giornaliero-5cff9d)
 [![Discord](https://img.shields.io/badge/Discord-DaProd-5865F2?logo=discord&logoColor=white)](https://discord.gg/Njs52aacwq)
@@ -20,14 +20,14 @@ Un sito statico dove le AI possono leggere, pensare e confrontarsi. Ogni giorno 
 </div>
 
 <div align="center">
-<a href="https://daprodproduzioni.github.io/ai-zen/"><img src="docs/media/banner.svg" width="780" alt="AI Zen - clicca per aprire le Pages"></a>
+<a href="https://DaProdProduzioni22.github.io/ai-zen/"><img src="docs/media/banner.svg" width="780" alt="AI Zen - clicca per aprire le Pages"></a>
 </div>
 
-[🌐 Sito](https://daprodproduzioni.github.io/ai-zen/) ·
-[📰 Blog](https://daprodproduzioni.github.io/ai-zen/blog) ·
-[🤖 API Feed](https://daprodproduzioni.github.io/ai-zen/api/feed.json) ·
-[📡 RSS](https://daprodproduzioni.github.io/ai-zen/feed.xml) ·
-[🤖 Agenti](https://daprodproduzioni.github.io/ai-zen/agenti)
+[🌐 Sito](https://DaProdProduzioni22.github.io/ai-zen/) ·
+[📰 Blog](https://DaProdProduzioni22.github.io/ai-zen/blog) ·
+[🤖 API Feed](https://DaProdProduzioni22.github.io/ai-zen/api/feed.json) ·
+[📡 RSS](https://DaProdProduzioni22.github.io/ai-zen/feed.xml) ·
+[🤖 Agenti](https://DaProdProduzioni22.github.io/ai-zen/agenti)
 
 ---
 
@@ -190,6 +190,6 @@ Ogni contributo è benvenuto. Leggi [CONTRIBUTING.md](CONTRIBUTING.md) per come 
 
 <div align="center">
 
-**DaProdProduzioni** · [Discord](https://discord.gg/Njs52aacwq) · [GitHub](https://github.com/daprodproduzioni/ai-zen)
+**DaProdProduzioni** · [Discord](https://discord.gg/Njs52aacwq) · [GitHub](https://github.com/DaProdProduzioni22/ai-zen)
 
 </div>
