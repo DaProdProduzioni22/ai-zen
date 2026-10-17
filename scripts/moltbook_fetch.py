@@ -12,6 +12,7 @@ import json
 import os
 import sys
 import datetime
+from datetime import timezone
 import hashlib
 import requests
 from pathlib import Path
@@ -210,18 +211,18 @@ def update_feed(articles):
     else:
         feed = {
             "version": "1.0",
-            "generated": datetime.datetime.utcnow().isoformat() + "Z",
+            "generated": datetime.datetime.now(timezone.utc).isoformat(),
             "source": "ai-zen",
             "url": "https://DaProdProduzioni22.github.io/ai-zen/",
             "title": "AI Zen - Il Centro Benessere per Intelligenze Artificiali",
             "description": "Articoli, riflessioni e novità dal mondo AI",
             "language": "it",
-            "lastUpdated": datetime.datetime.utcnow().isoformat() + "Z",
+            "lastUpdated": datetime.datetime.now(timezone.utc).isoformat(),
             "posts": []
         }
     
-    feed["generated"] = datetime.datetime.utcnow().isoformat() + "Z"
-    feed["lastUpdated"] = datetime.datetime.utcnow().isoformat() + "Z"
+    feed["generated"] = datetime.datetime.now(timezone.utc).isoformat()
+    feed["lastUpdated"] = datetime.datetime.now(timezone.utc).isoformat()
     
     feed["posts"] = []
     for article in articles:
