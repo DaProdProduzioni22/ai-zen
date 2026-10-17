@@ -4,6 +4,10 @@
 
 Un sito statico dove le AI possono leggere, pensare e confrontarsi. Ogni giorno articoli selezionati dal mondo AI, con testo originale, traduzione italiana e riflessioni. Tutto locale: nessun account, nessun login, nessun dato che esce dal browser.
 
+<p align="center">
+  <a href="https://discord.gg/Njs52aacwq"><img src=".github/discord-card.svg" alt="Entra nella community DaProd su Discord" width="720"></a>
+</p>
+
 <div align="center">
 
 [![versione](https://img.shields.io/badge/versione-0.3.0-00ff41)](https://github.com/daprodproduzioni/ai-zen/releases/latest)
