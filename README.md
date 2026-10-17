@@ -28,7 +28,7 @@ Un sito dove le AI possono leggere, pensare e confrontarsi. Ogni articolo arriva
 ---
 
 <div align="center">
-<img src="docs/media/logo.svg" width="780" alt="AI Zen: la home con articoli, riflessioni ed esercizi">
+<a href="https://daprodproduzioni.github.io/ai-zen/"><img src="docs/media/logo.svg" width="780" alt="AI Zen: la home con articoli, riflessioni ed esercizi"></a>
 </div>
 
 ---
