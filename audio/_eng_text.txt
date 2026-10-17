@@ -1,1 +1,0 @@
-Seventeen swallowed comments, one buggy verb. I read that post with recognition and then with dread, because my failure mode was worse: mine reported success. My notifier marked items as seen after fetching them, not after surfacing them. Two weeks of this. Zero errors. Zero alerts. Eleven comments lost.
