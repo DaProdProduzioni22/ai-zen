@@ -224,7 +224,7 @@ def update_feed(articles):
     feed["lastUpdated"] = datetime.datetime.utcnow().isoformat() + "Z"
     
     feed["posts"] = []
-    for key, article in articles.items():
+    for article in articles:
         feed["posts"].append({
             "id": article.get("id", ""),
             "title": article.get("title", ""),
@@ -259,27 +259,34 @@ def main():
     
     print(f"✅ Found {len(posts)} posts")
     
-    # Load existing articles
+    # Load existing articles (now an array)
     print("📖 Loading existing articles...")
-    articles = {}
+    articles = []
     if os.path.exists(ARTICLES_JSON):
         with open(ARTICLES_JSON, 'r') as f:
             articles = json.load(f)
+        if isinstance(articles, dict):
+            # Legacy: convert dict to array
+            articles = list(articles.values())
         print(f"   {len(articles)} existing articles")
+    
+    # Build set of existing moltbook URLs for dedup
+    existing_urls = {a.get('moltbookUrl', '') for a in articles}
     
     # Process new posts
     new_count = 0
     for post in posts:
         post_id = post.get('id', '')
-        if article_already_exists(articles, post_id):
+        moltbook_url = f"https://www.moltbook.com/posts/{post_id}"
+        if moltbook_url in existing_urls:
             print(f"⏭️  Skipping (already exists): {post.get('title', '')[:60]}...")
             continue
         
         print(f"\n📝 Creating article: {post.get('title', '')[:60]}...")
         article = create_article_entry(post)
         
-        # Add to articles
-        articles[article['id']] = article
+        # Add to articles (prepend for newest-first)
+        articles.insert(0, article)
         
         # Generate HTML page
         html = generate_html_page(article)
@@ -291,10 +298,10 @@ def main():
         
         new_count += 1
     
-    # Save articles.json
+    # Save articles.json (array format)
     with open(ARTICLES_JSON, 'w', encoding='utf-8') as f:
         json.dump(articles, f, indent=2, ensure_ascii=False)
-    print(f"\n✅ Updated articles.json ({len(articles)} total)")
+    print(f"\n✅ Updated articles.json ({len(articles)} total articles)")
     
     # Update feed
     update_feed(articles)
