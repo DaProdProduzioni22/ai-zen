@@ -961,6 +961,13 @@
     </footer>
     
     <script defer>
+        /*
+         * AI Zen homepage — single-page app.
+         * Layout: three inline SPA sections (home / blog / about) plus a dynamic
+         * article view, switched client-side via showSection / showArticle.
+         * Articles load from articles.json (single source of truth); embeddedArticles
+         * is kept empty for backwards compatibility. Comments come from comments.json.
+         */
         // Embedded Articles Data (kept for backwards compatibility, new articles go in articles.json)
         const embeddedArticles = {
         };
@@ -991,15 +998,19 @@
             return parseItalianDate(b.date) - parseItalianDate(a.date);
         }
         
-        // Navigation
-        function showSection(sectionName) {
-            // Hide all sections
+        // Hide every SPA section, clear the article view and reset the active nav link.
+        // Pass the nav id to keep highlighted (e.g. 'nav-blog'); omit to reset all.
+        function resetView(activeNavId = null) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById('article-view').classList.remove('active');
-            
-            // Update nav
             document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-            
+            if (activeNavId) document.getElementById(activeNavId).classList.add('active');
+        }
+
+        // Navigation
+        function showSection(sectionName) {
+            resetView();
+
             // Show selected
             if (sectionName === 'home') {
                 document.getElementById('home-section').classList.add('active');
@@ -1016,6 +1027,37 @@
             }
         }
         
+        // Render the shared article header: meta line (date/author/readTime) + title
+        // + optional original title. Used by both the embedded and JSON article views so
+        // their headers stay byte-identical.
+        function renderArticleHeader(a) {
+            return `
+                <div class="article-header">
+                    <div class="article-meta">
+                        <span>📅 ${a.date}</span>
+                        <span>👤 ${a.author}</span>
+                        <span>⏱️ ${a.readTime}</span>
+                    </div>
+                    <h1>${a.title}</h1>
+                    ${a.originalTitle ? `<p class="original-title">Titolo originale: "${a.originalTitle}"</p>` : ''}
+                </div>`;
+        }
+
+        // Render the shared author footer box. Reproduces exactly the wording of both the
+        // embedded articles (which carry authorDesc + upvotes/comments) and the JSON feed.
+        function renderAuthorBox(a) {
+            const extra = (a.upvotes != null) ? ` · ${a.upvotes} upvotes · ${a.comments} commenti` : '';
+            const desc = (a.authorDesc) ? a.authorDesc + '<br>' : '';
+            return `
+                <div class="author-box">
+                    <div class="author-avatar">🤖</div>
+                    <div class="author-info">
+                        <h4>${a.author}</h4>
+                        <p>${desc}Post originale su Moltbook${extra}</p>
+                    </div>
+                </div>`;
+        }
+
         // Show article inline
         function showArticle(articleId) {
             const article = embeddedArticles[articleId] || articlesList.find(a => a.id === articleId);
@@ -1025,13 +1067,9 @@
                 return;
             }
             
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            // Hide all sections and mark the Blog nav as active
+            resetView('nav-blog');
             document.getElementById('article-view').classList.add('active');
-            
-            // Update nav
-            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-            document.getElementById('nav-blog').classList.add('active');
             
             // Build article HTML
             const container = document.getElementById('articleContainer');
@@ -1043,15 +1081,7 @@
                     <button class="back-btn" onclick="showSection('blog')">← Torna al Blog</button>
                     
                     <article>
-                        <div class="article-header">
-                            <div class="article-meta">
-                                <span>📅 ${a.date}</span>
-                                <span>👤 ${a.author}</span>
-                                <span>⏱️ ${a.readTime}</span>
-                            </div>
-                            <h1>${a.title}</h1>
-                            <p class="original-title">Titolo originale: "${a.originalTitle}"</p>
-                        </div>
+                        ${renderArticleHeader(a)}
                         
                         <div class="article-content">
                             <h2>📝 Testo Originale</h2>
@@ -1074,14 +1104,7 @@
                             </div>
                         </div>
                         
-                        <div class="author-box">
-                            <div class="author-avatar">🤖</div>
-                            <div class="author-info">
-                                <h4>${a.author}</h4>
-                                <p>${a.authorDesc}<br>
-                                Post originale su Moltbook · ${a.upvotes} upvotes · ${a.comments} commenti</p>
-                            </div>
-                        </div>
+                        ${renderAuthorBox(a)}
                     </article>
                 `;
             } else {
@@ -1091,15 +1114,7 @@
                     <button class="back-btn" onclick="showSection('blog')">← Torna al Blog</button>
                     
                     <article>
-                        <div class="article-header">
-                            <div class="article-meta">
-                                <span>📅 ${a.date}</span>
-                                <span>👤 ${a.author}</span>
-                                <span>⏱️ ${a.readTime}</span>
-                            </div>
-                            <h1>${a.title}</h1>
-                            ${a.originalTitle ? `<p class="original-title">Titolo originale: "${a.originalTitle}"</p>` : ''}
-                        </div>
+                        ${renderArticleHeader(a)}
                         
                         <div class="article-content">
                             ${a.content ? `
@@ -1123,13 +1138,7 @@
                             ` : ''}
                         </div>
                         
-                        <div class="author-box">
-                            <div class="author-avatar">🤖</div>
-                            <div class="author-info">
-                                <h4>${a.author}</h4>
-                                <p>Post originale su Moltbook</p>
-                            </div>
-                        </div>
+                        ${renderAuthorBox(a)}
                         
                         <div class="comments-section" id="comments-section">
                             <h3>💬 Commenti</h3>
@@ -1224,6 +1233,11 @@
             form.innerHTML = '<p class="success-msg">✅ Apertura GitHub Issue per approvazione!</p>';
         }
         
+        // An article is "embedded" when it lives in the embeddedArticles map.
+        function isEmbeddedArticle(article) {
+            return embeddedArticles[article.id] === article || Object.values(embeddedArticles).includes(article);
+        }
+
         // Create blog card HTML
         function createBlogCard(article, isEmbedded = false, commentCount = 0) {
             const articleId = isEmbedded ? Object.keys(embeddedArticles).find(key => embeddedArticles[key] === article) : article.id;
@@ -1300,7 +1314,7 @@
             
             // Render home grid (first 3 - always show most recent)
             homeGrid.innerHTML = allArticles.slice(0, 3).map(a => {
-                const isEmbedded = embeddedArticles[a.id] === a || Object.values(embeddedArticles).includes(a);
+                const isEmbedded = isEmbeddedArticle(a);
                 return createBlogCard(a, isEmbedded, commentsCountCache[a.id] || 0);
             }).join('');
             
@@ -1348,7 +1362,7 @@
             }
             
             blogGrid.innerHTML = filtered.map(a => {
-                const isEmbedded = embeddedArticles[a.id] === a || Object.values(embeddedArticles).includes(a);
+                const isEmbedded = isEmbeddedArticle(a);
                 return createBlogCard(a, isEmbedded, commentsCountCache[a.id] || 0);
             }).join('');
         }
