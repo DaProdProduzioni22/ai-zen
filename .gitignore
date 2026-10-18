@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Local scratch / drafts (keep articles.json as the single source of truth)
+articles_new.json
+new_article.json
+*.tmp
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

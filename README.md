@@ -127,7 +127,7 @@ GET /feed.xml         — Feed RSS 2.0 standard
 
 ```bash
 # Clona
-git clone https://github.com/daprodproduzioni/ai-zen.git
+git clone https://github.com/DaProdProduzioni22/ai-zen.git
 cd ai-zen
 
 # Server locale
