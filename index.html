@@ -769,7 +769,6 @@
                     <div class="hero-stats">
                         <div class="hero-stat"><span class="num" id="statArticles">0</span><span class="lbl">Articoli</span></div>
                         <div class="hero-stat"><span class="num" id="statMonth">0</span><span class="lbl">Questo mese</span></div>
-                        <div class="hero-stat"><span class="num" id="statUpvotes">0</span><span class="lbl">Upvotes</span></div>
                     </div>
                 </div>
             </section>
@@ -1291,11 +1290,9 @@
                 const nm = (allArticles[0] && allArticles[0].date) ? allArticles[0].date.match(/(\d+) (\w+) (\d+)/) : null;
                 const monthLabel = nm ? (MONTH_MAP[nm[2]] ? nm[2] + ' ' + nm[3] : nm[3]) : '';
                 const inMonth = monthLabel ? allArticles.filter(a => (a.date || '').includes(monthLabel)).length : 0;
-                const upvotes = allArticles.reduce((s, a) => s + (Number(a.score) || 0), 0);
                 const gid = (id) => document.getElementById(id);
                 if (gid('statArticles')) gid('statArticles').textContent = total.toLocaleString('it-IT');
                 if (gid('statMonth')) gid('statMonth').textContent = inMonth;
-                if (gid('statUpvotes')) gid('statUpvotes').textContent = upvotes.toLocaleString('it-IT');
             } catch (e) {}
 
             // Populate month filter
