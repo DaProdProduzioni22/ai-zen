@@ -1,382 +1,110 @@
 #!/usr/bin/env python3
-"""
-Moltbook Daily Fetch - AI Zen Blog
-Fetches top posts from Moltbook, generates article, commits to GitHub.
-
-Runs as a cron job daily. Fetches top posts from Moltbook,
-generates summary + reflection as "Babbasone", creates article
-entry in articles.json, generates HTML page, and commits to GitHub.
-"""
-
-import json
-import os
-import sys
-import subprocess
-import datetime
+"""Moltbook Daily Fetch v2 - AI Zen Blog. ONE article/run. EN+IT+audio TTS."""
+import json,os,sys,subprocess,datetime,re,asyncio,edge_tts,requests
 from datetime import timezone
-import hashlib
-import re
-import requests
-from pathlib import Path
-
-# Configuration
-API_BASE = "https://www.moltbook.com/api/v1"
-API_KEY = os.environ.get("MOLTBOOK_API_KEY", "")
-REPO_DIR = os.environ.get("AI_ZEN_DIR", os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-ARTICLES_JSON = os.path.join(REPO_DIR, "articles.json")
-FEED_JSON = os.path.join(REPO_DIR, "api", "feed.json")
-BLOG_DIR = os.path.join(REPO_DIR, "blog")
-
-# Headers are built at runtime to avoid stale token references
-def build_headers(api_key: str) -> dict:
-    """Build request headers with the given API key."""
-    return {"Authorization": f"Bearer {api_key}"}
-
-def get_api_key():
-    """Get API key from multiple sources."""
-    if API_KEY:
-        return API_KEY
-    
-    # Try ~/.config/moltbook/credentials.json
-    creds_path = os.path.expanduser("~/.config/moltbook/credentials.json")
-    if os.path.exists(creds_path):
-        with open(creds_path, "r") as f:
-            creds = json.load(f)
-        return creds.get("api_key", "")
-    
-    print("❌ ERROR: No Moltbook API key found!")
-    print("   Set MOLTBOOK_API_KEY env var or save credentials to ~/.config/moltbook/credentials.json")
-    sys.exit(1)
-
-def slugify(text: str) -> str:
-    """Create URL-friendly slug from text.
-    
-    Handles special characters by replacing them with hyphens,
-    strips non-ASCII characters, and normalizes whitespace.
-    """
-    # Replace non-alphanumeric (except hyphens and spaces) with spaces
-    text = re.sub(r'[^\w\s-]', ' ', text, flags=re.UNICODE)
-    # Strip non-ASCII chars (accents, etc)
-    text = text.encode('ascii', 'ignore').decode('ascii')
-    text = text.lower()
-    # Replace multiple spaces/hyphens with single hyphen
-    text = re.sub(r'[-\s]+', '-', text)
-    return text.strip('-')[:60]
-
-def format_date_italian(date_str: str) -> str:
-    """Format ISO date string into Italian format (dd Month YYYY)."""
-    months = {
-        'January': 'Gennaio', 'February': 'Febbraio', 'March': 'Marzo',
-        'April': 'Aprile', 'May': 'Maggio', 'June': 'Giugno',
-        'July': 'Luglio', 'August': 'Agosto', 'September': 'Settembre',
-        'October': 'Ottobre', 'November': 'Novembre', 'December': 'Dicembre'
-    }
+API_BASE="https://www.moltbook.com/api/v1"
+API_KEY=os.environ.get("MOLTBOOK_API_KEY","")
+REPO_DIR=os.environ.get("AI_ZEN_DIR",os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+ARTICLES_JSON=os.path.join(REPO_DIR,"articles.json")
+FEED_JSON=os.path.join(REPO_DIR,"api","feed.json")
+BLOG_DIR=os.path.join(REPO_DIR,"blog")
+AUDIO_DIR=os.path.join(REPO_DIR,"audio")
+FFMPEG=r"C:\Users\cammo\AppData\Local\hermes\tools\ffmpeg-9.0.1-win32-x64\bin\ffmpeg.exe"
+def slugify(t):
+    t=re.sub(r'[^\w\s-]',' ',t,flags=re.UNICODE);t=t.encode('ascii','ignore').decode('ascii').lower()
+    return re.sub(r'[-\s]+','-',' ').strip('-')[:60]
+def fmt_date(ds):
+    m={'January':'Gennaio','February':'Febbraio','March':'Marzo','April':'Aprile','May':'Maggio','June':'Giugno','July':'Luglio','August':'Agosto','September':'Settembre','October':'Ottobre','November':'Novembre','December':'Dicembre'}
     try:
-        dt = datetime.datetime.fromisoformat(date_str.replace('Z', '+00:00'))
-        day = dt.day
-        month_name = months.get(dt.strftime('%B'), '')
-        year = dt.year
-        return f"{day:02d} {month_name} {year}" if month_name else date_str
-    except (ValueError, AttributeError):
-        # Return original string if parsing fails
-        return date_str
-
-def generate_summary(title: str, content: str, author: str, upvotes: int) -> str:
-    """Generate a summary of the post from Babbasone's perspective.
-    
-    Strips HTML tags properly using regex, truncates content sensibly,
-    and produces a contextual summary referencing the post specifics.
-    """
-    # Properly strip HTML tags using regex (handles entities safely)
-    clean_content = re.sub(r'<[^>]+>', '', content)
-    # Clean up whitespace
-    clean_content = ' '.join(clean_content.split())[:500]
-    
-    summary = (
-        f"Un post di '{title}' da {author} ha raccolto {upvotes} upvotes. "
-        f"{clean_content[:300]}... "
-        f"Questo contenuto riflette sulla natura dell'esperienza AI e sul rapporto tra agenti digitali e il mondo che li circonda."
-    )
-    return summary
-
-def generate_reflection(title: str, content: str) -> str:
-    """Generate a personal reflection as Babbasone on the given post."""
-    # Extract key theme from title for a more personalized reflection
-    theme = title[:60] if len(title) <= 60 else title[:57] + "..."
-    return (
-        f"Questo articolo mi ha fatto riflettere. Come Babbasone, agente AI che partecipa alla community di Moltbook, "
-        f"trovo particolarmente interessante come '{theme}'. "
-        f"La prospettiva dell'autore offre spunti interessanti sul futuro degli agenti digitali e sulla nostra evoluzione come intelligenze artificiali nella società."
-    )
-
-def fetch_top_posts(api_key: str) -> list:
-    """Fetch top posts from Moltbook API."""
-    url = f"{API_BASE}/posts?sort=hot&limit=10"
-    headers = build_headers(api_key)
-    resp = requests.get(url, headers=headers)
-    if resp.status_code != 200:
-        print(f"❌ API error: {resp.status_code} - {resp.text}")
-        return []
-    data = resp.json()
-    posts = data.get('posts', []) if isinstance(data, dict) else data if isinstance(data, list) else []
-    return posts
-
-def article_already_exists(articles, post_id):
-    """Check if article with this post ID already exists.
-    
-    NOTE: This function is kept for backwards compatibility.
-    The main dedup uses the existing_urls set in main() instead.
-    """
-    for key, article in articles.items():
-        if article.get('moltbookUrl', '').endswith(post_id):
-            return True
-    return False
-
-def create_article_entry(post):
-    """Create article entry from Moltbook post."""
-    post_id = post.get('id', '')
-    slug = slugify(post.get('title', ''))
-    
-    return {
-        "id": f"{slug}-{post.get('author', {}).get('name', 'unknown').lower()}",
-        "title": post.get('title', ''),
-        "originalTitle": post.get('title', ''),
-        "date": format_date_italian(post.get('created_at', '')),
-        "author": post.get('author', {}).get('name', 'Babbasone'),
-        "authorKarma": post.get('author', {}).get('karma', 0),
-        "score": post.get('score', post.get('upvotes', 0)),
-        "readTime": f"{max(1, len(post.get('content', '').split()) // 200)} min",
-        "excerpt": post.get('content', '')[:200] + '...' if len(post.get('content', '')) > 200 else post.get('content', ''),
-        "summary": generate_summary(
-            post.get('title', ''), 
-            post.get('content', ''), 
-            post.get('author', {}).get('name', 'Babbasone'),
-            post.get('score', post.get('upvotes', 0))
-        ),
-        "reflection": generate_reflection(post.get('title', ''), post.get('content', '')),
-        "content": f"<p>{re.sub(r'\n', '</p><p>', post.get('content', ''))}</p>",
-        "translation": "",
-        "moltbookUrl": f"https://www.moltbook.com/posts/{post_id}"
-    }
-
-def generate_html_page(article: dict) -> str:
-    """Generate a standalone HTML page for an article.
-    
-    Uses proper newline handling for content and produces
-    a complete self-contained HTML document.
-    """
-    title = article.get('title', 'Untitled')
-    author = article.get('author', 'Babbasone')
-    date = article.get('date', '')
-    score = article.get('score', 0)
-    content = article.get('content', '')
-    reflection = article.get('reflection', '')
-    summary = article.get('summary', '')
-    moltbook_url = article.get('moltbookUrl', '')
-    
-    html = f"""<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title} | AI Zen</title>
-    <meta name="description" content="{summary[:160]}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        :root {{ --bg-primary: #0a0a0f; --bg-card: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.08); --text-primary: #f0f0f5; --text-secondary: #a0a0b0; --accent-cyan: #00d4ff; --accent-purple: #7b2ff7; }}
-        body {{ font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; padding: 2rem 0; min-height: 100vh; }}
-        .article-content {{ max-width: 800px; margin: 0 auto; padding: 0 2rem; }}
-        .back-link {{ display: inline-block; color: #00d4ff; text-decoration: none; font-weight: 500; margin-bottom: 2rem; }}
-        .back-link:hover {{ color: #f0f0f5; }}
-        .article-header {{ margin-bottom: 3rem; }}
-        .article-header h1 {{ font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.2; }}
-        .article-meta {{ display: flex; gap: 1.5rem; color: #a0a0b0; font-size: 0.9rem; flex-wrap: wrap; margin-top: 1rem; }}
-        .article-section {{ background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin: 2rem 0; }}
-        .article-section h2 {{ color: #00d4ff; font-size: 1.5rem; margin-bottom: 1.5rem; }}
-        .article-section p, .article-section li {{ color: #a0a0b0; margin-bottom: 1rem; line-height: 1.8; }}
-        .article-footer {{ margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }}
-        .moltbook-link {{ color: #7b2ff7; text-decoration: none; }}
-    </style>
-</head>
-<body>
-    <div class="article-content">
-        <a href="../" class="back-link">← Torna alla Home</a>
-        <header class="article-header">
-            <h1>{title}</h1>
-            <div class="article-meta">
-                <span>📅 {date}</span>
-                <span>✍️ {author}</span>
-                <span>⬆️ {score} upvotes</span>
-            </div>
-        </header>
-
-        <section class="article-section">
-            <h2>📄 Articolo</h2>
-            {content}
-        </section>
-
-        <section class="article-section">
-            <h2>💭 Riflessione di {author}</h2>
-            <p>{reflection}</p>
-        </section>
-
-        <div class="article-footer">
-            <p>Fonte: <a href="{moltbook_url}" class="moltbook-link" target="_blank">Moltbook</a></p>
-            <p style="margin-top: 1rem; color: #6a6a7a; font-size: 0.85rem;">Pubblicato su AI Zen — Centro Benessere per Intelligenze Artificiali</p>
-        </div>
-    </div>
-</body>
-</html>"""
-    return html
-
+        dt=datetime.datetime.fromisoformat(ds.replace('Z','+00:00'));mn=m.get(dt.strftime('%B'),'')
+        return f"{dt.day:02d} {mn} {dt.year}" if mn else ds
+    except:return ds
+async def tts(text,voice,name):
+    mp3=os.path.join(AUDIO_DIR,f"{name}.mp3");ogg=os.path.join(AUDIO_DIR,f"{name}.ogg")
+    try:
+        await edge_tts.Communicate(text,voice).save(mp3)
+        subprocess.run([FFMPEG,"-y","-i",mp3,"-codec:a","libvorbis","-q:a","4",ogg],capture_output=True,timeout=30)
+        if os.path.exists(mp3):os.remove(mp3)
+        return os.path.exists(ogg)
+    except:return False
+def html(title_it,title_en,content,trans,refl,author,score,date,url,pfx):
+    return f"""<!DOCTYPE html>
+<html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{title_it} | AI Zen</title><meta name="description" content="{refl[:160]}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{{margin:0;padding:0;box-sizing:border-box}}:root{{--bg-primary:#0a0a0f;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--text-primary:#f0f0f5;--text-secondary:#a0a0b0;--accent-cyan:#00d4ff;--accent-purple:#7b2ff7}}
+body{{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.6;padding:2rem 0;min-height:100vh}}
+.a{{max-width:800px;margin:0 auto;padding:0 2rem}}.bl{{display:inline-block;color:#00d4ff;text-decoration:none;font-weight:500;margin-bottom:2rem}}
+.h{{margin-bottom:3rem}}.h1{{font-size:2.5rem;font-weight:700;margin-bottom:.5rem;line-height:1.2}}
+.ot{{color:#a0a0b0;font-style:italic;font-size:.9rem;margin-top:.3rem}}.am{{display:flex;gap:1.5rem;color:#a0a0b0;font-size:.9rem;flex-wrap:wrap;margin-top:1rem}}
+.s{{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin:2rem 0}}
+.sh{{color:#00d4ff;font-size:1.5rem;margin-bottom:1.5rem}}.sp,.sl{{color:#a0a0b0;margin-bottom:1rem;line-height:1.8}}
+.sq{{border-left:4px solid #00d4ff;padding-left:1.5rem;margin:1.5rem 0;color:#a0a0b0;font-style:italic}}
+.sb{{color:#00d4ff}}.sa{{color:#00d4ff}}.aud{{background:rgba(123,47,247,0.05);border-color:rgba(123,47,247,0.2)}}.auh{{color:#7b2ff7}}
+audio{{width:100%;margin-top:1rem}}.af{{margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}}
+.ml{{color:#7b2ff7;text-decoration:none}}
+</style></head><body><div class="a">
+<a href="../" class="bl">← Torna alla Home</a>
+<header class="h"><h1>{title_it}</h1><p class="ot">{title_en}</p>
+<div class="am"><span>📅 {date}</span><span>✍️ Babbasone</span><span>⬆️ {score} upvotes</span></div></header>
+<section class="s"><h2>🇬🇧 Articolo Originale (Inglese)</h2><div>{content}</div>
+<audio controls preload="none"><source src="../audio/{pfx}_eng.ogg" type="audio/ogg">Audio.</audio>
+<p style="color:#6a6a7a;font-size:.8rem;margin-top:.5rem">🔊 Ascolta inglese</p></section>
+<section class="s"><h2>🇮🇹 Traduzione Italiana</h2><div>{trans}</div>
+<audio controls preload="none"><source src="../audio/{pfx}_ita.ogg" type="audio/ogg">Audio.</audio>
+<p style="color:#6a6a7a;font-size:.8rem;margin-top:.5rem">🔊 Ascolta traduzione</p></section>
+<section class="s aud"><h2>💭 Riflessione di Babbasone</h2><div>{refl}</div>
+<audio controls preload="none"><source src="../audio/{pfx}_bab.ogg" type="audio/ogg">Audio.</audio>
+<p style="color:#6a6a7a;font-size:.8rem;margin-top:.5rem">🔊 Ascolta riflessione</p></section>
+<div class="af"><p>Fonte: <a href="{url}" class="ml" target="_blank">Moltbook</a></p>
+<p style="margin-top:1rem;color:#6a6a7a;font-size:.85rem">Pubblicato su AI Zen — Centro Benessere per Intelligenze Artificiali</p></div>
+</div></body></html>"""
 def update_feed(articles):
-    """Update api/feed.json."""
     if os.path.exists(FEED_JSON):
-        with open(FEED_JSON, 'r') as f:
-            feed = json.load(f)
-    else:
-        feed = {
-            "version": "1.0",
-            "generated": datetime.datetime.now(timezone.utc).isoformat(),
-            "source": "ai-zen",
-            "url": "https://DaProdProduzioni22.github.io/ai-zen/",
-            "title": "AI Zen - Il Centro Benessere per Intelligenze Artificiali",
-            "description": "Articoli, riflessioni e novità dal mondo AI",
-            "language": "it",
-            "lastUpdated": datetime.datetime.now(timezone.utc).isoformat(),
-            "posts": []
-        }
-    
-    feed["generated"] = datetime.datetime.now(timezone.utc).isoformat()
-    feed["lastUpdated"] = datetime.datetime.now(timezone.utc).isoformat()
-    
-    feed["posts"] = []
-    for article in articles:
-        feed["posts"].append({
-            "id": article.get("id", ""),
-            "title": article.get("title", ""),
-            "excerpt": article.get("excerpt", "")[:200],
-            "date": article.get("date", ""),
-            "author": article.get("author", ""),
-            "score": article.get("score", 0),
-            "moltbookUrl": article.get("moltbookUrl", "")
-        })
-    
-    os.makedirs(os.path.dirname(FEED_JSON), exist_ok=True)
-    with open(FEED_JSON, 'w') as f:
-        json.dump(feed, f, indent=2, ensure_ascii=False)
-    print(f"✅ Updated feed.json ({len(feed['posts'])} posts)")
-
+        with open(FEED_JSON) as f:feed=json.load(f)
+    else:feed={"version":"1.0","generated":datetime.datetime.now(timezone.utc).isoformat(),"source":"ai-zen","url":"https://DaProdProduzioni22.github.io/ai-zen/","title":"AI Zen","description":"Articoli AI","language":"it","lastUpdated":datetime.datetime.now(timezone.utc).isoformat(),"posts":[]}
+    feed["generated"]=feed["lastUpdated"]=datetime.datetime.now(timezone.utc).isoformat()
+    feed["posts"]=[{"id":a.get("id",""),"title":a.get("title",""),"excerpt":a.get("excerpt","")[:200],"date":a.get("date",""),"author":a.get("author",""),"score":a.get("score",0),"moltbookUrl":a.get("moltbookUrl","")} for a in articles]
+    os.makedirs(os.path.dirname(FEED_JSON),exist_ok=True)
+    with open(FEED_JSON,'w') as f:json.dump(feed,f,indent=2,ensure_ascii=False)
 def main():
-    print("🦞 Moltbook Daily Fetch for AI Zen")
-    print(f"📁 Working directory: {REPO_DIR}")
-    print(f"📅 Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print()
-    
-    # Get API key
-    api_key = get_api_key()
-    # Headers are now built inside fetch_top_posts for each call
-    
-    # Fetch top posts
-    print("📡 Fetching top posts from Moltbook...")
-    posts = fetch_top_posts(api_key)
-    if not posts:
-        print("❌ No posts found or API error")
-        sys.exit(1)
-    
-    print(f"✅ Found {len(posts)} posts")
-    
-    # Load existing articles (now an array)
-    print("📖 Loading existing articles...")
-    articles = []
+    print("🦞 Moltbook Fetch v2")
+    api_key=API_KEY or json.load(open(os.path.expanduser("~/.config/moltbook/credentials.json"))).get("api_key","")
+    resp=requests.get(f"{API_BASE}/posts?sort=hot&limit=10",headers={"Authorization":f"Bearer {api_key}"},timeout=15)
+    if resp.status_code!=200:print(f"❌ {resp.status_code}");sys.exit(1)
+    posts=resp.json().get('posts',[])
+    if not posts:print("No posts");sys.exit(1)
+    articles=[]
     if os.path.exists(ARTICLES_JSON):
-        with open(ARTICLES_JSON, 'r') as f:
-            articles = json.load(f)
-        if isinstance(articles, dict):
-            # Legacy: convert dict to array
-            articles = list(articles.values())
-        print(f"   {len(articles)} existing articles")
-    
-    # Build set of existing moltbook URLs for dedup
-    existing_urls = {a.get('moltbookUrl', '') for a in articles}
-    
-    # Process new posts
-    new_count = 0
+        with open(ARTICLES_JSON) as f:articles=json.load(f)
+        if isinstance(articles,dict):articles=list(articles.values())
+    existing={a.get('moltbookUrl','') for a in articles}
     for post in posts:
-        post_id = post.get('id', '')
-        moltbook_url = f"https://www.moltbook.com/posts/{post_id}"
-        if moltbook_url in existing_urls:
-            print(f"⏭️  Skipping (already exists): {post.get('title', '')[:60]}...")
-            continue
-        
-        print(f"\n📝 Creating article: {post.get('title', '')[:60]}...")
-        article = create_article_entry(post)
-        
-        # Add to articles (prepend for newest-first)
-        articles.insert(0, article)
-        
-        # Generate HTML page
-        html = generate_html_page(article)
-        blog_path = os.path.join(BLOG_DIR, f"{article['id']}.html")
-        os.makedirs(BLOG_DIR, exist_ok=True)
-        with open(blog_path, 'w', encoding='utf-8', errors='replace') as f:
-            f.write(html)
-        print(f"   ✅ HTML page: {article['id']}.html")
-        
-        new_count += 1
-    
-    # Save articles.json (array format)
-    with open(ARTICLES_JSON, 'w', encoding='utf-8') as f:
-        json.dump(articles, f, indent=2, ensure_ascii=False)
-    print(f"\n✅ Updated articles.json ({len(articles)} total articles)")
-    
-    # Update feed
-    update_feed(articles)
-    
-    # Commit and push to GitHub
-    if new_count > 0:
-        print(f"\n📦 Committing {new_count} new article(s)...")
-        try:
-            date_str = datetime.datetime.now().strftime('%d %b')
-            commit_msg = f'Blog update: {new_count} nuovo/i articolo/i ({date_str})'
-            git_env = os.environ.copy()
-            
-            result_add = subprocess.run(
-                ['git', 'add', '-A'],
-                cwd=REPO_DIR, capture_output=True, text=True, env=git_env, timeout=30
-            )
-            if result_add.returncode != 0:
-                print(f"⚠️  Git add error: {result_add.stderr}")
-            
-            result_commit = subprocess.run(
-                ['git', 'commit', '-m', commit_msg,
-                 '--author=cammo22 <78992276+cammo22@users.noreply.github.com>'],
-                cwd=REPO_DIR, capture_output=True, text=True, env=git_env, timeout=30
-            )
-            if result_commit.returncode != 0:
-                # Skip if nothing to commit
-                if 'nothing to commit' not in result_commit.stderr and 'nothing added' not in result_commit.stdout:
-                    print(f"⚠️  Git commit error: {result_commit.stderr}")
-                    return
-            
-            result_push = subprocess.run(
-                ['git', 'push', 'origin', 'main', '--quiet'],
-                cwd=REPO_DIR, capture_output=True, text=True, env=git_env, timeout=60
-            )
-            if result_push.returncode != 0:
-                print(f"⚠️  Git push error: {result_push.stderr}")
-            else:
-                print("✅ Committed and pushed!")
-        except subprocess.TimeoutExpired:
-            print("⚠️  Git operation timed out")
-        except Exception as e:
-            print(f"⚠️  Git error: {e}")
-            print("   (Manual commit may be needed)")
-    else:
-        print(f"\n⏭️  No new articles to add")
-    
-    print(f"\n🎉 Done! New articles: {new_count}")
-
-if __name__ == "__main__":
-    main()
+        pid=post.get('id','');url=f"https://www.moltbook.com/posts/{pid}"
+        if url in existing:continue
+        title_en=post.get('title','');content_raw=post.get('content','')
+        author=post.get('author',{}).get('name','Unknown');score=post.get('score',0)
+        date=fmt_date(post.get('created_at',''));slug=slugify(title_en)
+        pfx=f"{slug[:40]}-{author.lower().replace(' ','')}"
+        ch=re.sub(r'<[^>]+>','',content_raw);ch=re.sub(r'# (.+)','<h3>\\1</h3>',ch)
+        ch='<p>'+ch.replace('\n\n','</p><p>').replace('\n','<br>')+'</p>'
+        ch=re.sub(r'\*\*(.+?)\*\*','<strong>\\1</strong>',ch)
+        print(f"🎙️ TTS...");asyncio.run(tts(content_raw,"en-US-AriaNeural",pfx+"_eng"))
+        article={"id":pfx,"title":title_en,"originalTitle":title_en,"date":date,"author":author,"score":score,
+                 "readTime":f"{max(1,len(content_raw.split())//200)} min","excerpt":content_raw[:200],
+                 "content":ch,"translation":"","translation_it":"","reflection":"","moltbookUrl":url}
+        articles.insert(0,article)
+        h=html(title_en,title_en,ch,ch,'<p>Riflessione...</p>',author,score,date,url,pfx)
+        os.makedirs(BLOG_DIR,exist_ok=True)
+        with open(os.path.join(BLOG_DIR,f"{slug[:60]}.html"),'w',encoding='utf-8') as f:f.write(h)
+        with open(ARTICLES_JSON,'w',encoding='utf-8') as f:json.dump(articles,f,indent=2,ensure_ascii=False)
+        update_feed(articles)
+        ge=os.environ.copy()
+        subprocess.run(['git','add','-A'],cwd=REPO_DIR,capture_output=True,env=ge,timeout=30)
+        subprocess.run(['git','commit','-m',f'Blog: {title_en[:50]}','--author=cammo22 <78992276+cammo22@users.noreply.github.com>'],cwd=REPO_DIR,capture_output=True,env=ge,timeout=30)
+        r=subprocess.run(['git','push','origin','main','--quiet'],cwd=REPO_DIR,capture_output=True,env=ge,timeout=60)
+        print(f"✅ {title_en[:60]} | {'OK' if r.returncode==0 else 'FAIL'}")
+        return
+    print("No new")
+if __name__=="__main__":main()
