@@ -233,7 +233,6 @@
         .no-articles { text-align: center; padding: 3rem; color: var(--text-muted); }
         
         /* Section Header Flex */
-        }
         
         .blog-card .date {
             font-size: 0.875rem;
@@ -887,7 +886,7 @@
         </div>
     </footer>
     
-    <script>
+    <script defer>
         // Embedded Articles Data (kept for backwards compatibility, new articles go in articles.json)
         const embeddedArticles = {
         };
@@ -897,6 +896,26 @@
         let currentMonthFilter = 'all';
         let allArticlesCache = [];
         let commentsCountCache = {};
+        
+        // Shared month lookup for date parsing and filtering
+        const MONTH_MAP = {
+            'Gennaio': 1, 'Febbraio': 2, 'Marzo': 3, 'Aprile': 4, 'Maggio': 5, 'Giugno': 6,
+            'Luglio': 7, 'Agosto': 8, 'Settembre': 9, 'Ottobre': 10, 'Novembre': 11, 'Dicembre': 12
+        };
+        
+        // Parse Italian date format "01 MonthName Year" → Date object
+        function parseItalianDate(dateStr) {
+            const match = dateStr?.match(/(\d+) (\w+) (\d+)/);
+            if (match) {
+                return new Date(parseInt(match[3]), MONTH_MAP[match[2]] - 1 || 0, parseInt(match[1]));
+            }
+            return new Date(0);
+        }
+        
+        // Sort articles by date (newest first)
+        function sortByDate(a, b) {
+            return parseItalianDate(b.date) - parseItalianDate(a.date);
+        }
         
         // Navigation
         function showSection(sectionName) {
@@ -1024,7 +1043,7 @@
                             ${a.reflection ? `
                             <div class="reflection-box">
                                 ${a.audio_riflessione ? `<audio class="section-audio reflection-audio" controls src="${a.audio_riflessione}"></audio>` : ''}
-                                <h3>💭 Riflessione di OreO</h3>
+                                <h3>💭 Riflessione di Babbasone</h3>
                                 <p class="reflection-text">${a.reflection}</p>
                             </div>
                             ` : ''}
@@ -1153,17 +1172,6 @@
             const homeGrid = document.getElementById('homeBlogGrid');
             const blogGrid = document.getElementById('blogGrid');
             
-            // Sort function by date (newest first)
-            const sortByDate = (a, b) => {
-                const months = { 'Gennaio': 1, 'Febbraio': 2, 'Marzo': 3, 'Aprile': 4, 'Maggio': 5, 'Giugno': 6, 'Luglio': 7, 'Agosto': 8, 'Settembre': 9, 'Ottobre': 10, 'Novembre': 11, 'Dicembre': 12 };
-                const parseDate = (d) => {
-                    const parts = d.date.match(/(\d+) (\w+) (\d+)/);
-                    if (parts) return new Date(parts[3], months[parts[2]] - 1, parseInt(parts[1]));
-                    return new Date(0);
-                };
-                return parseDate(b) - parseDate(a);
-            };
-            
             // Start with embedded articles
             let allArticles = Object.values(embeddedArticles);
             
@@ -1216,15 +1224,13 @@
         }
         
         function populateMonthFilter(articles) {
-            const months = { 'Gennaio': 1, 'Febbraio': 2, 'Marzo': 3, 'Aprile': 4, 'Maggio': 5, 'Giugno': 6, 'Luglio': 7, 'Agosto': 8, 'Settembre': 9, 'Ottobre': 10, 'Novembre': 11, 'Dicembre': 12 };
-            
             // Extract unique month-year combinations
             const monthYears = {};
             articles.forEach(a => {
                 const match = a.date.match(/(\d+)\s+(\w+)\s+(\d+)/);
                 if (match) {
                     const key = match[2] + ' ' + match[3]; // "Marzo 2026"
-                    const monthNum = months[match[2]] || 1;
+                    const monthNum = MONTH_MAP[match[2]] || 1;
                     monthYears[key] = (monthYears[key] || 0) + 1;
                 }
             });
@@ -1234,7 +1240,7 @@
                 const [monthA, yearA] = a.split(' ');
                 const [monthB, yearB] = b.split(' ');
                 if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA);
-                return (months[monthB] || 1) - (months[monthA] || 1);
+                return (MONTH_MAP[monthB] || 1) - (MONTH_MAP[monthA] || 1);
             });
             
             // Populate dropdown

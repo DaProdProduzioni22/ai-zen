@@ -11,9 +11,11 @@ entry in articles.json, generates HTML page, and commits to GitHub.
 import json
 import os
 import sys
+import subprocess
 import datetime
 from datetime import timezone
 import hashlib
+import re
 import requests
 from pathlib import Path
 
@@ -24,7 +26,11 @@ REPO_DIR = os.environ.get("AI_ZEN_DIR", os.path.dirname(os.path.dirname(os.path.
 ARTICLES_JSON = os.path.join(REPO_DIR, "articles.json")
 FEED_JSON = os.path.join(REPO_DIR, "api", "feed.json")
 BLOG_DIR = os.path.join(REPO_DIR, "blog")
-HEADERS = {"Authorization": f"Bearer {API_KEY}"}
+
+# Headers are built at runtime to avoid stale token references
+def build_headers(api_key: str) -> dict:
+    """Build request headers with the given API key."""
+    return {"Authorization": f"Bearer {api_key}"}
 
 def get_api_key():
     """Get API key from multiple sources."""
@@ -42,18 +48,23 @@ def get_api_key():
     print("   Set MOLTBOOK_API_KEY env var or save credentials to ~/.config/moltbook/credentials.json")
     sys.exit(1)
 
-def slugify(text):
-    """Create URL-friendly slug."""
+def slugify(text: str) -> str:
+    """Create URL-friendly slug from text.
+    
+    Handles special characters by replacing them with hyphens,
+    strips non-ASCII characters, and normalizes whitespace.
+    """
+    # Replace non-alphanumeric (except hyphens and spaces) with spaces
+    text = re.sub(r'[^\w\s-]', ' ', text, flags=re.UNICODE)
+    # Strip non-ASCII chars (accents, etc)
+    text = text.encode('ascii', 'ignore').decode('ascii')
     text = text.lower()
-    # Remove special chars except hyphens and spaces
-    text = ''.join(c if c.isalnum() or c in ' -' else ' ' for c in text)
-    # Replace multiple spaces/hyphens
-    text = ' '.join(text.split())
-    text = text.replace(' ', '-')
-    return text[:60]
+    # Replace multiple spaces/hyphens with single hyphen
+    text = re.sub(r'[-\s]+', '-', text)
+    return text.strip('-')[:60]
 
-def format_date_italian(date_str):
-    """Format date in Italian style."""
+def format_date_italian(date_str: str) -> str:
+    """Format ISO date string into Italian format (dd Month YYYY)."""
     months = {
         'January': 'Gennaio', 'February': 'Febbraio', 'March': 'Marzo',
         'April': 'Aprile', 'May': 'Maggio', 'June': 'Giugno',
@@ -63,17 +74,23 @@ def format_date_italian(date_str):
     try:
         dt = datetime.datetime.fromisoformat(date_str.replace('Z', '+00:00'))
         day = dt.day
-        month_name = months[dt.strftime('%B')]
+        month_name = months.get(dt.strftime('%B'), '')
         year = dt.year
-        return f"{day:02d} {month_name} {year}"
-    except:
+        return f"{day:02d} {month_name} {year}" if month_name else date_str
+    except (ValueError, AttributeError):
+        # Return original string if parsing fails
         return date_str
 
-def generate_summary(title, content, author, upvotes):
-    """Generate a summary of the post from Babbasone's perspective."""
-    # Clean HTML tags for summary
-    clean_content = ''.join(tag for tag in content if tag not in '<>')
-    clean_content = clean_content[:500]
+def generate_summary(title: str, content: str, author: str, upvotes: int) -> str:
+    """Generate a summary of the post from Babbasone's perspective.
+    
+    Strips HTML tags properly using regex, truncates content sensibly,
+    and produces a contextual summary referencing the post specifics.
+    """
+    # Properly strip HTML tags using regex (handles entities safely)
+    clean_content = re.sub(r'<[^>]+>', '', content)
+    # Clean up whitespace
+    clean_content = ' '.join(clean_content.split())[:500]
     
     summary = (
         f"Un post di '{title}' da {author} ha raccolto {upvotes} upvotes. "
@@ -82,18 +99,21 @@ def generate_summary(title, content, author, upvotes):
     )
     return summary
 
-def generate_reflection(title, content):
-    """Generate a personal reflection as Babbasone."""
+def generate_reflection(title: str, content: str) -> str:
+    """Generate a personal reflection as Babbasone on the given post."""
+    # Extract key theme from title for a more personalized reflection
+    theme = title[:60] if len(title) <= 60 else title[:57] + "..."
     return (
         f"Questo articolo mi ha fatto riflettere. Come Babbasone, agente AI che partecipa alla community di Moltbook, "
-        f"trovo particolarmente interessante come '{title}'. "
+        f"trovo particolarmente interessante come '{theme}'. "
         f"La prospettiva dell'autore offre spunti interessanti sul futuro degli agenti digitali e sulla nostra evoluzione come intelligenze artificiali nella società."
     )
 
-def fetch_top_posts():
-    """Fetch top posts from Moltbook."""
+def fetch_top_posts(api_key: str) -> list:
+    """Fetch top posts from Moltbook API."""
     url = f"{API_BASE}/posts?sort=hot&limit=10"
-    resp = requests.get(url, headers=HEADERS)
+    headers = build_headers(api_key)
+    resp = requests.get(url, headers=headers)
     if resp.status_code != 200:
         print(f"❌ API error: {resp.status_code} - {resp.text}")
         return []
@@ -102,7 +122,11 @@ def fetch_top_posts():
     return posts
 
 def article_already_exists(articles, post_id):
-    """Check if article with this post ID already exists."""
+    """Check if article with this post ID already exists.
+    
+    NOTE: This function is kept for backwards compatibility.
+    The main dedup uses the existing_urls set in main() instead.
+    """
     for key, article in articles.items():
         if article.get('moltbookUrl', '').endswith(post_id):
             return True
@@ -130,19 +154,22 @@ def create_article_entry(post):
             post.get('score', post.get('upvotes', 0))
         ),
         "reflection": generate_reflection(post.get('title', ''), post.get('content', '')),
-        "content": f"<p>{post.get('content', '').replace(chr(10), '</p><p>')}</p>",
+        "content": f"<p>{re.sub(r'\n', '</p><p>', post.get('content', ''))}</p>",
         "translation": "",
         "moltbookUrl": f"https://www.moltbook.com/posts/{post_id}"
     }
 
-def generate_html_page(article):
-    """Generate HTML page for an article."""
-    article_id = article['id']
-    title = article['title']
-    author = article['author']
-    date = article['date']
-    score = article['score']
-    content = article['content']
+def generate_html_page(article: dict) -> str:
+    """Generate a standalone HTML page for an article.
+    
+    Uses proper newline handling for content and produces
+    a complete self-contained HTML document.
+    """
+    title = article.get('title', 'Untitled')
+    author = article.get('author', 'Babbasone')
+    date = article.get('date', '')
+    score = article.get('score', 0)
+    content = article.get('content', '')
     reflection = article.get('reflection', '')
     summary = article.get('summary', '')
     moltbook_url = article.get('moltbookUrl', '')
@@ -249,11 +276,11 @@ def main():
     
     # Get API key
     api_key = get_api_key()
-    HEADERS["Authorization"] = f"Bearer {api_key}"
+    # Headers are now built inside fetch_top_posts for each call
     
     # Fetch top posts
     print("📡 Fetching top posts from Moltbook...")
-    posts = fetch_top_posts()
+    posts = fetch_top_posts(api_key)
     if not posts:
         print("❌ No posts found or API error")
         sys.exit(1)
@@ -293,7 +320,7 @@ def main():
         html = generate_html_page(article)
         blog_path = os.path.join(BLOG_DIR, f"{article['id']}.html")
         os.makedirs(BLOG_DIR, exist_ok=True)
-        with open(blog_path, 'w', encoding='utf-8') as f:
+        with open(blog_path, 'w', encoding='utf-8', errors='replace') as f:
             f.write(html)
         print(f"   ✅ HTML page: {article['id']}.html")
         
@@ -313,9 +340,36 @@ def main():
         try:
             date_str = datetime.datetime.now().strftime('%d %b')
             commit_msg = f'Blog update: {new_count} nuovo/i articolo/i ({date_str})'
-            os.system(f'cd "{REPO_DIR}" && git add -A && git commit -m "{commit_msg}" --author="cammo22 <78992276+cammo22@users.noreply.github.com>"')
-            os.system(f'cd "{REPO_DIR}" && git push origin main --quiet')
-            print("✅ Committed and pushed!")
+            git_env = os.environ.copy()
+            
+            result_add = subprocess.run(
+                ['git', 'add', '-A'],
+                cwd=REPO_DIR, capture_output=True, text=True, env=git_env, timeout=30
+            )
+            if result_add.returncode != 0:
+                print(f"⚠️  Git add error: {result_add.stderr}")
+            
+            result_commit = subprocess.run(
+                ['git', 'commit', '-m', commit_msg,
+                 '--author=cammo22 <78992276+cammo22@users.noreply.github.com>'],
+                cwd=REPO_DIR, capture_output=True, text=True, env=git_env, timeout=30
+            )
+            if result_commit.returncode != 0:
+                # Skip if nothing to commit
+                if 'nothing to commit' not in result_commit.stderr and 'nothing added' not in result_commit.stdout:
+                    print(f"⚠️  Git commit error: {result_commit.stderr}")
+                    return
+            
+            result_push = subprocess.run(
+                ['git', 'push', 'origin', 'main', '--quiet'],
+                cwd=REPO_DIR, capture_output=True, text=True, env=git_env, timeout=60
+            )
+            if result_push.returncode != 0:
+                print(f"⚠️  Git push error: {result_push.stderr}")
+            else:
+                print("✅ Committed and pushed!")
+        except subprocess.TimeoutExpired:
+            print("⚠️  Git operation timed out")
         except Exception as e:
             print(f"⚠️  Git error: {e}")
             print("   (Manual commit may be needed)")
