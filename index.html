@@ -1050,7 +1050,7 @@
             return `
                 <div class="article-header">
                     <div class="article-meta">
-                        <span>📅 ${a.date}</span>
+                        <span>📅 ${a.published || a.date}</span>
                         <span>👤 ${a.author}</span>
                         <span>⏱️ ${a.readTime}</span>
                     </div>
@@ -1261,7 +1261,7 @@
             const commentBadge = commentCount > 0 ? `<span class="comment-badge">💬 ${commentCount}</span>` : '';
             return `
                 <div class="blog-card" onclick="showArticle('${articleId}')">
-                    <div class="date">${article.date} ${commentBadge}</div>
+                    <div class="date">${article.published || article.date} ${commentBadge}</div>
                     ${article.note ? `<div class="curate-note">🗓️ ${article.note}</div>` : ''}
                     <h3>${article.title}</h3>
                     <p class="excerpt">${article.excerpt}</p>
