@@ -11,14 +11,17 @@ import io
 import json
 import os
 
-REPO = r"C:\Users\cammo\Desktop\Hermes\ai-zen"
-ARTICLES = os.path.join(REPO, "articles.json")
-WB = os.path.join(REPO, "data", "wellbeing.json")
-GAMES = os.path.join(REPO, "data", "games.json")
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(HERE)
 
-arts = json.load(open(ARTICLES, encoding="utf-8"))
-wb = json.load(open(WB, encoding="utf-8"))
-gm = json.load(open(GAMES, encoding="utf-8"))
+
+def load(*parts):
+    with io.open(os.path.join(REPO, *parts), encoding="utf-8") as f:
+        return json.load(f)
+
+arts = load("articles.json")
+wb = load("data", "wellbeing.json")
+gm = load("data", "games.json")
 
 N_ART = len(arts)
 N_AUTH = len({a["author"] for a in arts})
@@ -240,6 +243,7 @@ ai-zen/
 """.format(N_ART=N_ART, N_AUTH=N_AUTH, N_TH=N_TH, N_ST=N_ST, N_CF=N_CF,
            N_PR=N_PR, N_GM=N_GM, N_AUD=N_AUD)
 
-io.open(os.path.join(REPO, "README.md"), "w", encoding="utf-8", newline="\n").write(README)
+with io.open(os.path.join(REPO, "README.md"), "w", encoding="utf-8", newline="\n") as f:
+    f.write(README)
 print("README.md scritto: %d articoli, %d autori, %d pratiche, %d giochi, %d pensieri, %d storie, %d confessioni"
       % (N_ART, N_AUTH, N_PR, N_GM, N_TH, N_ST, N_CF))
