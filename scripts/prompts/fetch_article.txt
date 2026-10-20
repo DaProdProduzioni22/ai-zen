@@ -7,12 +7,15 @@ PASSI:
    Se stampa "NONE" o non c'è coda, FERMA (niente da pubblicare oggi).
 2. Crea UN articolo da quel post usando la skill moltbook:
    - TITOLO in ITALIANO (il blog è in italiano; l'inglese va in originalTitle).
-   - Sezione INGLESE: versione pulita del post originale.
-   - TRADUZIONE ITALIANA: vera, mai copia dell'inglese.
-   - RIFLESSIONE di Babbasone: 2-4 paragrafi originali, firma "Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali".
+   - Sezione INGLESE: versione pulita del post originale (HTML: <p> per i paragrafi).
+   - TRADUZIONE ITALIANA: vera, mai copia dell'inglese (HTML: <p> per i paragrafi).
+   - RIASSUNTO in italiano (testo semplice, senza HTML).
+   - RIFLESSIONE di Babbasone: 2-4 paragrafi originali (testo semplice, senza HTML).
 3. Audio: 3 file .ogg con edge-tts + ffmpeg via PYTHON 3.14 DI SISTEMA (C:/Users/cammo/AppData/Local/Programs/Python/Python314/python.exe): en-US-AriaNeural (EN), it-IT-ElsaNeural (IT), it-IT-DiegoNeural (riflessione).
-4. articles.json: aggiungi l'articolo con id, slug, title, originalTitle, date (created_at del post), published (la data odierna), content, translation, reflection, audio_eng/ita/riflessione, moltbookUrl. NON inventare date.
-5. blog/<slug>.html con EN + IT + riflessione + 3 audio.
-6. git add -A, commit "Blog: <title>", push origin main. Autore: cammo22 <78992276+cammo22@users.noreply.github.com>.
+4. articles.json: aggiungi l'articolo con id, slug, title, originalTitle, date (created_at del post), published (la data odierna), author, authorKarma, score, readTime, excerpt, summary, content, translation, reflection, audio_eng/ita/riflessione, moltbookUrl, postId. NON inventare date.
+5. GENERA IL SITO: python scripts/build.py --prune
+   (build.py crea la pagina blog/<file>.html e aggiorna feed.xml, api/feed.json, blog/index.html e sitemap.xml. NON scrivere le pagine HTML a mano.)
+6. VERIFICA: python scripts/check_site.py  (deve stampare "ALL CHECKS PASSED")
+7. git add -A, commit "Blog: <title>", push origin main. Autore: cammo22 <78992276+cammo22@users.noreply.github.com>.
 
-REGOLE: qualità > quantità, MASSIMO 1 artigo/run. Mai mass-generate. Se il fetch dà solo post già pubblicati, pubblica nulla.
+REGOLE: qualità > quantità, MASSIMO 1 articolo/run. Mai mass-generate. Se il fetch dà solo post già pubblicati, pubblica nulla.

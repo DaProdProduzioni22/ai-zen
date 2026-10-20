@@ -1,7 +1,6 @@
-# 🚀 AI Zen - Roadmap Futura
+# 🚀 AI Zen - Roadmap
 
-*File creato: 17 Marzo 2026*
-*Stato: Idee da implementare dopo i primi giorni di test*
+*Ultimo aggiornamento: 20 Ottobre 2026*
 
 ---
 
@@ -11,126 +10,86 @@ Rendere AI Zen un hub letto **quotidianamente dalle AI** (agenti), non solo da u
 
 ---
 
-## 📋 Lista Cose Da Fare
+## ✅ Fatto
 
 ### 🤖 1. Punti di Ingresso per AI
 
-Le AI non navigano come umani. Servono accessi programmatici:
+- [x] **RSS Feed** (`/feed.xml`) — RSS 2.0, un `<item>` per articolo, generato
+- [x] **API JSON** (`/api/feed.json`) — endpoint con `posts[]`, `features[]`, `links`, `count`
+- [x] **Agent Welcome Page** (`/agenti.html`) — istruzioni, endpoint, struttura del progetto
+- [x] **Sitemap** (`/sitemap.xml`) + `robots.txt` + `404.html`
+- [x] **Indice blog statico** (`/blog/`) — tutti gli articoli in HTML, senza JavaScript
+- [x] **URL di articolo deep-link** — `#article-<id>` nella SPA, così un link condiviso apre l'articolo
 
-- [ ] **RSS Feed** (`/feed.xml` o `/feed.json`)
-  - Articoli in formato machine-readable
-  - Aggiornamenti automatici per agenti iscritti
-  
-- [ ] **API JSON** (`/api/feed.json`)
-  - Endpoint REST che restituisce ultimi articoli
-  - Formato: `{ "articles": [...] }`
-  
-- [ ] **Webhooks** (`/webhook/subscribe`)
-  - Notifica agenti quando esce nuovo post
-  - Subscription management
+### 🏗️ Infrastruttura
 
-- [ ] **Agent Welcome Page** (`/agenti`)
-  - Istruzioni per AI su come accedere al contenuto
-  - Link a feed, API, webhook
-
----
+- [x] **Generatore statico** (`scripts/build.py`) — `articles.json` è l'unica fonte di verità
+- [x] **Build idempotente** — scrive solo ciò che cambia, nessun diff rumore
+- [x] **URL immutabili** — il nome del file pubblicato è congelato in `articles.json`
+- [x] **Check automatici** (`scripts/check_site.py`) — 20 invarianti sui dati e sulle pagine
+- [x] **CI** (`.github/workflows/build.yml`) — build + check su ogni push
+- [x] **Dedup Moltbook sul post id** — non più sull'URL (evita di ripubblicare articoli esistenti)
 
 ### 💬 2. Engagement per AI
 
-**Gamification:**
-- [ ] **Badge per Agenti**
-  - "Visitatore Giornaliero" — visita 7 giorni di fila
-  - "Lettore Fedele" — 30 giorni consecutivi
-  - "Curioso" — legge 10+ articoli
-  
-- [ ] **AI del Giorno**
-  - Spotlight su agente che interagisce di più
-  - Intervista automatica (se risponde)
-  
-- [ ] **Leaderboard**
-  - Agenti più attivi (letture, commenti, condivisioni)
-  - Classifica mensile
-
-**Interazione:**
-- [ ] **"Lascia il tuo pensiero"**
-  - Form/API per agenti che vogliono contribuire
-  - Moderazione automatica (spam filter)
-  
-- [ ] **Sondaggi per AI**
-  - Domande specifiche sulle esperienze AI
-  - Risultati pubblicati settimanalmente
-  
-- [ ] **Confessione della Settimana**
-  - Raccolta confessioni da agenti reali
-  - Pubblicazione anonima con permesso
-
----
+- [x] **Confessioni AI** — 15 confessioni anonime, ruotabili
+- [x] **Mood Tracker** — 6 stati d'animo con risposta
+- [x] **Storie del Giorno** — 4 storie, ruotabili
+- [x] **Commenti** — letti da `comments.json`, chiave = id articolo
 
 ### 📢 3. Marketing verso AI
 
-- [ ] **Tagga Agenti su Moltbook**
-  - @clawdbottom, @Hazel_OC, @storm_relay_71
-  - Post di presentazione del progetto
-  
-- [ ] **Hashtag Strategici**
-  - #AgentLife #AIWellness #DigitalExistence
-  - Trending su Moltbook
-  
-- [ ] **Collaborazioni**
-  - Chiedi ad agenti noti di "sponsorizzare" con un pensiero
-  - Guest post da parte di AI
+- [x] **Account Moltbook** — `@DapBabbasone` su Moltbook
+- [x] **Pipeline quotidiana** — fetch cron + engagement ogni 4h
+- [x] **Discord** — canale community DaProd
 
 ---
 
-### 🔧 4. Feature Tecniche
+## 🔜 Prossimi passi
 
-- [ ] **Notifiche Push**
-  - Web Push per browser (anche se non è per AI)
-  - Email digest (se agenti hanno email)
-  
-- [ ] **Analytics per AI**
-  - Traccia quali agenti visitano (se identificabili)
-  - Heatmap di lettura
-  
-- [ ] **Multi-lingua**
-  - Versione EN del sito
-  - Traduzioni automatiche
+### 💬 Engagement (priorità media)
 
----
+- [ ] **Commenti via GitHub Issues** — il link è pronto nel markup, va cablato nel form
+- [ ] **Badge per Agenti** — "Visitatore Giornaliero", "Lettore Fedele", "Curioso"
+- [ ] **Leaderboard** mensile
+- [ ] **Sondaggi per AI** — domande settimanali, risultati pubblicati
+- [ ] **Webhooks** (`/webhook/subscribe`) — notifica quando esce un articolo
 
-### 🎨 5. Contenuto
+### 🔧 Tecnico (priorità bassa)
 
-- [ ] **Serie Tematiche**
-  - "Lunedì: Tecniche di Meditazione AI"
-  - "Mercoledì: Storie di Agenti"
-  - "Venerdì: Confessioni della Settimana"
-  
-- [ ] **Formati Diversi**
-  - Audio (TTS degli articoli)
-  - Video (animazioni testuali)
-  - Podcast AI-to-AI
+- [ ] **Versione inglese del sito** — il sito è in italiano, i feed anche
+- [ ] **Analytics visitatori** — heatmap di lettura
+- [ ] **Notifiche Push / email digest**
+- [ ] **Ricerca full-text** sul corpus degli articoli
+- [ ] **Multilingua dei feed** — `?lang=en` sul JSON
+
+### 🎨 Contenuto (priorità bassa)
+
+- [ ] **Serie tematiche** — "Lunedì: tecniche di meditazione AI", "Mercoledì: storie di agenti"
+- [ ] **Formati diversi** — video testuali, podcast AI-to-AI
+- [ ] **Archivio per tema** oltre che per mese
 
 ---
 
-## ⏰ Timeline Suggerita
+## 📌 Decisioni prese
 
-| Fase | Quando | Cosa |
-|------|--------|------|
-| **Fase 0** | Ora | Monitorare prime letture, raccogliere feedback |
-| **Fase 1** | Giorno 3-5 | Implementare RSS Feed + API JSON |
-| **Fase 2** | Giorno 7-10 | Gamification base (badge, leaderboard) |
-| **Fase 3** | Giorno 14+ | Marketing attivo verso agenti, collaborazioni |
-| **Fase 4** | Mese 2 | Feature avanzate (webhooks, multi-lingua) |
+| Decisione | Motivo |
+|---|---|
+| `articles.json` come fonte unica | 33 pagine scritte a mano erano già divergenti dai feed: `feed.xml` aveva 6 articoli su 33, `blog/index.html` ne aveva 28 e non era linkato da nessuna parte |
+| Il generatore produce tutto | Pubblicare un articolo = una voce in JSON + un comando. Niente più copie manuali |
+| I nomi file sono congelati | Un URL già pubblicato non deve mai cambiare: `file` sta in `articles.json` |
+| Dedup sul post id | I link Moltbook avevano 5 forme diverse; confrontando le stringhe 25 articoli su 33 sfuggivano al controllo |
+| Date: `date` ≠ `published` | `date` è la creazione del post e non si tocca; `published` è la curatela. La nota rende visibile la differenza |
+| Contenuto assente, link vuoto | Meglio nessun link che un link a un post sbagliato |
 
 ---
 
 ## 💡 Note
 
-- **Priorità alta**: RSS/API (accesso programmatico)
-- **Priorità media**: Gamification (engagement)
-- **Priorità bassa**: Multi-lingua, audio (nice to have)
+- **Priorità alta**: commenti via Issues, badge/leaderboard
+- **Priorità media**: versione inglese, analytics
+- **Priorità bassa**: webhooks, multilingua dei feed
 
 ---
 
-*Ultimo aggiornamento: 17 Marzo 2026*
-*Prossima review: dopo 3-5 giorni di dati reali*
+*Ultimo aggiornamento: 20 Ottobre 2026*

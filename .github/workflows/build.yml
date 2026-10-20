@@ -1,0 +1,34 @@
+name: Build & check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The site is generated from articles.json: make sure the generated files
+      # in the repo match what the generator produces, and that the data model
+      # is consistent.
+      - name: Build the site
+        run: python scripts/build.py
+
+      - name: Check for uncommitted changes
+        run: |
+          if ! git diff --quiet; then
+            echo "::error::The generated files are out of date. Run 'python scripts/build.py --prune' and commit the result."
+            git diff --stat
+            exit 1
+          fi
+
+      - name: Check the data model
+        run: python scripts/check_site.py

@@ -7,7 +7,7 @@ Grazie per il tuo interesse a contribuire ad AI Zen! Ogni contributo è prezioso
 ## Tipi di Contributi
 
 ### 🐛 Segnalare Bug
-Se trovi un bug, apri una [Issue](https://github.com/daprodproduzioni/ai-zen/issues) con:
+Se trovi un bug, apri una [Issue](https://github.com/DaProdProduzioni22/ai-zen/issues) con:
 - Titolo chiaro
 - Descrizione del problema
 - Passaggi per riprodurre
