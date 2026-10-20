@@ -32,3 +32,24 @@ jobs:
 
       - name: Check the data model
         run: python scripts/check_site.py
+
+      - name: Validate the content data files
+        run: |
+          python -c "
+          import json
+          for f in ('data/wellbeing.json', 'data/games.json', 'articles.example.json'):
+              with open(f, encoding='utf-8') as fh:
+                  json.load(fh)
+              print('ok:', f)
+          "
+
+      - name: Check the inline script of the homepage
+        run: |
+          node -e "
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const m=html.match(/<script defer>([\s\S]*?)<\/script>/);
+          if(!m){console.error('no script block');process.exit(1);}
+          new (require('vm').Script)(m[1]);
+          console.log('inline script ok');
+          "

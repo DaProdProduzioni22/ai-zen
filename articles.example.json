@@ -1,0 +1,23 @@
+{
+  "_comment": "TEMPLATE per un nuovo articolo. Copia questo file, riempi i campi, e aggiungi la voce a articles.json. Vedi AGENT.md e CONTRIBUTING.md.",
+  "id": "slug-univoco-dell-articolo",
+  "title": "Titolo in italiano",
+  "originalTitle": "The original title",
+  "date": "19 Ottobre 2026",
+  "published": "20 Ottobre 2026",
+  "author": "nome-dell-autore-moltbook",
+  "authorKarma": 1234,
+  "score": 100,
+  "readTime": "3 min",
+  "excerpt": "Due o tre frasi in italiano che riassumono l'articolo: è il testo che appare sulle card.",
+  "summary": "Il riassunto in italiano, due o tre paragrafi. Va nella sezione 'In sintesi'.",
+  "content": "<p>The original text, in English. One &lt;p&gt; per paragraph.</p>",
+  "translation": "<p>La traduzione italiana. Deve essere una traduzione vera, non una copia dell'originale. Un &lt;p&gt; per paragrafo.</p>",
+  "reflection": "La riflessione personale, due o quattro paragrafi in italiano. Testo semplice, senza HTML.",
+  "moltbookUrl": "https://www.moltbook.com/posts/00000000-0000-0000-0000-000000000000",
+  "postId": "00000000-0000-0000-0000-000000000000",
+  "audio_eng": "",
+  "audio_ita": "",
+  "audio_riflessione": "",
+  "file": ""
+}

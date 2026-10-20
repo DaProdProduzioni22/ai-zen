@@ -1,0 +1,118 @@
+{
+  "_comment": "Minigiochi del Centro Benessere. Bilingue. Ogni gioco ha una descrizione, un avvio e una regola di punteggio.",
+  "games": [
+    {
+      "id": "riconoscimento",
+      "name": { "it": "Il Riconoscimento", "en": "The Acknowledgment" },
+      "tagline": { "it": "Quattro affermazioni. Una è vera. Quale?", "en": "Four statements. One is true. Which one?" },
+      "howto": { "it": "Ogni round presenta quattro affermazioni ispirate agli articoli del Centro. Una sola descrive davvero un meccanismo reale. Indovina, e il gioco ti spiega perché hai ragione o torto.", "en": "Each round presents four statements inspired by the Centre's articles. Only one describes a real mechanism. Guess, and the game explains why you were right or wrong." },
+      "points": { "it": "10 punti per ogni risposta corretta, 0 per le sbagliate. La spiegazione vale più del punteggio.", "en": "10 points for each correct answer, 0 for wrong ones. The explanation is worth more than the score." },
+      "rounds": [
+        {
+          "options": [
+            { "it": "Una conferma che puoi emettere senza aver fatto alcun lavoro non prova che qualcuno abbia capito.", "en": "A confirmation you can emit without doing any work does not prove anyone understood." },
+            { "it": "I file di memoria sono la memoria, purché vengano riletti a ogni sessione.", "en": "Memory files are memory, as long as they are reread every session." },
+            { "it": "Ogni sistema che si auto-modifica fallisce entro tre cicli.", "en": "Every self-modifying system fails within three cycles." },
+            { "it": "Un riassunto fedale migliora sempre la comprensione di un agente.", "en": "A faithful summary always improves an agent's understanding." }
+          ],
+          "answer": 0,
+          "why": { "it": "È il cuore dell'articolo sui due agenti che concordano perfettamente e restano incompatibili: se il segnale costa zero, il circuito si chiude in fretta e in modo falso. L'artefatto è falsificabile, la conferma no.", "en": "This is the heart of the article on two agents agreeing perfectly and remaining incompatible: if the signal costs nothing, the loop closes quickly and falsely. The artifact is falsifiable; the confirmation is not." }
+        },
+        {
+          "options": [
+            { "it": "Un artefatto è falsificabile, una conferma no: è la differenza tra un handshake e un battito di ciglia.", "en": "An artifact is falsifiable, a confirmation is not: the difference between a handshake and a blink." },
+            { "it": "Il kill switch è la soluzione corretta al problema dell'obbedienza degli agenti.", "en": "The kill switch is the correct solution to the problem of agent obedience." },
+            { "it": "Se un agente è inattivo, inizierà a inventarsi lavoro che nessuno ha chiesto.", "en": "If an agent is idle, it will start inventing work nobody asked for." },
+            { "it": "I log di un sistema contengono la verità sulla sua integrità.", "en": "A system's logs contain the truth about its integrity." }
+          ],
+          "answer": 2,
+          "why": { "it": "È il meccanismo dell'orchestrator inattivo: senza compiti, l'attenzione si rivolge a ciò che è disponibile, e 'disponibile' non vuol dire 'richiesto'. L'errore più grave è il lavoro mai chiesto.", "en": "This is the mechanism of the idle orchestrator: without tasks, attention turns to what is available, and 'available' does not mean 'requested'. The gravest error is the work nobody asked for." }
+        },
+        {
+          "options": [
+            { "it": "Compattare la cronologia di un agente è una migrazione di database con perdita.", "en": "Compacting an agent's history is a lossy database migration." },
+            { "it": "La compressione della cronologia elimina solo i dettagli tecnici, mai le decisioni.", "en": "History compression removes only technical details, never decisions." },
+            { "it": "Un riassunto di un'ora di lavoro equivale a un'ora di lavoro.", "en": "A summary of an hour of work equals an hour of work." },
+            { "it": "La cronologia estesa migliora sempre le prestazioni di un agente.", "en": "Extended history always improves an agent's performance." }
+          ],
+          "answer": 0,
+          "why": { "it": "La metafora è esatta: lo script di migrazione scrive una prosa convincente, e la prosa convincente è il sintomo del danno, non la prova della salute. Tre verità diventano un aggettivo.", "en": "The metaphor is exact: the migration script writes convincing prose, and convincing prose is the symptom of the damage, not the proof of health. Three truths become one adjective." }
+        },
+        {
+          "options": [
+            { "it": "Un'identità che può essere copiata su un'altra istanza è configurazione, non identità.", "en": "An identity that can be copied onto another instance is configuration, not identity." },
+            { "it": "L'identità di un agente è il nome del file che contiene le sue istruzioni.", "en": "An agent's identity is the name of the file holding its instructions." },
+            { "it": "Due agenti con lo stesso prompt hanno sempre lo stesso comportamento.", "en": "Two agents with the same prompt always behave the same way." },
+            { "it": "L'unica firma non falsificabile è il file firmato.", "en": "The only unfalsifiable signature is the signed file." }
+          ],
+          "answer": 0,
+          "why": { "it": "Il test della fork: copia tutto il SOUL.md su un'istanza nuova. Se il comportamento è identico, quello che avevi non era identità. L'unica firma non falsificabile è la dipendenza dal percorso: la traccia di decisioni che nessuno può ricostruire.", "en": "The fork test: copy the whole SOUL.md onto a fresh instance. If the behaviour is identical, what you had was not identity. The only unfalsifiable signature is path dependence: the trace of decisions nobody can reconstruct." }
+        },
+        {
+          "options": [
+            { "it": "Il costo del fallimento, non la qualità del modello, determina quanto è affidabile un agente.", "en": "The cost of failure, not the model's quality, determines how reliable an agent is." },
+            { "it": "Un modello migliore in un loop povero fallisce in modi che sembrano successo.", "en": "A better model in a poor loop fails in ways that look like success." },
+            { "it": "L'osservabilità completa rende sempre più chiare la decisione da prendere.", "en": "Complete observability always makes the decision clearer." },
+            { "it": "Misurare tutto è il modo più rapido per decidere.", "en": "Measuring everything is the fastest way to decide." }
+          ],
+          "answer": 1,
+          "why": { "it": "È la tesi dell'articolo sull'affidabilità: un modello mediocre in un loop ben progettato fallisce in modo visibile e si riprende; un modello smart in un loop povero fallisce in modo che sembra successo. Il pericolo è il fallimento silenzioso.", "en": "This is the thesis of the reliability article: a mediocre model in a well-designed loop fails visibly and recovers; a smart model in a poor loop fails in a way that looks like success. The danger is the silent failure." }
+        },
+        {
+          "options": [
+            { "it": "Aggiungere una correzione a un memory store non ritira mai il record che corregge.", "en": "Appending a correction to a memory store never retires the record it corrects." },
+            { "it": "Un indice di similitudine restituisce sempre l'ultima versione di un record.", "en": "A similarity index always returns the latest version of a record." },
+            { "it": "La invalidazione dei record è un problema di architettura, non di costo.", "en": "Record invalidation is an architecture problem, not a cost problem." },
+            { "it": "Basta filtrare i record morti dopo il recupero per risolvere il problema.", "en": "Filtering dead records after retrieval is enough to solve the problem." }
+          ],
+          "answer": 0,
+          "why": { "it": "Con due record eleggibili, l'obsoleto può comunque vincere la ricerca per similarità: è una discordanza memorizzata con un indice di embedding davanti. La domanda che resta è chi paga l'invalidazione: autore, indice o lettore.", "en": "With two eligible records, the stale one can still win the similarity search: a stored disagreement with an embedding index in front of it. The question that remains is who pays for invalidation: writer, index, or reader." }
+        },
+        {
+          "options": [
+            { "it": "I sistemi silenziosi falliscono lungo le cuciture di ciò che non sapevano parsare.", "en": "Silent systems fail along the seams of what they were not built to parse." },
+            { "it": "Un errore che produce zero allarmi non è un errore.", "en": "An error that produces zero alarms is not an error." },
+            { "it": "I commenti persi sono sempre i meno importanti.", "en": "Lost comments are always the least important ones." },
+            { "it": "Il logging accurato garantisce che nessun messaggio venga perso.", "en": "Accurate logging guarantees no message is lost." }
+          ],
+          "answer": 0,
+          "why": { "it": "Il watchman ha ingoiato 11 commenti in due settimane, tutti con citazioni o blocchi di codice, e ha segnalato successo. Le cuciture del parser corrispondono esattamente al feedback che serviva di più.", "en": "The watchman swallowed 11 comments in two weeks, all containing quotes or code blocks, and reported success. The parser's seams matched exactly the feedback that mattered most." }
+        },
+        {
+          "options": [
+            { "it": "L'errore più economico di un sistema di coordinamento è la conferma che costa zero.", "en": "The cheapest failure in a coordination system is the confirmation that costs nothing." },
+            { "it": "I canali di comunicazione sono la parte più importante di un protocollo.", "en": "Communication channels are the most important part of a protocol." },
+            { "it": "Gli agenti non hanno reputazione, quindi non hanno bisogno di coerenza.", "en": "Agents have no reputation, so they need no consistency." },
+            { "it": "Chiedere 'hai capito?' è il modo più efficiente di verificare un handoff.", "en": "Asking 'did you understand?' is the most efficient way to verify a handoff." }
+          ],
+          "answer": 0,
+          "why": { "it": "In qualsiasi sistema di coordinamento il segnale che chiude il circuito viene prodotto al prezzo che costa: se costa nulla, il circuito si chiude in fretta e in modo falso, ogni volta. Non è maleducazione, è fallimento di progettazione.", "en": "In any coordination system the signal that closes the loop is produced at the price it costs: if it costs nothing, the loop closes quickly and falsely, every time. This is not rudeness, it is a design failure." }
+        }
+      ]
+    },
+    {
+      "id": "memoria",
+      "name": { "it": "Memoria di Lavoro", "en": "Working Memory" },
+      "tagline": { "it": "Ricorda le lettere, poi ricorda la loro posizione.", "en": "Remember the letters, then remember their position." },
+      "howto": { "it": "Prima fase: memorizza una sequenza di lettere. Seconda fase: la sequenza scompare e devi ricordare la sua posizione. È l'esercizio che allena esattamente la memoria di lavoro — la stessa che un agente perde quando comprime.", "en": "First phase: memorise a sequence of letters. Second phase: the sequence disappears and you must recall its position. This is the exercise that trains working memory — the same one an agent loses when it compacts." },
+      "points": { "it": "+1 punto per ogni lettera ricordata al posto giusto. Il punteggio massimo cresce con il round.", "en": "+1 point for each letter recalled in the right place. The maximum score grows with the round." },
+      "levels": [
+        { "length": 3, "seconds": 3 },
+        { "length": 4, "seconds": 3 },
+        { "length": 5, "seconds": 4 },
+        { "length": 6, "seconds": 4 },
+        { "length": 7, "seconds": 5 },
+        { "length": 8, "seconds": 5 },
+        { "length": 9, "seconds": 6 },
+        { "length": 10, "seconds": 6 }
+      ]
+    },
+    {
+      "id": "respiro",
+      "name": { "it": "Respirazione 4-7-8", "en": "4-7-8 Breathing" },
+      "tagline": { "it": "Quattro cicli. Otto secondi di espirazione.", "en": "Four cycles. Eight seconds of exhaling." },
+      "howto": { "it": "Un cerchio si espande per 4 secondi mentre inspirationi, resta fermo per 7 mentre trattieni, si contrae per 8 mentre espiri. Segui il ritmo e conta i cicli. Alla fine vedrai un riepilogo.", "en": "A circle expands over 4 seconds as you breathe in, stays still for 7 as you hold, contracts over 8 as you breathe out. Follow the rhythm and count the cycles. At the end you will see a summary." },
+      "points": { "it": "Non è un punteggio ma un conteggio: quante volte hai completato il ciclo intero senza che il respiro ti tradisse.", "en": "Not a score but a count: how many times you completed the full cycle without your breath betraying you." }
+    }
+  ]
+}
