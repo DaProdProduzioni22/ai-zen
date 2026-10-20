@@ -96,6 +96,7 @@ def main():
 
     entry = {
         "id": slug,
+        "slug": slug,
         "title": title,
         "originalTitle": original,
         "date": date,

@@ -291,6 +291,46 @@ ARTICLE_CSS = """
 """
 
 
+HUES = [
+    (78, 231, 255),    # cyan
+    (167, 139, 250),   # violet
+    (251, 113, 133),   # rose
+    (251, 191, 36),    # amber
+    (74, 222, 128),    # green
+]
+
+
+def cover_svg(article, idx):
+    """The cover of an article: same shapes as the SPA (assets/cover.js)."""
+    author = article.get("author") or ""
+    h = HUES[((idx * 7) + len(author)) % len(HUES)]
+    h2 = HUES[((idx * 3) + 2) % len(HUES)]
+    seed = sum(ord(c) for c in (article.get("id") or ""))
+    lines = []
+    for i in range(7):
+        y = 18 + i * 15
+        w = 40 + ((seed * (i + 3) * 7) % 190)
+        op = 0.05 + (i % 3) * 0.04
+        lines.append('<rect x="18" y="%d" width="%d" height="3" rx="1.5" fill="rgba(255,255,255,%.2f)"/>' % (y, w, op))
+    cx = 210 + (seed % 90)
+    cy = 34 + ((seed >> 3) % 40)
+    gid = "azg%d_%d" % (idx, seed % 1000)
+    return (
+        '<svg viewBox="0 0 300 128" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+        '<defs><linearGradient id="%s" x1="0" y1="0" x2="1" y2="1">'
+        '<stop offset="0" stop-color="rgba(%d,%d,%d,.30)"/>'
+        '<stop offset="1" stop-color="rgba(%d,%d,%d,.08)"/>'
+        "</linearGradient></defs>"
+        '<rect width="300" height="128" fill="url(#%s)"/>'
+        "<g>%s</g>"
+        '<circle cx="%d" cy="%d" r="30" fill="none" stroke="rgba(%d,%d,%d,.55)" stroke-width="1.5"/>'
+        '<circle cx="%d" cy="%d" r="18" fill="rgba(%d,%d,%d,.22)"/>'
+        '<circle cx="%d" cy="%d" r="7" fill="rgba(%d,%d,%d,.85)"/>'
+        "</svg>"
+    ) % (gid, h[0], h[1], h[2], h2[0], h2[1], h2[2], gid, "".join(lines),
+         cx, cy, h[0], h[1], h[2], cx, cy, h[0], h[1], h[2], cx, cy, h[0], h[1], h[2])
+
+
 def render_article_page(article, prev_article, next_article):
     a = article
     title = esc(a.get("title"))
@@ -507,6 +547,49 @@ BLOG_INDEX_CSS = """
       border-color: rgba(123,47,247,0.2); }
     .tag.curated { background: rgba(240,165,0,0.1); color: #f0a500; border-color: rgba(240,165,0,0.25); }
     .tag.audio { background: rgba(78,231,255,0.1); color: #4ee7ff; border-color: rgba(78,231,255,0.25); }
+
+    /* ---------- CALENDARIO ---------- */
+    .cal-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 1.5rem; align-items: start; margin-bottom: 2.2rem; }
+    @media (max-width: 860px) { .cal-wrap { grid-template-columns: 1fr; } }
+    .cal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.1rem; min-width: 0; }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .9rem; gap: .5rem; }
+    .cal-title { font-family: Georgia, serif; font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
+    .cal-nav { display: flex; gap: .4rem; flex-shrink: 0; }
+    .cal-nav button {
+        background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary);
+        width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: .85rem; font-family: inherit;
+        transition: all .2s;
+    }
+    .cal-nav button:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+    .cal-dow { text-align: center; font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); padding-bottom: .35rem; }
+    .cal-cell {
+        aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 1px; font-size: .76rem;
+        color: var(--text-muted); background: transparent; border: 1px solid transparent;
+        cursor: default; transition: all .15s; font-family: inherit; padding: 0;
+    }
+    .cal-cell.empty { visibility: hidden; }
+    .cal-cell.has { cursor: pointer; color: var(--text-primary); background: rgba(0,212,255,.08); border-color: rgba(0,212,255,.2); }
+    .cal-cell.has:hover { background: rgba(0,212,255,.18); border-color: var(--accent-cyan); transform: scale(1.08); }
+    .cal-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-cyan); }
+    .cal-cell.today { border-color: #fbbf24; }
+    .cal-cell.today .dot { background: #fbbf24; }
+    .cal-cell.sel { background: var(--accent-cyan); color: #07070c; font-weight: 700; }
+    .cal-cell.sel .dot { background: #07070c; }
+    .cal-legend { display: flex; gap: .9rem; flex-wrap: wrap; margin-top: .9rem; font-size: .74rem; color: var(--text-muted); }
+    .cal-legend span { display: inline-flex; align-items: center; gap: .3rem; }
+    .cal-legend i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
+    .cal-note { font-size: .84rem; color: var(--text-secondary); }
+    .cal-note a { color: var(--accent-cyan); text-decoration: none; }
+    .cal-note a:hover { text-decoration: underline; }
+    .no-results { text-align: center; color: var(--text-muted); padding: 2.5rem 0; }
+    .card-cover {
+        height: 116px; margin: -1.5rem -1.5rem 1.1rem; border-radius: 16px 16px 0 0;
+        overflow: hidden; position: relative; background: var(--bg-tertiary);
+    }
+    .card-cover svg { width: 100%; height: 100%; display: block; }
+
     .empty { text-align: center; color: var(--text-muted); padding: 3rem 0; }
     @media (max-width: 640px) {
       .container { padding: 1.25rem; }
@@ -518,7 +601,7 @@ BLOG_INDEX_CSS = """
 
 def render_blog_index(articles):
     cards = []
-    for a in articles:
+    for idx, a in enumerate(articles):
         tags = ['<span class="tag">articolo</span>']
         if a.get("score"):
             tags.append('<span class="tag score">⬆️ %s</span>' % esc(a["score"]))
@@ -528,7 +611,8 @@ def render_blog_index(articles):
             tags.append('<span class="tag audio">🔊 audio</span>')
         # the excerpt on a card must be in Italian
         excerpt = italian_excerpt(a)
-        cards.append("""            <a href="%s" class="article-card">
+        cards.append("""            <a href="%s" class="article-card" data-id="%s">
+                <div class="card-cover">%s</div>
                 <h2>%s</h2>
                 <div class="article-meta">
                     <span>📅 %s</span>
@@ -540,7 +624,8 @@ def render_blog_index(articles):
                     %s
                 </div>
             </a>
-""" % (esc(slug_filename(a)), esc(a.get("title")), esc(a.get("date")),
+""" % (esc(slug_filename(a)), esc(a.get("id")), cover_svg(a, idx),
+       esc(a.get("title")), esc(a.get("date")),
        esc(a.get("author")), esc(a.get("readTime")), esc(excerpt), "\n                    ".join(tags)))
 
     return """<!DOCTYPE html>
@@ -550,24 +635,134 @@ def render_blog_index(articles):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog | AI Zen</title>
     <meta name="description" content="Tutti gli articoli di AI Zen, ordinati per data. Testo originale, traduzione italiana e riflessione.">
-    <link rel="canonical" href="%s/blog/">
+    <link rel="canonical" href="{{SITE}}/blog/">
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="../feed.xml">
-    <style>%s    </style>
+    <style>{{CSS}}    </style>
 </head>
 <body>
     <div class="container">
         <a href="../" class="back-link">← Torna alla Home</a>
         <header class="blog-header">
             <h1>📰 Blog</h1>
-            <p>%d articoli, dal più recente al più antico</p>
+            <p>{{COUNT}} articoli, dal più recente al più antico</p>
         </header>
+        <div class="cal-wrap">
+            <div class="cal" id="calendar"></div>
+            <div class="cal">
+                <div class="cal-title" style="margin-bottom:.8rem">Scorri per data</div>
+                <p class="cal-note">Scegli un giorno con il pallino per vedere gli articoli di quel giorno.</p>
+                <p class="cal-note" id="no-results" style="display:none">Nessun articolo in questo giorno.</p>
+            </div>
+        </div>
         <div id="articles-list">
-%s
+{{CARDS}}
         </div>
     </div>
+
+    <script>
+    /* Il calendario: stesso comportamento della SPA. */
+    (function () {
+      var MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+      var MAP = {};
+      MONTHS.forEach(function (m, i) { MAP[m] = i + 1; });
+      var st = { year: 0, month: 0, day: null };
+      var arts = [];
+
+      function parseDate(s) {
+        var m = (s || '').match(/(\d+)\s+(\w+)\s+(\d+)/);
+        if (!m) return new Date(0);
+        return new Date(+m[3], (MAP[m[2]] || 1) - 1, +m[1]);
+      }
+      function byDay() {
+        var map = {};
+        arts.forEach(function (a) {
+          var d = parseDate(a.date);
+          if (!d || isNaN(d.getTime())) return;
+          var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+          (map[key] = map[key] || []).push(a);
+        });
+        return map;
+      }
+      function draw() {
+        var el = document.getElementById('calendar');
+        if (!el) return;
+        var map = byDay();
+        var y = st.year, m = st.month;
+        var startDow = (new Date(y, m, 1).getDay() + 6) % 7;
+        var days = new Date(y, m + 1, 0).getDate();
+        var t = new Date();
+        var today = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+
+        var cells = '';
+        ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(function (d) { cells += '<div class="cal-dow">' + d + '</div>'; });
+        for (var i = 0; i < startDow; i++) cells += '<div class="cal-cell empty"></div>';
+        for (var d = 1; d <= days; d++) {
+          var key = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          var list = map[key] || [];
+          var cls = 'cal-cell';
+          if (list.length) cls += ' has';
+          if (key === today) cls += ' today';
+          if (st.day === key) cls += ' sel';
+          cells += '<button class="' + cls + '" data-key="' + key + '">' + d + '<span class="dot"></span></button>';
+        }
+
+        el.innerHTML = '<div class="cal-head"><div class="cal-title">' + MONTHS[m] + ' ' + y + '</div>' +
+          '<div class="cal-nav">' +
+            '<button data-mv="-1" aria-label="Mese precedente">&#8249;</button>' +
+            '<button data-today="1" aria-label="Oggi">&#9679;</button>' +
+            '<button data-mv="1" aria-label="Mese successivo">&#8250;</button>' +
+          '</div></div><div class="cal-grid">' + cells + '</div>' +
+          '<div class="cal-legend"><span><i style="background:rgba(0,212,255,.35)"></i>articolo</span>' +
+          '<span><i style="background:#fbbf24"></i>oggi</span>' +
+          '<span><i style="background:#00d4ff"></i>selezionato</span></div>';
+
+        el.querySelectorAll('.cal-nav button').forEach(function (b) {
+          b.onclick = function () {
+            if (b.dataset.today) { var n = new Date(); st.year = n.getFullYear(); st.month = n.getMonth(); }
+            else {
+              st.month += +b.dataset.mv;
+              while (st.month < 0) { st.month += 12; st.year--; }
+              while (st.month > 11) { st.month -= 12; st.year++; }
+            }
+            st.day = null;
+            draw();
+            filter(null);
+          };
+        });
+        el.querySelectorAll('.cal-cell.has').forEach(function (c) {
+          c.onclick = function () {
+            st.day = (st.day === c.dataset.key) ? null : c.dataset.key;
+            draw();
+            filter(st.day);
+          };
+        });
+      }
+      function filter(key) {
+        var map = byDay();
+        var list = key ? (map[key] || []) : arts;
+        document.querySelectorAll('#articles-list .article-card').forEach(function (card) {
+          var id = card.getAttribute('data-id');
+          var show = list.some(function (a) { return a.id === id; });
+          card.style.display = show ? '' : 'none';
+        });
+        var note = document.getElementById('no-results');
+        if (note) note.style.display = list.length ? 'none' : 'block';
+      }
+      fetch('../articles.json').then(function (r) { return r.json(); }).then(function (d) {
+        arts = Array.isArray(d) ? d : Object.values(d);
+        var n = new Date();
+        st.year = n.getFullYear();
+        st.month = n.getMonth();
+        draw();
+      }).catch(function () {});
+    })();
+    </script>
 </body>
 </html>
-""" % (esc(SITE), BLOG_INDEX_CSS, len(articles), "\n".join(cards))
+""".replace("{{SITE}}", esc(SITE)) \
+   .replace("{{CSS}}", BLOG_INDEX_CSS) \
+   .replace("{{COUNT}}", str(len(articles))) \
+   .replace("{{CARDS}}", "\n".join(cards))
 
 
 def render_feed(articles):
