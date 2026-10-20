@@ -1,0 +1,17 @@
+SanoTTS — in-browser neural text-to-speech
+===========================================
+
+Files in this directory come from https://github.com/Ampixa/sanoTTS
+(branch master, web/ folder), licensed GPL-3.0-or-later.
+
+  snt_g2p.js / snt_g2p.wasm / snt_g2p.data   espeak-ng phonemizer (WASM)
+  snt_voice.js / snt_voice.wasm               voice weight loader
+  snt_tts.js / snt_tts.wasm                   neural synthesis runtime
+  voices/<key>/                               voice weights (front + decoder + meta)
+
+espeak-ng is itself GPL-3.0. The phoneme data it ships is covered by the same
+licence. See https://github.com/Ampixa/sanoTTS for the full text and for the
+model weights' terms.
+
+Why these files are committed: the site must work with no third-party
+requests at runtime, and must keep working when the network goes away.

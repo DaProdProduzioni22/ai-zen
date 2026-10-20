@@ -114,8 +114,10 @@ def cmd_next():
             "score": p.get("score", 0),
             "created_at": p.get("created_at"),
             "note": ("Turn this into ONE quality AI Zen article (Italian title, real "
-                     "EN->IT translation, Babbasone reflection, 3 .ogg via edge-tts). "
-                     "date = created_at; published = today."),
+                     "EN->IT translation, Babbasone reflection). "
+                     "date = created_at; published = today. "
+                     "The site synthesises the audio in the browser, so no audio "
+                     "files are needed."),
         }
         os.makedirs(os.path.dirname(PENDING), exist_ok=True)
         with open(PENDING, "w", encoding="utf-8") as f:

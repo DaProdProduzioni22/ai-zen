@@ -10,6 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="feed.xml">
     <link rel="canonical" href="https://DaProdProduzioni22.github.io/ai-zen/">
+    <!-- In-browser text-to-speech (SanoTTS / espeak-ng in WASM). Loaded on
+         demand: the runtime is only fetched when a reader asks for audio. -->
+    <script src="assets/zen-speech.js" defer></script>
     <style>
         :root {
             --bg: #07070c;
@@ -221,6 +224,20 @@
         .section-block.en h2 { color: var(--violet); }
         .section-block.refl h2 { color: var(--rose); }
         .audio-player { width: 100%; height: 40px; margin: .3rem 0 .8rem; border-radius: 8px; background: var(--bg-3); display: block; }
+        .speak { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin: .2rem 0 1rem; }
+        .speak-btn {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: rgba(78,231,255,.1); border: 1px solid rgba(78,231,255,.3);
+            color: var(--cyan); padding: .45rem 1rem; border-radius: 999px;
+            font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+            transition: all .2s;
+        }
+        .speak-btn:hover { background: rgba(78,231,255,.18); transform: translateY(-1px); }
+        .speak-btn.playing { background: var(--cyan); color: #07070c; border-color: var(--cyan); }
+        .speak-btn.playing .speak-ico { animation: azPulse 1.1s ease-in-out infinite; }
+        @keyframes azPulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+        .speak-state { font-size: .76rem; color: var(--text-3); }
+        .speak .audio-player { flex: 1 1 240px; min-width: 200px; margin: 0; }
         .audio-cap { font-size: .76rem; color: var(--text-3); margin-bottom: .6rem; }
         .author-box {
             display: flex; gap: 1rem; align-items: flex-start; padding: 1.2rem;
@@ -873,7 +890,19 @@
         $('nav-blog').classList.add('active');
         setHash('article-' + a.id);
 
-        const audio = (path, cap) => path ? `<audio class="audio-player" controls preload="none" src="${esc(path)}"></audio><p class="audio-cap">${esc(cap)}</p>` : '';
+        // Every track can be played from the browser: the in-page reader
+        // synthesises it with the local TTS (SanoTTS). The pre-rendered .ogg
+        // files are still used when they exist, because they are ready at once.
+        const audio = (path, cap, text, lang) => {
+            const id = 'spk' + Math.random().toString(36).slice(2, 9);
+            return `<div class="speak">
+                <button class="speak-btn" id="${id}" onclick="speak('${id}', this)">
+                    <span class="speak-ico">🔊</span><span class="speak-txt">Ascolta</span>
+                </button>
+                <span class="speak-state" id="${id}-st">${esc(cap)}</span>
+                ${path ? `<audio class="audio-player" controls preload="none" src="${esc(path)}"></audio>` : ''}
+            </div>`;
+        };
         const meta = [`<span>📅 ${esc(a.date)}</span>`, `<span>✍️ ${esc(a.author)}</span>`];
         if (a.readTime) meta.push(`<span>⏱️ ${esc(a.readTime)}</span>`);
         if (a.score) meta.push(`<span>⬆️ ${esc(a.score)}</span>`);
@@ -889,9 +918,9 @@
                 </header>
 
                 <div class="article-body">
-                    ${a.translation ? `<section class="section-block it"><h2>🇮🇹 In italiano</h2>${audio(a.audio_ita, 'Ascolta la traduzione italiana')}${a.translation}</section>` : ''}
-                    ${a.reflection ? `<section class="section-block refl"><h2>💭 La riflessione di Babbasone</h2>${audio(a.audio_riflessione, 'Ascolta la riflessione')}<p>${a.reflection}</p></section>` : ''}
-                    ${a.content ? `<section class="section-block en"><h2>🇬🇧 The original</h2>${audio(a.audio_eng, 'Listen to the original')}${a.content}</section>` : ''}
+                    ${a.translation ? `<section class="section-block it"><h2>🇮🇹 In italiano</h2>${audio(a.audio_ita, 'Ascolta la traduzione italiana', a.translation)}<div class="spoken-text">${a.translation}</div></section>` : ''}
+                    ${a.reflection ? `<section class="section-block refl"><h2>💭 La riflessione di Babbasone</h2>${audio(a.audio_riflessione, 'Ascolta la riflessione', a.reflection)}<p>${a.reflection}</p></section>` : ''}
+                    ${a.content ? `<section class="section-block en"><h2>🇬🇧 The original</h2>${audio(a.audio_eng, 'Listen to the original', a.content)}<div class="spoken-text">${a.content}</div></section>` : ''}
                     ${a.summary ? `<section class="section-block"><h2>📖 In sintesi</h2>${a.summary}</section>` : ''}
                 </div>
 
@@ -915,6 +944,56 @@
             </article>`;
         window.scrollTo(0, 0);
     }
+
+    // ---------- ascolto (TTS nel browser) ----------
+    let speech = null;
+
+    /**
+     * Read a passage aloud using the in-browser synthesiser.
+     * The text to read is taken from the block that follows the button.
+     */
+    async function speak(id, btn) {
+      const state = $(id + '-st');
+      const block = btn.closest('.section-block');
+      const source = block ? block.querySelector('.spoken-text') : null;
+      if (!source) { if (state) state.textContent = 'testo non disponibile'; return; }
+
+      if (!speech) {
+        if (typeof ZenSpeech === 'undefined') {
+          if (state) state.textContent = 'sintesi non disponibile';
+          return;
+        }
+        speech = new ZenSpeech();
+      }
+
+      const text = plainText(source.innerHTML);
+      if (!text) { if (state) state.textContent = 'testo vuoto'; return; }
+
+      // One reader at a time: stop whatever is playing.
+      if (speech.current) speech.stop();
+      document.querySelectorAll('.speak-btn.playing').forEach(b => b.classList.remove('playing'));
+      btn.classList.add('playing');
+      if (state) state.textContent = 'preparazione…';
+
+      try {
+          await speech.speak(text, {
+              voice: 'italian',
+              onProgress: (m) => { if (state) state.textContent = m; },
+          });
+          if (state) state.textContent = 'fine';
+      } catch (e) {
+          console.error(e);
+          if (state) state.textContent = 'errore: ' + (e && e.message ? e.message : 'sconosciuto');
+      } finally {
+          btn.classList.remove('playing');
+      }
+      }
+
+      /** Stop the reader, wherever it is. */
+      function stopSpeaking() {
+      if (speech) speech.stop();
+      document.querySelectorAll('.speak-btn.playing').forEach(b => b.classList.remove('playing'));
+      }
 
     // ---------- wellbeing ----------
     function renderWellbeing() {
@@ -1229,6 +1308,13 @@
 
         const sb = $('searchBox');
         if (sb) sb.addEventListener('input', e => { state.query = e.target.value; applyFilters(); });
+
+        // Warm the synthesiser up in the background: the first click on
+        // "Ascolta" should play immediately, not wait for a 4 MB download.
+        if (typeof ZenSpeech !== 'undefined') {
+            speech = new ZenSpeech();
+            speech.warmUp().catch(() => { speech = null; });
+        }
 
         routeFromHash();
     }

@@ -158,3 +158,25 @@ L'autore del commit va lasciato com'è: non modificare `user.name` e
   `slug` corrisponda al nome del file.
 - Il check fallisce sul testo? Confronta `articles.json` e la pagina generata:
   il testo in `articles.json` deve essere identico a quello nella pagina.
+
+---
+
+## 🔊 L'audio
+
+Ogni articolo si può ascoltare nel browser. Il sito usa SanoTTS (espeak-ng in
+WASM + una piccola rete neurale), ospitato nel repository in `sanotts/`.
+
+**Non devi generare file audio.** Il pulsante «Ascolta» legge il testo della
+sezione e lo sintetizza al momento, nel browser di chi legge.
+
+Se vuoi comunque preparare dei `.ogg` (per un podcast, per esempio), il sito
+li usa ancora quando esistono: mettili in `audio/` e indicali nei campi
+`audio_eng`, `audio_ita`, `audio_riflessione`.
+
+```bash
+node scripts/verify_tts.js           # verifica runtime, lingua, audio
+node scripts/verify_tts_article.js   # un articolo intero, parte per parte
+```
+
+Il runtime è GPL-3.0: se lo ridistribuisci, tieni `sanotts/LICENSE.txt` insieme
+ai file.

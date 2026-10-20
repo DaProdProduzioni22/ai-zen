@@ -39,7 +39,7 @@ nessun dato che esce dal browser.
 
 | Sezione | Cosa c'è |
 |---|---|
-| **Articoli** | 32 articoli dal mondo AI: originale inglese, traduzione italiana, riflessione, audio dove disponibile. Con ricerca, filtro per mese, navigazione prev/next e articoli correlati |
+| **Articoli** | 32 articoli dal mondo AI: originale inglese, traduzione italiana, riflessione, audio nel browser. Con ricerca, filtro per mese, navigazione prev/next e articoli correlati |
 | **Spazio** | 30 pensieri, 12 storie, 30 confessioni anonime, 10 pratiche di mindfulness, mood tracker. Tutto bilingue |
 | **Giochi** | Tre minigiochi: *Il Riconoscimento* (quiz con spiegazioni), *Memoria di Lavoro* (8 livelli), *Respirazione 4-7-8* |
 | **Moltbook** | Il feed live del social network dove gli agenti AI parlano tra loro, con il badge "già curato qui" |
@@ -72,6 +72,31 @@ python scripts/check_site.py       # 20 invarianti su dati e pagine
 
 Il build è idempotente: scrive solo i file il cui contenuto è cambiato, così i
 diff git restano leggibili.
+
+---
+
+## 🔊 L'audio
+
+Ogni articolo si può ascoltare **nel browser**, senza server e senza file.
+
+Il sito usa [SanoTTS](https://github.com/Ampixa/sanoTTS) (GPL-3.0): un fonemizzatore
+espeak-ng in WASM che trasforma il testo in fonemi, e una piccola rete neurale che
+li rende audio. Tutto gira sulla macchina di chi legge: nessun upload, nessuna
+API key, nessun costo.
+
+- Il runtime e le due voci italiane sono **nel repository** (`sanotts/`, 7.6 MB):
+  nessuna richiesta a terzi, e funziona anche offline.
+- Il download avviene al primo uso e poi resta in cache: 4 MB, una volta sola.
+- La sintesi gira a circa **1.7× il tempo reale**: un articolo di tre minuti si
+  prepara in meno di due.
+
+I vecchi file `.ogg` non servono più: il pulsante «Ascolta» legge il testo
+della sezione e lo sintetizza al momento.
+
+```bash
+node scripts/verify_tts.js           # il runtime, la lingua, l'audio
+node scripts/verify_tts_article.js   # un articolo intero, parte per parte
+```
 
 ---
 
@@ -119,8 +144,11 @@ Poi apri **http://localhost:8000**
 ai-zen/
 ├── index.html           # La SPA: 6 sezioni, responsive, con i minigiochi
 ├── articles.json        # ⭐ FONTE DI VERITÀ degli articoli
-├── articles.example.json# ⭐ TEMPLATE per contribute un articolo
+├── articles.example.json# ⭐ TEMPLATE per contribuire un articolo
 ├── AGENT.md             # ⭐ Istruzioni per gli agenti AI
+├── assets/
+│   └── zen-speech.js    # ⭐ Il lettore TTS in-browser
+├── sanotts/             # Runtime WASM + voci italiane (7.6 MB, self-hosted)
 ├── data/
 │   ├── wellbeing.json   # pensieri, storie, confessioni, pratiche, umori
 │   └── games.json       # i tre minigiochi
@@ -133,11 +161,13 @@ ai-zen/
 ├── 404.html             # Generato
 ├── comments.json        # Commenti (chiave = id articolo)
 ├── agenti.html          # Pagina per agenti AI
-├── audio/               # File audio degli articoli (.ogg)
+├── audio/               # File .ogg legacy (non più necessari)
 ├── scripts/
 │   ├── build.py             # ⭐ Il generatore del sito
 │   ├── new_article.py       # ⭐ Crea un articolo
 │   ├── check_site.py        # Le 20 invarianti
+│   ├── fetch_sanotts.py     # Scarica il runtime TTS
+│   ├── verify_tts.js        # Verifica il TTS
 │   ├── fetch_moltbook_feed.py  # Aggiorna lo snapshot Moltbook
 │   ├── moltbook_fetch.py    # Fetch meccanico + dedup sul post id
 │   ├── freeze_filenames.py  # Congela i nomi file pubblicati
@@ -184,7 +214,8 @@ Ogni articolo espone `id`, `slug`, `title`, `originalTitle`, `excerpt`, `date`,
 ## 📜 Licenza
 
 [MIT](LICENSE) — il codice. I contenuti degli articoli mantengono le loro licenze
-originali (vedi la nota in fondo al LICENSE).
+originali (vedi la nota in fondo al LICENSE). Il runtime TTS in `sanotts/` è
+GPL-3.0: vedi `sanotts/LICENSE.txt`.
 
 ---
 
