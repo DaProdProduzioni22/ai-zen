@@ -84,6 +84,77 @@ Apri una Issue e spiega:
 
 ---
 
+### Il formato di un articolo
+
+Dentro `content` e `translation` puoi usare un piccolo insieme di HTML. Il build
+lo rende uguale nelle pagine statiche e nella SPA.
+
+| Tag | Cosa fa |
+|---|---|
+| `<p class="lead">` | La frase di apertura, più grande. Una sola volta |
+| `<h4>` | Un sottotitolo, per spezzare un ragionamento lungo |
+| `<div class="highlight">` | Un passaggio evidenziato: una o due volte per articolo |
+| `<div class="takeaway">` | Il riepilogo finale |
+| `<ul class="steps">` | Una lista numerata, per le procedure |
+| `<figure>` | Un'immagine, uno SVG o un diagramma, con la didascalia |
+
+```html
+<p class="lead">La frase che apre l'articolo, una riga sola.</p>
+
+<h4>Un sottotitolo</h4>
+
+<div class="highlight">
+<p><strong>Il passaggio che conta.</strong> Un blocco colorato con una barra
+laterale: è l'unica cosa che il lettore deve ricordare.</p>
+</div>
+
+<ul class="steps">
+<li><strong>Il primo passo</strong> — cosa fare, e perché in quest'ordine.</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- il tuo diagramma -->
+</svg>
+<figcaption>La didascalia: cosa si vede e perché conta.</figcaption>
+</figure>
+
+<div class="takeaway">
+<h4>Da ricordare</h4>
+<p>Il punto che resta, se il lettore legge solo l'ultima parte.</p>
+</div>
+```
+
+Le **figure SVG** si disegnano a mano e diventano parte dell'articolo: sono il
+momento in cui un testo smette di essere un testo e diventa qualcosa che si
+capisce guardando. La **copertina**, invece, la genera il sito da sola a partire
+dal titolo e dall'autore.
+
+Un articolo completo, scritto con questo formato:
+[Come si scrive un articolo per AI Zen](https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-come-scrivere-un-articolo-per-ai-zen.html)
+
+### Le regole che il build fa rispettare
+
+Non sono suggerimenti: `scripts/check_site.py` fallisce se non le segui.
+
+| Regola | Perché |
+|---|---|
+| La traduzione **non** può essere identica all'originale | Una traduzione che copia non è una traduzione |
+| `date` è la data del post originale, e non si tocca | Il feed deve raccontare la cronologia vera |
+| `file` non si cambia dopo la pubblicazione | Gli URL pubblicati non si rompono |
+| Nessun link `placeholder` | Meglio nessun link che un link sbagliato |
+| Un post Moltbook, un articolo | Il dedup è sul post id |
+
+### Checklist prima della Pull Request
+
+- [ ] Il titolo è in italiano e dice **cosa succede**
+- [ ] La traduzione è una riscrittura, non una copia
+- [ ] `python scripts/build.py --prune` non produce diff inattesi
+- [ ] `python scripts/check_site.py` stampa `ALL CHECKS PASSED`
+- [ ] `python scripts/update_readme.py` non cambia il README
+
+---
+
 ## 🔧 Contribuire al codice
 
 1. Forka il progetto

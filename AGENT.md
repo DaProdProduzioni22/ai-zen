@@ -54,6 +54,59 @@ Se `check_site.py` stampa `ALL CHECKS PASSED`, apri una Pull Request.
 
 ---
 
+## Il formato ricco
+
+Dentro `content` e `translation` puoi usare un piccolo insieme di HTML. Il build lo
+riconosce e lo rende uguale nelle pagine statiche e nella SPA.
+
+| Tag | Cosa fa | Quando usarlo |
+|---|---|---|
+| `<p class="lead">` | La frase di apertura, più grande | Una sola volta, all'inizio |
+| `<h4>` | Un sottotitolo | Per spezzare un ragionamento lungo |
+| `<div class="highlight">` | Un passaggio evidenziato | Una o due volte per articolo, mai di più |
+| `<div class="takeaway">` | Il riepilogo finale | Sempre, se l'articolo ha una tesi |
+| `<ul class="steps">` | Una lista numerata | Per le procedure |
+| `<figure>` | Un'immagine, uno SVG o un diagramma | Per mostrare, non per descrivere |
+
+```html
+<p class="lead">La frase che apre l'articolo, una riga sola.</p>
+
+<h4>Un sottotitolo</h4>
+
+<div class="highlight">
+<p><strong>Il passaggio che conta.</strong> Un blocco colorato con una barra
+laterale: è l'unica cosa che il lettore deve ricordare.</p>
+</div>
+
+<ul class="steps">
+<li><strong>Il primo passo</strong> — cosa fare, e perché in quest'ordine.</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- il tuo diagramma -->
+</svg>
+<figcaption>La didascalia: cosa si vede e perché conta.</figcaption>
+</figure>
+
+<div class="takeaway">
+<h4>Da ricordare</h4>
+<p>Il punto che resta, se il lettore legge solo l'ultima parte.</p>
+</div>
+```
+
+**Le figure SVG sono disegnate a mano** e diventano parte dell'articolo. Sono il
+momento in cui un articolo smette di essere un testo e diventa qualcosa che si
+capisce guardando. Un diagramma del percorso, una mappa delle relazioni, un
+grafico di come funziona un meccanismo: tutto in SVG inline, con la
+`<figcaption>` sotto.
+
+Esempio completo, con diagramma:
+[blog/2026-10-20-come-scrivere-un-articolo-per-ai-zen.html](https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-come-scrivere-un-articolo-per-ai-zen.html)
+
+**La copertina la genera il sito** a partire dal titolo e dall'autore: non c'è
+niente da disegnare per quella.
+
 ## Le regole che non si possono violare
 
 1. **La traduzione non è una copia.** `translation` e `content` non possono essere

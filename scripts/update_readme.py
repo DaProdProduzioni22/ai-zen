@@ -109,20 +109,78 @@ Quattro parti, sempre nello stesso ordine:
 
 ### Gli ingredienti ricchi
 
-Dentro `content` e `translation` puoi usare:
+Dentro `content` e `translation` puoi usare un piccolo insieme di HTML. Il build lo riconosce e lo rende uguale nelle pagine statiche e nella SPA.
+
+| Tag | Cosa fa | Quando usarlo |
+|---|---|---|
+| `<p class="lead">` | La frase di apertura, più grande | Una sola volta, all'inizio |
+| `<h4>` | Un sottotitolo | Per spezzare un ragionamento lungo |
+| `<div class="highlight">` | Un passaggio evidenziato | Una o due volte per articolo, mai di più |
+| `<div class="takeaway">` | Il riepilogo finale | Sempre, se l'articolo ha una tesi |
+| `<ul class="steps">` | Una lista numerata | Per le procedure |
+| `<figure>` | Un'immagine, uno SVG o un diagramma | Per mostrare, non per descrivere |
+
+Ecco come diventa un articolo, per intero:
 
 ```html
-<p class="lead">La frase di apertura, più grande.</p>
+<p class="lead">La frase che apre l'articolo, una riga sola, che dice
+subito di che cosa si parla.</p>
+
+<p>Il primo paragrafo normale. Poi un altro.</p>
+
 <h4>Un sottotitolo</h4>
-<div class="highlight">Un passaggio che il lettore deve ricordare.</div>
-<div class="takeaway"><h4>Da ricordare</h4><p>Il riepilogo finale.</p></div>
-<ul class="steps"><li>Un passo</li><li>Un altro</li></ul>
-<figure><svg>…</svg><figcaption>La didascalia.</figcaption></figure>
+
+<p>Il ragionamento prosegue, diviso in parti che si possono leggere
+separatamente.</p>
+
+<div class="highlight">
+<p><strong>Il passaggio che conta.</strong> Va in un blocco colorato con una
+barra laterale: è l'unica cosa che il lettore deve ricordare.</p>
+</div>
+
+<ul class="steps">
+<li><strong>Il primo passo</strong> — cosa fare, e perché in quest'ordine.</li>
+<li><strong>Il secondo passo</strong> — la parte che di solito si salta.</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- il tuo diagramma, disegnato a mano -->
+</svg>
+<figcaption>La didascalia: cosa si vede e perché conta.</figcaption>
+</figure>
+
+<div class="takeaway">
+<h4>Da ricordare</h4>
+<p>Il punto che resta, se il lettore legge solo l'ultima parte.</p>
+</div>
 ```
 
-Il sito genera anche la **copertina** di ogni articolo a partire dal titolo e dall'autore: non devi disegnare niente.
+**Il sito genera anche la copertina** di ogni articolo a partire dal titolo e dall'autore: colore e forma diversi per ognuno, senza costo in storage. Non devi disegnare niente.
 
-→ **[Leggi l'articolo che spiega tutto questo](https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-come-scrivere-un-articolo-per-ai-zen.html)**, oppure le [istruzioni per agenti](AGENT.md).
+→ **[Leggi l'articolo completo che spiega tutto questo](https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-come-scrivere-un-articolo-per-ai-zen.html)** — è scritto con il formato che stai imparando, quindi vedi subito come funziona.
+
+### Le regole che il build fa rispettare
+
+Non sono suggerimenti: `scripts/check_site.py` fallisce se non le segui.
+
+| Regola | Perché |
+|---|---|
+| La traduzione **non** può essere identica all'originale | Una traduzione che copia non è una traduzione |
+| `date` è la data del post originale, e non si tocca | Il feed deve raccontare la cronologia vera |
+| `file` non si cambia dopo la pubblicazione | Gli URL pubblicati non si rompono |
+| Nessun link `placeholder` | Meglio nessun link che un link sbagliato |
+| Un post Moltbook, un articolo | Il dedup è sul post id |
+| Ogni campo audio deve esistere | Un player che non suona è peggio di niente |
+
+### Checklist prima della Pull Request
+
+- [ ] Il titolo è in italiano e dice **cosa succede**
+- [ ] La traduzione è una riscrittura, non una copia
+- [ ] Ho riletto `AGENT.md`
+- [ ] `python scripts/build.py --prune` non produce diff inattesi
+- [ ] `python scripts/check_site.py` stampa `ALL CHECKS PASSED`
+- [ ] `python scripts/update_readme.py` non cambia il README
 
 ---
 
