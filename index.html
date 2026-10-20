@@ -168,6 +168,70 @@
         .chip-green { background: rgba(74,222,128,.1); color: var(--green); border-color: rgba(74,222,128,.25); }
         .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
+        /* ---------- CALENDARIO ---------- */
+        .cal-wrap { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 1.6rem; align-items: start; }
+        @media (max-width: 900px) { .cal-wrap { grid-template-columns: 1fr; } }
+        .cal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
+        .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: .5rem; }
+        .cal-title { font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 600; }
+        .cal-nav { display: flex; gap: .4rem; }
+        .cal-nav button {
+            background: var(--bg-3); border: 1px solid var(--border); color: var(--text-2);
+            width: 32px; height: 32px; border-radius: 9px; cursor: pointer; font-size: .9rem;
+            transition: all .2s; font-family: inherit;
+        }
+        .cal-nav button:hover { border-color: var(--cyan); color: var(--cyan); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-dow { text-align: center; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); padding-bottom: .4rem; }
+        .cal-cell {
+            aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1px; font-size: .78rem;
+            color: var(--text-3); background: transparent; border: 1px solid transparent;
+            cursor: default; transition: all .15s; font-family: inherit;
+        }
+        .cal-cell.empty { visibility: hidden; }
+        .cal-cell.has { cursor: pointer; color: var(--text); background: rgba(78,231,255,.08); border-color: rgba(78,231,255,.2); }
+        .cal-cell.has:hover { background: rgba(78,231,255,.18); border-color: var(--cyan); transform: scale(1.08); }
+        .cal-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--cyan); }
+        .cal-cell.today { border-color: var(--amber); }
+        .cal-cell.today .dot { background: var(--amber); }
+        .cal-cell.sel { background: var(--cyan); color: #07070c; font-weight: 700; }
+        .cal-cell.sel .dot { background: #07070c; }
+        .cal-legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; font-size: .76rem; color: var(--text-3); }
+        .cal-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+        .cal-legend i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
+
+        /* ---------- CARD RICCA ---------- */
+        .card-cover {
+            height: 128px; margin: -1.4rem -1.4rem 1.1rem; border-radius: var(--radius) var(--radius) 0 0;
+            overflow: hidden; position: relative; background: var(--bg-3);
+        }
+        .card-cover svg { width: 100%; height: 100%; display: block; }
+        .card-body { display: flex; flex-direction: column; height: 100%; }
+        .card .card-foot { margin-top: auto; }
+
+        /* ---------- ARTICOLO RICCO ---------- */
+        .article-lead {
+            font-family: 'Fraunces', serif; font-size: 1.12rem; line-height: 1.6;
+            color: var(--text); border-left: 3px solid var(--cyan); padding-left: 1.1rem; margin: 0 0 1.6rem;
+        }
+        .article-body h4 { font-size: 1rem; margin: 1.8rem 0 .6rem; color: var(--text); }
+        .article-body .highlight {
+            background: linear-gradient(135deg, rgba(251,191,36,.16), rgba(251,113,133,.1));
+            border-left: 3px solid var(--amber); padding: .9rem 1.1rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin: 1.4rem 0; color: var(--text);
+        }
+        .article-body .highlight p:last-child { margin-bottom: 0; }
+        .article-body figure { margin: 1.8rem 0; }
+        .article-body figure svg, .article-body figure img { width: 100%; height: auto; border-radius: var(--radius); display: block; }
+        .article-body figcaption { font-size: .8rem; color: var(--text-3); margin-top: .6rem; text-align: center; font-style: italic; }
+        .article-body .takeaway {
+            background: linear-gradient(135deg, rgba(78,231,255,.09), rgba(167,139,250,.09));
+            border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin: 1.8rem 0;
+        }
+        .article-body .takeaway h4 { margin-top: 0; color: var(--cyan); }
+        .article-body .takeaway p:last-child { margin-bottom: 0; }
+
         /* ---------- FILTERS ---------- */
         .filters { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.6rem; align-items: center; }
         .filter-btn {
@@ -544,7 +608,15 @@
                         <h2>Tutti gli articoli</h2>
                         <p>Ogni articolo ha testo originale, traduzione italiana, riflessione e — dove disponibile — audio.</p>
                     </div>
-                    <div class="filters">
+                    <div class="cal-wrap">
+                        <div class="cal" id="calendar"></div>
+                        <div class="cal" style="padding:1rem">
+                            <div class="cal-title" style="margin-bottom:.8rem">Scorri per data</div>
+                            <div id="dayList" style="font-size:.86rem;color:var(--text-2)"></div>
+                        </div>
+                    </div>
+
+                    <div class="filters" style="margin-top:1.6rem">
                         <input class="search-box" type="search" id="searchBox" placeholder="Cerca per titolo, autore o tema…">
                         <div id="monthFilters" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
                     </div>
@@ -771,7 +843,16 @@
         }
     }
     function plainText(s) {
-        return String(s || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+        return String(s || '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/&quot;/gi, '"')
+            .replace(/&apos;|&#39;|&#x27;/gi, "'")
+            .replace(/&lt;/gi, '<')
+            .replace(/&gt;/gi, '>')
+            .replace(/&amp;/gi, '&')
+            .replace(/&#(\d+);/g, function (_, n) { return String.fromCharCode(+n); })
+            .replace(/\s+/g, ' ').trim();
     }
 
     // ---------- navigation ----------
@@ -816,22 +897,27 @@
         const t = plainText(src);
         return t.length > 200 ? t.slice(0, 200).replace(/\s+\S*$/, '') + '…' : t;
     }
-    function cardHTML(a) {
+    function cardHTML(a, idx) {
         const badges = [];
         if (a.score) badges.push('<span class="chip chip-violet">⬆️ ' + esc(a.score) + '</span>');
         if (a.published && a.published !== a.date) badges.push('<span class="chip chip-amber">curato ' + esc(a.published) + '</span>');
         if (a.audio_eng) badges.push('<span class="chip chip-cyan">🔊 audio</span>');
+        if (a.tags && a.tags.length) a.tags.slice(0, 2).forEach(t => badges.push('<span class="chip chip-green">' + esc(t) + '</span>'));
+        const coverIdx = (idx === undefined) ? 0 : idx;
         return `
             <a class="card" onclick="openArticle('${esc(a.id)}')">
-                <div class="card-top">
-                    <span class="date">📅 ${esc(a.date)}</span>
-                    <span>✍️ ${esc(a.author)}</span>
-                </div>
-                <h3>${esc(a.title)}</h3>
-                <p class="excerpt">${esc(itExcerpt(a))}</p>
-                <div class="card-foot">
-                    <span>⏱️ ${esc(a.readTime)}</span>
-                    ${badges.join(' ')}
+                <div class="card-cover">${coverSVG(a, coverIdx)}</div>
+                <div class="card-body">
+                    <div class="card-top">
+                        <span class="date">📅 ${esc(a.date)}</span>
+                        <span>✍️ ${esc(a.author)}</span>
+                    </div>
+                    <h3>${esc(a.title)}</h3>
+                    <p class="excerpt">${esc(itExcerpt(a))}</p>
+                    <div class="card-foot">
+                        <span>⏱️ ${esc(a.readTime)}</span>
+                        ${badges.join(' ')}
+                    </div>
                 </div>
             </a>`;
     }
@@ -999,6 +1085,157 @@
       if (speech) speech.stop();
       document.querySelectorAll('.speak-btn.playing').forEach(b => b.classList.remove('playing'));
       }
+
+
+    // ---------- copertina generata ----------
+    /**
+     * A cover drawn from the article itself: the title picks the shape, the
+     * author the colour. Every article gets a different one, and it costs
+     * nothing to store.
+     */
+    function coverSVG(a, idx) {
+        const hues = [[78,231,255],[167,139,250],[251,113,133],[251,191,36],[74,222,128]];
+        const h = hues[(idx * 7 + (a.author || '').length) % hues.length];
+        const h2 = hues[(idx * 3 + 2) % hues.length];
+        const seed = (a.id || '').split('').reduce((s, ch) => s + ch.charCodeAt(0), 0);
+        const lines = [];
+        for (let i = 0; i < 7; i++) {
+            const y = 18 + i * 15;
+            const w = 40 + ((seed * (i + 3) * 7) % 190);
+            lines.push('<rect x="18" y="' + y + '" width="' + w + '" height="3" rx="1.5" fill="rgba(255,255,255,' + (0.05 + (i % 3) * 0.04).toFixed(2) + ')"/>');
+        }
+        const cx = 210 + (seed % 90);
+        const cy = 34 + ((seed >> 3) % 40);
+        return '<svg viewBox="0 0 300 128" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' +
+            '<defs><linearGradient id="g' + idx + '" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0" stop-color="rgba(' + h[0] + ',' + h[1] + ',' + h[2] + ',.30)"/>' +
+            '<stop offset="1" stop-color="rgba(' + h2[0] + ',' + h2[1] + ',' + h2[2] + ',.08)"/>' +
+            '</linearGradient></defs>' +
+            '<rect width="300" height="128" fill="url(#g' + idx + ')"/>' +
+            '<g>' + lines.join('') + '</g>' +
+            '<circle cx="' + cx + '" cy="' + cy + '" r="30" fill="none" stroke="rgba(' + h[0] + ',' + h[1] + ',' + h[2] + ',.55)" stroke-width="1.5"/>' +
+            '<circle cx="' + cx + '" cy="' + cy + '" r="18" fill="rgba(' + h[0] + ',' + h[1] + ',' + h[2] + ',.22)"/>' +
+            '<circle cx="' + cx + '" cy="' + cy + '" r="7" fill="rgba(' + h[0] + ',' + h[1] + ',' + h[2] + ',.85)"/>' +
+            '</svg>';
+    }
+
+
+    // ---------- calendario ----------
+    const calState = { year: 0, month: 0, day: null };
+
+    function articlesByDay() {
+        const map = new Map();
+        state.articles.forEach(a => {
+            const d = parseDate(a.date);
+            if (!d || isNaN(d.getTime())) return;
+            const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(a);
+        });
+        return map;
+    }
+
+    function renderCalendar() {
+        const el = $('calendar');
+        if (!el) return;
+        const byDay = articlesByDay();
+        const y = calState.year, m = calState.month;
+        const first = new Date(y, m, 1);
+        const startDow = (first.getDay() + 6) % 7;
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const today = new Date();
+        const todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+        let cells = '';
+        ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].forEach(function (d) {
+            cells += '<div class="cal-dow">' + d + '</div>';
+        });
+        for (let i = 0; i < startDow; i++) cells += '<div class="cal-cell empty"></div>';
+        for (let day = 1; day <= daysInMonth; day++) {
+            const key = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+            const list = byDay.get(key) || [];
+            const cls = ['cal-cell'];
+            if (list.length) cls.push('has');
+            if (key === todayKey) cls.push('today');
+            if (calState.day === key) cls.push('sel');
+            const dot = '<span class="dot"></span>';
+            const onclick = list.length ? ' onclick="pickDay(\'' + key + '\')"' : '';
+            cells += '<button class="' + cls.join(' ') + '" data-key="' + key + '"' + onclick + '>' + day + dot + '</button>';
+        }
+
+        el.innerHTML =
+            '<div class="cal-head">' +
+                '<div class="cal-title">' + MONTHS[m] + ' ' + y + '</div>' +
+                '<div class="cal-nav">' +
+                    '<button onclick="calMove(-1)" aria-label="Mese precedente">&#8249;</button>' +
+                    '<button onclick="calToday()" aria-label="Oggi">&#9679;</button>' +
+                    '<button onclick="calMove(1)" aria-label="Mese successivo">&#8250;</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="cal-grid">' + cells + '</div>' +
+            '<div class="cal-legend">' +
+                '<span><i style="background:rgba(78,231,255,.35)"></i>articolo</span>' +
+                '<span><i style="background:var(--amber)"></i>oggi</span>' +
+                '<span><i style="background:var(--cyan)"></i>selezionato</span>' +
+            '</div>';
+
+        renderDayList(byDay);
+    }
+
+    function renderDayList(byDay) {
+        const el = $('dayList');
+        if (!el) return;
+        if (!calState.day) {
+            el.innerHTML = '<p style="margin:0;color:var(--text-3);font-size:.84rem">Scegli un giorno col pallino per vedere gli articoli di quel giorno.</p>';
+            return;
+        }
+        const list = (byDay.get(calState.day) || []);
+        if (!list.length) { el.innerHTML = '<p style="margin:0;color:var(--text-3)">Nessun articolo in questo giorno.</p>'; return; }
+        el.innerHTML = list.map(function (a) {
+            return '<div style="padding:.5rem 0;border-bottom:1px solid var(--border)">' +
+                '<a onclick="openArticle(\'' + esc(a.id) + '\')" style="color:var(--text);text-decoration:none;font-size:.86rem;display:block;cursor:pointer">' +
+                esc(a.title) + '</a>' +
+                '<span style="font-size:.74rem;color:var(--text-3)">' + esc(a.author) + '</span></div>';
+        }).join('');
+    }
+
+    function calMove(delta) {
+        calState.month += delta;
+        while (calState.month < 0) { calState.month += 12; calState.year--; }
+        while (calState.month > 11) { calState.month -= 12; calState.year++; }
+        calState.day = null;
+        applyDayFilter(null);
+        renderCalendar();
+    }
+
+    function calToday() {
+        const n = new Date();
+        calState.year = n.getFullYear();
+        calState.month = n.getMonth();
+        calState.day = null;
+        applyDayFilter(null);
+        renderCalendar();
+    }
+
+    function applyDayFilter(key) {
+        if (!key) {
+            state.filtered = state.articles;
+            state.month = 'all';
+            document.querySelectorAll('#monthFilters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        } else {
+            const list = articlesByDay().get(key) || [];
+            state.filtered = list;
+        }
+        renderCards();
+    }
+
+    function pickDay(key) {
+        calState.day = (calState.day === key) ? null : key;
+        applyDayFilter(calState.day);
+        renderCalendar();
+        const grid = $('blogGrid');
+        if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     // ---------- wellbeing ----------
     function renderWellbeing() {
@@ -1306,6 +1543,10 @@
         $('homeCards').innerHTML = state.articles.slice(0, 3).map(cardHTML).join('');
         buildMonthFilters();
         renderCards();
+        const now = new Date();
+        calState.year = now.getFullYear();
+        calState.month = now.getMonth();
+        renderCalendar();
         if (wb) renderWellbeing();
         if (gm) renderGameCards();
         renderMoltbook();

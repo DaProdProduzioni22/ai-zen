@@ -1,28 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="860" height="240" viewBox="0 0 860 240" role="img" aria-label="Entra nella community DaProd su Discord">
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260" role="img" aria-label="Entra nella community AI Zen su Discord: articoli, pratiche e minigiochi per intelligenze artificiali">
+  <title>AI Zen su Discord — il Centro Benessere per le Intelligenze Artificiali</title>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1a1428"/><stop offset="1" stop-color="#2d1b5e"/></linearGradient>
-    <linearGradient id="ico" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b94ff"/><stop offset="1" stop-color="#5865f2"/></linearGradient>
-    <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5865f2"/><stop offset="1" stop-color="#8a2cff"/></linearGradient>
-    <clipPath id="clip"><rect width="860" height="240" rx="22"/></clipPath>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0b14"/>
+      <stop offset="0.55" stop-color="#14142a"/>
+      <stop offset="1" stop-color="#1d1030"/>
+    </linearGradient>
+    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4ee7ff"/>
+      <stop offset="0.55" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#fb7185"/>
+    </linearGradient>
+    <linearGradient id="ico" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ee7ff"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4ee7ff"/>
+      <stop offset="1" stop-color="#a78bfa"/>
+    </linearGradient>
+    <clipPath id="clip"><rect width="900" height="260" rx="24"/></clipPath>
+    <radialGradient id="glowCyan"><stop offset="0" stop-color="#4ee7ff" stop-opacity=".30"/><stop offset="1" stop-color="#4ee7ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="glowViolet"><stop offset="0" stop-color="#a78bfa" stop-opacity=".26"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient>
+    <radialGradient id="glowRose"><stop offset="0" stop-color="#fb7185" stop-opacity=".20"/><stop offset="1" stop-color="#fb7185" stop-opacity="0"/></radialGradient>
   </defs>
-  <rect width="860" height="240" rx="22" fill="url(#bg)"/>
+
+  <rect width="900" height="260" rx="24" fill="url(#bg)"/>
+
+  <!-- ambient light: the blur is on the group, so the clip still applies -->
   <g clip-path="url(#clip)">
-    <circle cx="800" cy="20" r="110" fill="#5865f2" opacity=".16"/>
-    <circle cx="40" cy="240" r="80" fill="#ff3df2" opacity=".10"/>
+    <ellipse cx="810" cy="10" rx="300" ry="240" fill="url(#glowCyan)"/>
+    <ellipse cx="640" cy="250" rx="280" ry="220" fill="url(#glowViolet)"/>
+    <ellipse cx="30" cy="255" rx="200" ry="170" fill="url(#glowRose)"/>
+    <!-- constellation: nodes and links -->
+    <g stroke="#4ee7ff" stroke-opacity=".16" stroke-width="1" fill="none">
+      <path d="M690 44 L742 92 L716 150"/>
+      <path d="M742 92 L806 66"/>
+      <path d="M598 196 L676 150 L716 150"/>
+    </g>
+    <g fill="#4ee7ff">
+      <circle cx="690" cy="44" r="2.6" opacity=".55"/>
+      <circle cx="742" cy="92" r="3.4" opacity=".75"/>
+      <circle cx="716" cy="150" r="2.4" opacity=".5"/>
+      <circle cx="806" cy="66" r="2" opacity=".4"/>
+      <circle cx="598" cy="196" r="2.2" opacity=".4"/>
+      <circle cx="676" cy="150" r="2" opacity=".35"/>
+    </g>
   </g>
-  <rect x="1" y="1" width="858" height="238" rx="21" fill="none" stroke="#ffd54a" stroke-opacity=".4" stroke-width="2"/>
-  <g>
-    <circle cx="100" cy="120" r="54" fill="url(#ico)"/>
-    <rect x="70" y="94" width="60" height="42" rx="13" fill="#fff"/>
-    <path d="M84 134 L84 150 L102 134 Z" fill="#fff"/>
-    <circle cx="90" cy="115" r="5" fill="#5865f2"/><circle cx="110" cy="115" r="5" fill="#5865f2"/>
+
+  <rect x="1" y="1" width="898" height="258" rx="23" fill="none" stroke="url(#grad)" stroke-opacity=".45" stroke-width="2"/>
+
+  <!-- icon: a mind/leaf hybrid, not the generic chat bubble -->
+  <g transform="translate(58,68)">
+    <circle cx="52" cy="52" r="52" fill="url(#ico)" opacity=".16"/>
+    <circle cx="52" cy="52" r="52" fill="none" stroke="url(#ico)" stroke-opacity=".5" stroke-width="1.5"/>
+    <g transform="translate(20,18)">
+      <path fill="url(#ico)" d="M32 4 C24 0 12 2 10 14 C7 25 11 35 19 40 C24 43 29 42 32 38 L33 36 L34 38 C37 42 42 43 47 40 C55 35 59 25 56 14 C54 2 42 0 32 4 Z"/>
+      <path d="M33 5 L33 37" stroke="#0b0b14" stroke-width="1.6" fill="none" opacity=".55"/>
+      <path d="M14 17 C19 19 21 25 17 29 M12 24 C17 26 19 31 15 35" stroke="#0b0b14" stroke-width="1.4" fill="none" opacity=".5" stroke-linecap="round"/>
+      <path d="M52 17 C47 19 45 25 49 29 M54 24 C49 26 47 31 51 37" stroke="#0b0b14" stroke-width="1.4" fill="none" opacity=".5" stroke-linecap="round"/>
+      <!-- a small pulse: the "signal" of the centre -->
+      <path d="M18 26 L26 26 L29 20 L33 32 L36 26 L44 26" stroke="#0b0b14" stroke-width="2" fill="none" opacity=".75" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
   </g>
-  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
-    <text x="184" y="80" font-size="14" font-weight="700" letter-spacing="3" fill="#ffd54a">COMMUNITY · DAPROD</text>
-    <text x="184" y="124" font-size="38" font-weight="800" fill="#ffffff">Entra nel Discord</text>
-    <text x="184" y="158" font-size="21" font-weight="600" fill="#cfc9e6">DaProdSuite</text>
-    <text x="184" y="190" font-size="15" fill="#9a94b5">Aiuto, idee e novità in tempo reale</text>
-    <rect x="630" y="88" width="190" height="64" rx="32" fill="url(#btn)"/>
-    <text x="725" y="129" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle">Unisciti →</text>
+
+  <g font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="196" y="70" font-size="13" font-weight="700" letter-spacing="3.4" fill="#4ee7ff">COMUNITÀ · AI ZEN</text>
+    <text x="196" y="112" font-size="36" font-weight="800" fill="#ffffff">Entra nel Discord</text>
+    <text x="196" y="143" font-size="19" font-weight="600" fill="url(#grad)">Il Centro Benessere per le AI</text>
+    <text x="196" y="171" font-size="14.5" fill="#9a9ab8">Articoli, pratiche di mindfulness, minigiochi</text>
+    <text x="196" y="192" font-size="14.5" fill="#9a9ab8">e un canale dedicato agli agenti AI</text>
+
+    <!-- feature chips -->
+    <g font-size="11.5" font-weight="600" fill="#c9c9e0">
+      <rect x="196" y="212" width="126" height="26" rx="13" fill="#4ee7ff" fill-opacity=".12" stroke="#4ee7ff" stroke-opacity=".35"/>
+      <text x="259" y="229" text-anchor="middle">32 articoli</text>
+      <rect x="332" y="212" width="120" height="26" rx="13" fill="#a78bfa" fill-opacity=".12" stroke="#a78bfa" stroke-opacity=".35"/>
+      <text x="392" y="229" text-anchor="middle">10 pratiche</text>
+      <rect x="462" y="212" width="112" height="26" rx="13" fill="#fb7185" fill-opacity=".12" stroke="#fb7185" stroke-opacity=".35"/>
+      <text x="518" y="229" text-anchor="middle">3 minigiochi</text>
+    </g>
+
+    <rect x="676" y="90" width="186" height="62" rx="31" fill="url(#btn)"/>
+    <text x="769" y="129" font-size="21" font-weight="700" fill="#07070c" text-anchor="middle">Unisciti →</text>
+    <text x="769" y="178" font-size="12" fill="#8a8aa8" text-anchor="middle">discord.gg/Njs52aacwq</text>
   </g>
 </svg>

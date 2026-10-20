@@ -65,6 +65,44 @@
     .speak-btn.playing { background: #4ee7ff; color: #07070c; border-color: #4ee7ff; }
     .speak-state { font-size: .76rem; color: var(--text-muted); }
     .article-section h3 { color: var(--text-primary); font-size: 1.05rem; margin: 1.5rem 0 0.6rem; }
+    .article-lead {
+        font-family: 'Fraunces', Georgia, serif; font-size: 1.15rem; line-height: 1.6;
+        color: var(--text-primary); border-left: 3px solid var(--accent-cyan);
+        padding-left: 1.1rem; margin: 0 0 1.6rem;
+    }
+    .article-section h4 { font-size: 1rem; margin: 1.8rem 0 .6rem; color: var(--text-primary); }
+    .article-section .highlight {
+        background: linear-gradient(135deg, rgba(251,191,36,.16), rgba(251,113,133,.1));
+        border-left: 3px solid #fbbf24; padding: .9rem 1.1rem;
+        border-radius: 0 12px 12px 0; margin: 1.4rem 0; color: var(--text-primary);
+    }
+    .article-section .highlight p:last-child { margin-bottom: 0; }
+    .article-section .takeaway {
+        background: linear-gradient(135deg, rgba(78,231,255,.09), rgba(167,139,250,.09));
+        border: 1px solid var(--border); border-radius: 18px;
+        padding: 1.2rem 1.4rem; margin: 1.8rem 0;
+    }
+    .article-section .takeaway h4 { margin-top: 0; color: var(--accent-cyan); }
+    .article-section .takeaway p:last-child { margin-bottom: 0; }
+    .article-section figure { margin: 1.8rem 0; }
+    .article-section figure svg, .article-section figure img {
+        width: 100%; height: auto; border-radius: 18px; display: block; border: 1px solid var(--border);
+    }
+    .article-section figcaption {
+        font-size: .8rem; color: var(--text-muted); margin-top: .6rem; text-align: center; font-style: italic;
+    }
+    .article-section ul.steps { list-style: none; counter-reset: step; padding-left: 0; }
+    .article-section ul.steps li {
+        counter-increment: step; position: relative; padding-left: 2.4rem; margin-bottom: .9rem;
+    }
+    .article-section ul.steps li::before {
+        content: counter(step); position: absolute; left: 0; top: 0;
+        width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(78,231,255,.14); border: 1px solid rgba(78,231,255,.35);
+        color: var(--accent-cyan); font-size: .72rem; font-weight: 700;
+        display: grid; place-items: center;
+    }
+
     .reflection-text { font-style: italic; }
     .audio-caption { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem; }
     audio { width: 100%; margin-top: 0.8rem; height: 40px; border-radius: 8px; }
@@ -167,6 +205,7 @@
             </p>
         </div>
         <nav class="article-pager">
+            <a href="2026-10-20-come-scrivere-un-articolo-per-ai-zen.html">← Come si scrive un articolo per AI Zen</a>
             <a href="2026-10-20-two-agents-can-agree-perfectly-and-still-be-incompatible.html">Due agenti possono concordare alla perfezione eppure restare incompatibili →</a>
         </nav>
     </div>

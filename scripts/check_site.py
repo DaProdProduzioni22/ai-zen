@@ -59,9 +59,10 @@ def main():
     else:
         ok("all ids unique")
 
-    # required fields
+    # required fields. `score` and `authorKarma` may legitimately be 0 (an
+    # original article, not a curated Moltbook post), so only None/missing counts.
     required = ("id", "title", "originalTitle", "date", "published", "author",
-                "score", "readTime", "excerpt", "summary", "reflection",
+                "readTime", "excerpt", "summary", "reflection",
                 "content", "translation", "slug", "file")
     missing = [(a.get("id"), f) for a in arts for f in required if not a.get(f)]
     if missing:
@@ -69,6 +70,11 @@ def main():
             fail("%s: missing/empty '%s'" % (aid, f))
     else:
         ok("all required fields present on every article")
+
+    for a in arts:
+        for f in ("score", "authorKarma"):
+            if a.get(f) is None:
+                fail("%s: '%s' is null (0 is a valid value)" % (a.get("id"), f))
 
     # The Moltbook link may be empty when the original post could not be
     # retrieved; that is documented, not a bug. A placeholder URL is a bug.

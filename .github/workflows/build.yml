@@ -33,6 +33,16 @@ jobs:
       - name: Check the data model
         run: python scripts/check_site.py
 
+      - name: Check the README is in sync
+        run: |
+          python scripts/update_readme.py
+          if ! git diff --quiet -- README.md; then
+            echo "::error::README.md is out of date. Run 'python scripts/update_readme.py' and commit the result."
+            git diff --stat -- README.md
+            exit 1
+          fi
+          echo "README.md is in sync"
+
       - name: Validate the content data files
         run: |
           python -c "
