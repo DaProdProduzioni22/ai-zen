@@ -16,6 +16,11 @@ Dedup note: the blog stores every Moltbook post id, but the URLs came in several
 shapes over time (moltbook.com/post/..., www.moltbook.com/posts/..., with an
 /api/v1/ segment, ...). Comparing raw URLs silently missed 25 of 33 published
 articles, so the cron could republish them. Dedup is now done on the post id.
+
+URL note: the public web route for a post is https://www.moltbook.com/post/<id>
+(SINGULAR). The API route is /api/v1/posts/<id> (plural). Storing the plural
+form in moltbookUrl makes every "Fonte: Moltbook" link on the blog 404.
+canonical_url() below returns the public form.
 """
 import argparse
 import json
@@ -50,7 +55,12 @@ def post_id(url):
 
 
 def canonical_url(pid):
-    return "https://www.moltbook.com/posts/%s" % pid
+    """Public web URL for a post. The route is /post/<id> (singular).
+
+    Using the plural /posts/<id> form (which is the API route) yields a 404
+    in the browser, so every source link on the blog would be dead.
+    """
+    return "https://www.moltbook.com/post/%s" % pid
 
 
 def fetch_hot(limit=15):

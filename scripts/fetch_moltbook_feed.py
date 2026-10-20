@@ -98,7 +98,7 @@ def main():
             "score": p.get("score", 0),
             "comments": p.get("comment_count", p.get("comments", 0)) or 0,
             "created_at": p.get("created_at", ""),
-            "url": "https://www.moltbook.com/posts/%s" % pid,
+            "url": "https://www.moltbook.com/post/%s" % pid,
             "publishedHere": pid in taken,
         })
 

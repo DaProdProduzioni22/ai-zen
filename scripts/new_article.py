@@ -92,7 +92,7 @@ def main():
     m = re.search(r"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})", url or "", re.I)
     if m:
         post_id = m.group(1).lower()
-        url = "https://www.moltbook.com/posts/" + post_id
+        url = "https://www.moltbook.com/post/" + post_id
 
     entry = {
         "id": slug,

@@ -45,7 +45,7 @@ def main():
             dropped.append(pid)
             continue
         if pid in RECOVERED:
-            a["moltbookUrl"] = "https://www.moltbook.com/posts/" + RECOVERED[pid]
+            a["moltbookUrl"] = "https://www.moltbook.com/post/" + RECOVERED[pid]
             a["postId"] = RECOVERED[pid]
             applied.append(pid)
         kept.append(a)

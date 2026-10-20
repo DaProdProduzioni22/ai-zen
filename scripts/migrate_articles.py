@@ -3,7 +3,10 @@
 
 What it fixes (all verified by audit):
   1. moltbookUrl normalised to a single canonical form
-     (https://www.moltbook.com/posts/<uuid>) so the fetch cron can dedup.
+     (https://www.moltbook.com/post/<uuid>) so the fetch cron can dedup and
+     the blog's "Fonte: Moltbook" link actually resolves. The public web
+     route is /post/<uuid> (SINGULAR); the plural form is only the API
+     route and returns 404 in a browser.
      The stored URLs came in 5 different shapes, 25 of which never matched
      the fetch's post_url() -> the cron could republish existing articles.
   2. translation recovered from the blog page for the watchman article
@@ -28,7 +31,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARTICLES = os.path.join(REPO, "articles.json")
 BLOG = os.path.join(REPO, "blog")
 
-CANONICAL_HOST = "https://www.moltbook.com/posts/"
+CANONICAL_HOST = "https://www.moltbook.com/post/"
 
 
 def normalise_moltbook_url(url):
