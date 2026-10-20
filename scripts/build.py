@@ -156,12 +156,26 @@ def audio_block(article, key, label, css_class="audio-section"):
         return ""
     if not os.path.exists(os.path.join(REPO, rel)):
         return ""
-    return """            <audio controls preload="none">
+    return """            <audio class="audio-player" controls preload="none">
                 <source src="../%s" type="audio/ogg">
                 Il tuo browser non supporta l'elemento audio.
             </audio>
             <p class="audio-caption">%s</p>
 """ % (esc(rel), esc(label))
+
+
+def speak_block(article, field, label):
+    """The 'Ascolta' button: the browser synthesises the text on the spot."""
+    text = article.get(field)
+    if not text:
+        return ""
+    return """        <div class="speak">
+            <button class="speak-btn" onclick="speak(this)">
+                <span>🔊</span><span>Ascolta</span>
+            </button>
+            <span class="speak-state">%s</span>
+        </div>
+""" % esc(label)
 
 
 # --------------------------------------------------------------------------- #
@@ -207,6 +221,17 @@ ARTICLE_CSS = """
     .article-section.audio-section { background: linear-gradient(135deg, rgba(167,139,250,.09), rgba(78,231,255,.07));
       border-color: rgba(251,113,133,.2); }
     .article-section.audio-section h2 { color: var(--accent-rose); }
+    .speak { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin: .2rem 0 1.2rem; }
+    .speak-btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(78,231,255,.1); border: 1px solid rgba(78,231,255,.3);
+      color: #4ee7ff; padding: .45rem 1rem; border-radius: 999px;
+      font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: all .2s;
+    }
+    .speak-btn:hover { background: rgba(78,231,255,.18); transform: translateY(-1px); }
+    .speak-btn.playing { background: #4ee7ff; color: #07070c; border-color: #4ee7ff; }
+    .speak-state { font-size: .76rem; color: var(--text-muted); }
     .article-section h3 { color: var(--text-primary); font-size: 1.05rem; margin: 1.5rem 0 0.6rem; }
     .reflection-text { font-style: italic; }
     .audio-caption { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem; }
@@ -254,30 +279,35 @@ def render_article_page(article, prev_article, next_article):
     if a.get("translation"):
         sections.append("""        <section class="article-section">
             <h2>🇮🇹 In italiano</h2>
-            <div id="italian-content">
+%s%s            <div id="italian-content">
 %s
             </div>
 %s        </section>
-""" % (as_html(a["translation"]), audio_block(a, "audio_ita", "🔊 Ascolta la traduzione italiana")))
+""" % (speak_block(a, "translation", "Ascolta la traduzione italiana"),
+       audio_block(a, "audio_ita", "🔊 Ascolta la traduzione italiana"),
+       as_html(a["translation"]), ""))
 
     if a.get("reflection"):
         sections.append("""        <section class="article-section audio-section">
             <h2>💭 La riflessione di Babbasone</h2>
-            <div id="reflection-content">
+%s%s            <div id="reflection-content">
 %s
             </div>
 %s        </section>
-""" % (as_html(a["reflection"]),
-       audio_block(a, "audio_riflessione", "🔊 Ascolta la mia riflessione")))
+""" % (speak_block(a, "reflection", "Ascolta la riflessione"),
+       audio_block(a, "audio_riflessione", "🔊 Ascolta la mia riflessione"),
+       as_html(a["reflection"]), ""))
 
     if a.get("content"):
         sections.append("""        <section class="article-section">
             <h2>🇬🇧 The original</h2>
-            <div id="english-content">
+%s%s            <div id="english-content">
 %s
             </div>
 %s        </section>
-""" % (as_html(a["content"]), audio_block(a, "audio_eng", "🔊 Listen to the original")))
+""" % (speak_block(a, "content", "Listen to the original"),
+       audio_block(a, "audio_eng", "🔊 Listen to the original"),
+       as_html(a["content"]), ""))
 
     if a.get("summary"):
         sections.append("""        <section class="article-section">
@@ -319,6 +349,9 @@ def render_article_page(article, prev_article, next_article):
     <meta property="og:url" content="%(url)s">
     <link rel="canonical" href="%(url)s">
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="../feed.xml">
+    <!-- In-browser text-to-speech (SanoTTS / espeak-ng in WASM). The runtime
+         lives in the site root, one directory up from this page. -->
+    <script src="../assets/zen-speech.js" data-zen-base="../sanotts/" defer></script>
     <style>%(css)s    </style>
 </head>
 <body>
@@ -340,6 +373,57 @@ def render_article_page(article, prev_article, next_article):
             </p>
         </div>
 %(nav)s    </div>
+
+    <script>
+    /* In-browser reader for the static article pages: same module as the SPA. */
+    (function () {
+      let speech = null;
+
+      function plainText(html) {
+        return String(html || '')
+          .replace(/<br\s*\/?>/g, ' ')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&[a-z#0-9]+;/gi, ' ')
+          .replace(/\s+/g, ' ').trim();
+      }
+
+      async function speak(btn) {
+        if (typeof ZenSpeech === 'undefined') return;
+        const state = btn.parentElement.querySelector('.speak-state');
+        const block = btn.closest('.article-section');
+        const source = block ? block.querySelector('[id$="-content"]') : null;
+        if (!source) return;
+        const text = plainText(source.innerHTML);
+        if (!text) return;
+
+        if (!speech) speech = new ZenSpeech();
+        if (speech.current) speech.stop();
+        document.querySelectorAll('.speak-btn.playing').forEach(b => b.classList.remove('playing'));
+        btn.classList.add('playing');
+        if (state) state.textContent = 'preparazione…';
+        try {
+          await speech.speak(text, {
+            voice: 'italian',
+            onProgress: (m) => { if (state) state.textContent = m; },
+          });
+          if (state) state.textContent = 'fine';
+        } catch (e) {
+          if (state) state.textContent = 'errore: ' + (e && e.message ? e.message : 'sconosciuto');
+        } finally {
+          btn.classList.remove('playing');
+        }
+      }
+
+      // Warm the synthesiser up in the background.
+      if (typeof ZenSpeech !== 'undefined') {
+        const s = new ZenSpeech();
+        s.warmUp().catch(() => {});
+      }
+
+      // The onclick handlers look for speak() in the global scope.
+      window.speak = speak;
+    })();
+    </script>
 </body>
 </html>
 """ % {

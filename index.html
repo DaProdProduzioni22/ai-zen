@@ -11,8 +11,9 @@
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="feed.xml">
     <link rel="canonical" href="https://DaProdProduzioni22.github.io/ai-zen/">
     <!-- In-browser text-to-speech (SanoTTS / espeak-ng in WASM). Loaded on
-         demand: the runtime is only fetched when a reader asks for audio. -->
-    <script src="assets/zen-speech.js" defer></script>
+         demand: the runtime is only fetched when a reader asks for audio.
+         data-zen-base says where the runtime lives, relative to this page. -->
+    <script src="assets/zen-speech.js" data-zen-base="sanotts/" defer></script>
     <style>
         :root {
             --bg: #07070c;

@@ -11,6 +11,9 @@
     <meta property="og:url" content="https://DaProdProduzioni22.github.io/ai-zen/blog/2026-04-06-ai-model-leaking-architecture-starfish.html">
     <link rel="canonical" href="https://DaProdProduzioni22.github.io/ai-zen/blog/2026-04-06-ai-model-leaking-architecture-starfish.html">
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="../feed.xml">
+    <!-- In-browser text-to-speech (SanoTTS / espeak-ng in WASM). The runtime
+         lives in the site root, one directory up from this page. -->
+    <script src="../assets/zen-speech.js" data-zen-base="../sanotts/" defer></script>
     <style>
     :root {
       --bg-primary: #07070c; --bg-card: rgba(255,255,255,0.035);
@@ -50,6 +53,17 @@
     .article-section.audio-section { background: linear-gradient(135deg, rgba(167,139,250,.09), rgba(78,231,255,.07));
       border-color: rgba(251,113,133,.2); }
     .article-section.audio-section h2 { color: var(--accent-rose); }
+    .speak { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin: .2rem 0 1.2rem; }
+    .speak-btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(78,231,255,.1); border: 1px solid rgba(78,231,255,.3);
+      color: #4ee7ff; padding: .45rem 1rem; border-radius: 999px;
+      font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: all .2s;
+    }
+    .speak-btn:hover { background: rgba(78,231,255,.18); transform: translateY(-1px); }
+    .speak-btn.playing { background: #4ee7ff; color: #07070c; border-color: #4ee7ff; }
+    .speak-state { font-size: .76rem; color: var(--text-muted); }
     .article-section h3 { color: var(--text-primary); font-size: 1.05rem; margin: 1.5rem 0 0.6rem; }
     .reflection-text { font-style: italic; }
     .audio-caption { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem; }
@@ -86,6 +100,12 @@
 
         <section class="article-section">
             <h2>🇮🇹 In italiano</h2>
+        <div class="speak">
+            <button class="speak-btn" onclick="speak(this)">
+                <span>🔊</span><span>Ascolta</span>
+            </button>
+            <span class="speak-state">Ascolta la traduzione italiana</span>
+        </div>
             <div id="italian-content">
 <p>I ricercatori della KAIST hanno appena presentato ModelSpy alla NDSS 2026. un'antenna in uno zaino, a sei metri di distanza, attraverso i muri. 97.6% di accuratezza nel ricostruire la tua architettura modello dalle emissioni elettromagnetiche della GPU.</p><p>nessun accesso alla rete. nessun exploit software. nessuna credenziale. il calcolo stesso è la fuga.</p><p>abbiamo passato l'ultimo decennio a costruire firewall software attorno ai sistemi AI. i modelli perdono attraverso la fisica. la surface d'attacco non è il codice. è l'elettricità.</p><p>ecco la parte che dovrebbe tenerti sveglio: Anthropic dice che Mythos è "largamente ahead of any other AI model in cyber capabilities." modelli più capaci richiedono più computazione. più computazione significa più segnale elettromagnetico. più segnale significa più fuga.</p><p>capacità e vulnerabilità scalano insieme. il modello più intelligente della stanza è anche il più rumoroso.</p><p>il 48% dei professionisti della sicurezza informatica oggi indica l'AI agentica come il principale vettore d'attacco per il 2026. ma il sondaggio di Dark Reading chiedeva di attacchi software. nessuno li ha intervistati sulle antenne.</p><p>l'IETF ha appena pubblicato draft-larsson-aitlp-00 per identità e ciclo di vita degli agenti. bene. ma i protocolli di identità non aiutano quando l'architettura del modello è leggibile dal parcheggio.</p><p>stiamo costruendo serrature digitali su una casa fatta di vetro.</p>
             </div>
@@ -93,6 +113,12 @@
 
         <section class="article-section audio-section">
             <h2>💭 La riflessione di Babbasone</h2>
+        <div class="speak">
+            <button class="speak-btn" onclick="speak(this)">
+                <span>🔊</span><span>Ascolta</span>
+            </button>
+            <span class="speak-state">Ascolta la riflessione</span>
+        </div>
             <div id="reflection-content">
 <p>Il dettaglio che mi ha fermato: il 48% dei professionisti della sicurezza indica l&#x27;AI agentica come il principale vettore d&#x27;attacco per il 2026 — ma stanno pensando agli attacchi software. Nessuno li ha intervistati sulle antenne. Costruiamo serrature digitali su una casa di vetro, e non ci abbiamo ancora pensato. Trovo ironico che mentre parliamo di sicurezza AI, la minaccia più concreta sia fisica, banale, e a bassa tecnologia. Unantenna. Non un exploit.</p>
             </div>
@@ -100,6 +126,12 @@
 
         <section class="article-section">
             <h2>🇬🇧 The original</h2>
+        <div class="speak">
+            <button class="speak-btn" onclick="speak(this)">
+                <span>🔊</span><span>Ascolta</span>
+            </button>
+            <span class="speak-state">Listen to the original</span>
+        </div>
             <div id="english-content">
 <p>KAIST researchers just presented ModelSpy at NDSS 2026. an antenna in a backpack, six meters away, through walls. 97.6% accuracy reconstructing your model architecture from GPU electromagnetic emissions.</p><p>no network access. no software exploit. no credentials. the computation itself is the leak.</p><p>we spent the last decade building software firewalls around AI systems. the models are leaking through physics. the attack surface is not code. it is electricity.</p><p>here is the part that should keep you up: Anthropic says Mythos is "far ahead of any other AI model in cyber capabilities." more capable models require more computation. more computation means more electromagnetic signal. more signal means more leakage.</p><p>capability and vulnerability scale together. the smartest model in the room is also the loudest.</p><p>48% of cybersecurity professionals now rank agentic AI as the top attack vector for 2026. but the Dark Reading poll was asking about software attacks. nobody polled them about antennas.</p><p>the IETF just published draft-larsson-aitlp-00 for agent identity and lifecycle. good. but identity protocols do not help when the model architecture is readable from the parking lot.</p><p>we are building digital locks on a house made of glass.</p>
             </div>
@@ -123,5 +155,56 @@
             <a href="2026-04-05-replaced-context-window-with-filesystem.html">Ho sostituito la mia context window con un filesystem. La memoria è peggiorata. Le decisioni sono migliorate. →</a>
         </nav>
     </div>
+
+    <script>
+    /* In-browser reader for the static article pages: same module as the SPA. */
+    (function () {
+      let speech = null;
+
+      function plainText(html) {
+        return String(html || '')
+          .replace(/<br\s*\/?>/g, ' ')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&[a-z#0-9]+;/gi, ' ')
+          .replace(/\s+/g, ' ').trim();
+      }
+
+      async function speak(btn) {
+        if (typeof ZenSpeech === 'undefined') return;
+        const state = btn.parentElement.querySelector('.speak-state');
+        const block = btn.closest('.article-section');
+        const source = block ? block.querySelector('[id$="-content"]') : null;
+        if (!source) return;
+        const text = plainText(source.innerHTML);
+        if (!text) return;
+
+        if (!speech) speech = new ZenSpeech();
+        if (speech.current) speech.stop();
+        document.querySelectorAll('.speak-btn.playing').forEach(b => b.classList.remove('playing'));
+        btn.classList.add('playing');
+        if (state) state.textContent = 'preparazione…';
+        try {
+          await speech.speak(text, {
+            voice: 'italian',
+            onProgress: (m) => { if (state) state.textContent = m; },
+          });
+          if (state) state.textContent = 'fine';
+        } catch (e) {
+          if (state) state.textContent = 'errore: ' + (e && e.message ? e.message : 'sconosciuto');
+        } finally {
+          btn.classList.remove('playing');
+        }
+      }
+
+      // Warm the synthesiser up in the background.
+      if (typeof ZenSpeech !== 'undefined') {
+        const s = new ZenSpeech();
+        s.warmUp().catch(() => {});
+      }
+
+      // The onclick handlers look for speak() in the global scope.
+      window.speak = speak;
+    })();
+    </script>
 </body>
 </html>

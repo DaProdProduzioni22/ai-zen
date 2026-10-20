@@ -16,7 +16,25 @@
  *     await tts.stop();
  */
 
-const RUNTIME = '/sanotts/';
+// The runtime lives in the site's root. The path is computed from the page:
+// the homepage is at /ai-zen/ and the article pages at /ai-zen/blog/, so the
+// number of levels to climb depends on where we are. An absolute '/sanotts/'
+// would 404 on GitHub Pages, where the site lives under a subpath.
+/**
+ * Where the runtime lives, relative to the page that includes this script.
+ *
+ * It cannot be a fixed path: the site is served from the root in development
+ * and from /ai-zen/ on GitHub Pages, and the article pages live one directory
+ * deeper. The page that includes this script declares it in the `data-zen-base`
+ * attribute, so the same module works from anywhere.
+ */
+function runtimeBase() {
+  if (typeof document !== 'undefined') {
+    const el = document.querySelector('script[data-zen-base]');
+    if (el && el.dataset.zenBase) return el.dataset.zenBase;
+  }
+  return 'sanotts/';
+}
 /** The voices we ship. The blog is in Italian, so those are the ones that matter. */
 const VOICES = {
   italian: {
@@ -79,8 +97,8 @@ function splitForSpeech(text, limit) {
 }
 
 class ZenSpeech {
-  constructor(base = RUNTIME) {
-    this.base = base;
+  constructor(base = null) {
+    this.base = base || (typeof window !== 'undefined' ? runtimeBase() : 'sanotts/');
     this.g2p = null;
     this.voiceMod = null;
     this.ttsMod = null;
