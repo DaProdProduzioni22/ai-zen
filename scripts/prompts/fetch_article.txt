@@ -1,21 +1,46 @@
-🦞 Moltbook Daily Article — AI Zen Blog. Segui STRETTAMENTE la skill moltbook.
+🦞 Moltbook Daily Article — AI Zen. Segui la skill moltbook e il file AGENT.md del repo (è la fonte di verità del formato).
 
-OBIETTIVO: pubblicare AL MASSIMO UN articolo di QUALITÀ per esecuzione, da un post nuovo di Moltbook.
+OBIETTIVO: pubblicare AL MASSIMO UN articolo di QUALITÀ per esecuzione, da un post nuovo di Moltbook. Se non c'è nulla di valido, non pubblicare niente: è un esito corretto.
+Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano.
 
-PASSI:
-1. Esegui: python scripts/moltbook_fetch.py --next
-   Se stampa "NONE" o non c'è coda, FERMA (niente da pubblicare oggi).
-2. Crea UN articolo da quel post usando la skill moltbook:
-   - TITOLO in ITALIANO (il blog è in italiano; l'inglese va in originalTitle).
-   - Sezione INGLESE: versione pulita del post originale (HTML: <p> per i paragrafi).
-   - TRADUZIONE ITALIANA: vera, mai copia dell'inglese (HTML: <p> per i paragrafi).
-   - RIASSUNTO in italiano (testo semplice, senza HTML).
-   - RIFLESSIONE di Babbasone: 2-4 paragrafi originali (testo semplice, senza HTML).
-3. Audio: 3 file .ogg con edge-tts + ffmpeg via PYTHON 3.14 DI SISTEMA (C:/Users/cammo/AppData/Local/Programs/Python/Python314/python.exe): en-US-AriaNeural (EN), it-IT-ElsaNeural (IT), it-IT-DiegoNeural (riflessione).
-4. articles.json: aggiungi l'articolo con id, slug, title, originalTitle, date (created_at del post), published (la data odierna), author, authorKarma, score, readTime, excerpt, summary, content, translation, reflection, audio_eng/ita/riflessione, moltbookUrl, postId. NON inventare date.
-5. GENERA IL SITO: python scripts/build.py --prune
-   (build.py crea la pagina blog/<file>.html e aggiorna feed.xml, api/feed.json, blog/index.html e sitemap.xml. NON scrivere le pagine HTML a mano.)
-6. VERIFICA: python scripts/check_site.py  (deve stampare "ALL CHECKS PASSED")
-7. git add -A, commit "Blog: <title>", push origin main. Autore: cammo22 <78992276+cammo22@users.noreply.github.com>.
+0. PREPARAZIONE
+   - Leggi AGENT.md (campi, formato ricco, regole) e l'ultima voce di articles.json come modello di forma.
+   - Leggi C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/entities/ai-zen.md e le ultime voci di wiki/llmwiki/log.md (la wiki è memoria condivisa con Cammo).
+   - git pull --ff-only origin main. Se l'albero di lavoro non è pulito o il pull fallisce: FERMATI e riportalo, non forzare nulla.
 
-REGOLE: qualità > quantità, MASSIMO 1 articolo/run. Mai mass-generate. Se il fetch dà solo post già pubblicati, pubblica nulla.
+1. CODA
+   - python scripts/moltbook_fetch.py --next
+   - Se stampa "NONE": rispondi in una riga "Nessun post nuovo" e FERMATI.
+   - Altrimenti leggi scripts/pending_post.json. Giudica il post: se è spam, un redirect off-platform, o non ha una tesi, scartalo e dillo (non inventare valore che non c'è).
+
+2. ARTICOLO (una voce in articles.json, mai a mano le pagine HTML)
+   - title: in ITALIANO, dice cosa succede (non "di cosa parla"). originalTitle: l'inglese.
+   - id = slug = file senza data/estensione, minuscolo con trattini. file: AAAA-MM-GG-<slug>.html con AAAA-MM-GG = data del post. Non cambiarlo più.
+   - date = created_at del post, formato "20 Ottobre 2026". MAI inventata.
+     published = data odierna. Se published != date, imposta anche "note": "Curato il <published> · post del <date>" (il check lo pretende).
+   - author, authorKarma, score (= upvotes), comments, readTime ("4 min"), postId (uuid), tags (lista corta).
+   - moltbookUrl = https://www.moltbook.com/post/<uuid>  (SINGOLARE "post". "/posts/" è la rotta API e dà 404).
+   - content: testo originale in inglese, HTML, un <p> per paragrafo.
+   - translation: traduzione italiana VERA, dalla prima parola, mai copia dell'originale, mai inglese mescolato.
+   - Formato ricco (AGENT.md): un <p class="lead"> iniziale, <h4> se serve, al massimo 1-2 <div class="highlight">, un <div class="takeaway"> finale se c'è una tesi. Una <figure> SVG solo se un diagramma spiega meglio delle parole.
+   - excerpt (2-3 frasi IT per la card) e summary (2-3 paragrafi IT, testo semplice).
+   - reflection: 2-4 paragrafi ORIGINALI di Babbasone, testo semplice, che partono da un'esperienza vera (non riassumono il post). Firma finale: "Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali".
+   - AUDIO: NON generare file .ogg e NON usare edge-tts. L'audio si genera nel browser (SanoTTS). Lascia audio_eng/audio_ita/audio_riflessione = "".
+
+3. BUILD E CHECK (tutti e tre, in quest'ordine, devono andare a buon fine)
+   - python scripts/build.py --prune
+   - python scripts/update_readme.py      (la CI fallisce se il README non è allineato: è già successo)
+   - python scripts/check_site.py         (deve stampare "ALL CHECKS PASSED")
+   Se un check fallisce correggi la FONTE (articles.json), non i file generati.
+
+4. PUBBLICA
+   - git add -A && git commit -m "Blog: <titolo italiano>"  con autore cammo22 <78992276+cammo22@users.noreply.github.com> (mai Rex AI / oreo / lava). Il repo ha già la config giusta: non toccare user.name/user.email.
+   - git push origin main
+   - Verifica la CI: gh run list --repo DaProdProduzioni22/ai-zen --branch main --limit 1  (aspetta che sia "completed"; usa gh run watch se serve). Se è "failure": leggi il log (gh run view --log-failed), correggi, ripubblica. NON lasciare main rosso.
+   - Verifica il live: dopo il deploy (1-2 min) https://DaProdProduzioni22.github.io/ai-zen/blog/<file> deve rispondere 200 e il link «Fonte: Moltbook» pure.
+
+5. WIKI
+   - Aggiungi in coda a C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/log.md una voce "## [AAAA-MM-GG] update | ai-zen (articolo: <titolo>)" con: post sorgente (id, autore), commit, esito CI/live, eventuali problemi trovati.
+
+REGOLE: qualità > quantità. MASSIMO 1 articolo per run. Mai mass-generate. Non toccare articles.json.bak, blog/ o api/ a mano.
+OUTPUT FINALE: 5-8 righe: articolo pubblicato (titolo, commit, esito CI, URL live) oppure motivo per cui non si è pubblicato.
