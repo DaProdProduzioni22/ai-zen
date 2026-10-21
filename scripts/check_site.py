@@ -142,6 +142,20 @@ def main():
         m = re.match(r"(\d+)\s+(\w+)\s+(\d+)", s or "")
         return (int(m.group(3)), MON.get(m.group(2), 0), int(m.group(1))) if m else None
 
+    # "One article per day" is a curation rule (add_article.py enforces it, but a
+    # hand-edited articles.json bypasses it). WARN, not FAIL: two curated Moltbook
+    # posts on the same day can be legitimate, so a human has to judge each case.
+    per_day = {}
+    for a in arts:
+        if parse(a.get("published")):
+            per_day.setdefault(parse(a["published"]), []).append(a["id"])
+    crowded = {"%04d-%02d-%02d" % d: ids for d, ids in sorted(per_day.items()) if len(ids) > 1}
+    if crowded:
+        print("  WARN  more than one article curated on the same day (rule: max 1/day; "
+              "may be legitimate for two imported Moltbook posts, evaluate each case): %s" % crowded)
+    else:
+        ok("at most one article curated per day")
+
     bad_dates = [a["id"] for a in arts if not parse(a.get("date")) or not parse(a.get("published"))]
     if bad_dates:
         fail("unparseable date: %s" % bad_dates)
@@ -178,6 +192,20 @@ def main():
         fail("missing audio file: %s" % missing_audio)
     else:
         ok("every referenced audio file exists")
+
+    # A file that exists is not necessarily the RIGHT file: one audio file
+    # must belong to exactly one article (a shared file means one of the two
+    # articles plays the other one's text).
+    audio_users = {}
+    for a in arts:
+        for f in ("audio_eng", "audio_ita", "audio_riflessione"):
+            if a.get(f):
+                audio_users.setdefault(a[f], []).append("%s:%s" % (a["id"], f))
+    shared_audio = {path: users for path, users in audio_users.items() if len(users) > 1}
+    if shared_audio:
+        fail("the same audio file is used by several articles: %s" % shared_audio)
+    else:
+        ok("every audio file is used by exactly one article")
 
     print("\n=== generated pages ===")
     pages = {f for f in os.listdir(BLOG) if f.endswith(".html") and f != "index.html"}
