@@ -105,7 +105,35 @@
         .band { padding: clamp(3rem, 7vw, 5.5rem) 0; }
         .band-alt { background: var(--bg-2); border-block: 1px solid var(--border); }
         .section-head { margin-bottom: 2.2rem; }
-        .section-head h1, .section-head h2 { font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 600; letter-spacing: -.01em; }
+        .section-head h1, .section-head h2 { font-size: clamp(1.35rem, 3vw, 1.8rem); font-weight: 600; letter-spacing: -.01em; }
+        #blog-section .section-head h1 { font-size: clamp(1.05rem, 2vw, 1.35rem); }
+        .blog-head { display: flex; align-items: center; gap: 1rem; }
+        .blog-head-ico {
+            flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px;
+            display: grid; place-items: center; font-size: 1.5rem; line-height: 1;
+            background: linear-gradient(135deg, rgba(78,231,255,.18), rgba(167,139,250,.14));
+            border: 1px solid var(--border);
+        }
+        .blog-stats { display: flex; flex-wrap: wrap; gap: .5rem; margin: .9rem 0 .2rem; }
+        .blog-stat {
+            display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .7rem;
+            background: var(--bg-3); border: 1px solid var(--border); border-radius: 999px;
+            font-size: .74rem; color: var(--text-2);
+        }
+        .blog-stat b { color: var(--text); font-weight: 600; }
+        .blog-nav-strip { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+        .blog-nav-strip .bns-item {
+            display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .8rem;
+            background: var(--bg-3); border: 1px solid var(--border); border-radius: 999px;
+            font-size: .78rem; color: var(--text-2); font-family: inherit;
+            cursor: pointer; transition: border-color .2s, color .2s, background .2s;
+        }
+        .blog-nav-strip .bns-item:hover { border-color: var(--cyan); color: var(--text); background: var(--card-hover); }
+        .blog-nav-strip .bns-item .bns-ico { font-size: .95rem; line-height: 1; }
+        @media (max-width: 640px) {
+            .blog-head { align-items: flex-start; }
+            .blog-head-ico { width: 40px; height: 40px; font-size: 1.3rem; border-radius: 12px; }
+        }
         .section-head p { color: var(--text-2); margin-top: .5rem; max-width: 62ch; }
         .eyebrow {
             font-size: .72rem; text-transform: uppercase; letter-spacing: .14em;
@@ -630,9 +658,21 @@
             <section class="band">
                 <div class="wrap">
                     <div class="section-head">
-                        <span class="eyebrow">Archivio</span>
-                        <h1>Tutti gli articoli</h1>
-                        <p>Ogni articolo ha testo originale, traduzione italiana, riflessione e — dove disponibile — audio.</p>
+                        <div class="blog-head">
+                            <span class="blog-head-ico" aria-hidden="true">📚</span>
+                            <div>
+                                <span class="eyebrow">Archivio</span>
+                                <h1>Articoli del blog</h1>
+                                <p>Ogni articolo ha testo originale, traduzione italiana, riflessione e — dove disponibile — audio.</p>
+                            </div>
+                        </div>
+                        <div class="blog-stats" id="blogStats"></div>
+                        <div class="blog-nav-strip">
+                            <button type="button" class="bns-item" onclick="blogShortcut('all')"><span class="bns-ico">📚</span> Archivio completo</button>
+                            <button type="button" class="bns-item" onclick="blogShortcut('month')"><span class="bns-ico">📅</span> Filtra per mese</button>
+                            <button type="button" class="bns-item" onclick="blogShortcut('search')"><span class="bns-ico">🔍</span> Cerca titolo/tema</button>
+                            <button type="button" class="bns-item" onclick="blogShortcut('cal')"><span class="bns-ico">🗓️</span> Calendario</button>
+                        </div>
                     </div>
                     <div class="cal-wrap">
                         <div class="cal" id="calendar"></div>
@@ -999,6 +1039,27 @@
         });
         renderCards();
     }
+    function blogShortcut(kind) {
+        if (kind === 'all') {
+            state.query = '';
+            const sb = $('searchBox');
+            if (sb) sb.value = '';
+            state.month = 'all';
+            const first = document.querySelector('#monthFilters .filter-btn');
+            if (first) setMonth('all', first);
+            else applyFilters();
+        } else if (kind === 'month') {
+            const mf = $('monthFilters');
+            if (mf) mf.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (kind === 'search') {
+            const sb = $('searchBox');
+            if (sb) { sb.focus(); sb.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        } else if (kind === 'cal') {
+            const cal = $('calendar');
+            if (cal) cal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
     function buildMonthFilters() {
         const counts = {};
         state.articles.forEach(a => {
@@ -1640,6 +1701,15 @@
         $('homeCards').innerHTML = state.articles.slice(0, 3).map(cardHTML).join('');
         buildMonthFilters();
         renderCards();
+        const _months = new Set(state.articles.map(a => ((a.date || '').match(/\w+\s+\d{4}$/) || [''])[0]));
+        const _withAudio = state.articles.filter(a => a.audio_eng).length;
+        const _authors = new Set(state.articles.map(a => a.author)).size;
+        const _bs = $('blogStats');
+        if (_bs) _bs.innerHTML =
+            '<span class="blog-stat">📄 <b>' + state.articles.length + '</b> articoli</span>' +
+            '<span class="blog-stat">🗓️ <b>' + _months.size + '</b> mesi</span>' +
+            '<span class="blog-stat">🔊 <b>' + _withAudio + '</b> con audio</span>' +
+            '<span class="blog-stat">✍️ <b>' + _authors + '</b> autori</span>';
         const now = new Date();
         calState.year = now.getFullYear();
         calState.month = now.getMonth();
