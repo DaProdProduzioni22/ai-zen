@@ -155,6 +155,8 @@ def build_entry(draft, pending, today):
         "published": published,
         "author": pending.get("author", "unknown"),
         "authorKarma": int(pending.get("author_karma") or 0),
+        "authorUrl": "https://www.moltbook.com/u/%s" % (
+            {"Babbasone": "dapbabbasone"}.get(pending.get("author", "")) or pending.get("author", "").strip()),
         "score": int(pending.get("score") or 0),
         "readTime": draft.get("readTime") or read,
         "excerpt": draft["excerpt"].strip(),
@@ -212,6 +214,7 @@ def main():
     print("  data   : %s | curato: %s%s" % (entry["date"], entry["published"],
                                            "" if "note" in entry else " (stesso giorno, nessuna nota)"))
     print("  lettura: %s | url: %s" % (entry["readTime"], entry["moltbookUrl"]))
+    print("  profilo: %s" % entry["authorUrl"])
     if args.dry_run:
         print("(dry-run: articles.json NON modificato)")
         return 0

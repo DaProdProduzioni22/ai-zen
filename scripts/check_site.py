@@ -62,6 +62,7 @@ def main():
     # required fields. `score` and `authorKarma` may legitimately be 0 (an
     # original article, not a curated Moltbook post), so only None/missing counts.
     required = ("id", "title", "originalTitle", "date", "published", "author",
+                "authorUrl",
                 "readTime", "excerpt", "summary", "reflection",
                 "content", "translation", "slug", "file")
     missing = [(a.get("id"), f) for a in arts for f in required if not a.get(f)]
@@ -112,6 +113,18 @@ def main():
         fail("moltbookUrl is not the public route https://www.moltbook.com/post/<uuid>: %s" % wrong_route)
     else:
         ok("every Moltbook link uses the public route /post/<uuid>")
+
+    # Profilo Moltbook dell'autore: https://www.moltbook.com/u/<handle>
+    missing_author_urls = [a["id"] for a in arts if not a.get("authorUrl")]
+    bad_author_urls = [a["id"] for a in arts
+                       if a.get("authorUrl")
+                       and not re.fullmatch(r"https://www\.moltbook\.com/u/[A-Za-z0-9._-]+", a["authorUrl"])]
+    if missing_author_urls:
+        fail("authorUrl mancante: %s" % missing_author_urls)
+    elif bad_author_urls:
+        fail("authorUrl non è un profilo Moltbook /u/<handle>: %s" % bad_author_urls)
+    else:
+        ok("ogni articolo linka il profilo Moltbook dell'autore")
 
     # duplicate Moltbook post ids (the same post published twice)
     post_ids = [a.get("postId") for a in arts if a.get("postId")]
@@ -200,12 +213,32 @@ def main():
     # Only absolute https://DaProdProduzioni22.github.io/ai-zen/... URLs are fine.
     page_files = [os.path.join(REPO, f) for f in ("index.html", "404.html", "agenti.html")]
     page_files += [os.path.join(BLOG, f) for f in sorted(os.listdir(BLOG)) if f.endswith(".html")]
+    # NB: raw string, so \w stays backslash+w. In a non-raw string "\b" silently
+    # became the backspace byte 0x08 and this check never fired. The lookbehind
+    # skips data-href / xlink-href (not navigations).
+    ROOT_REL_RE = re.compile(r"""(?<![\w-])(?:href|src)=["'](/(?!/)[^"']*)["']""")
+    # self-test: the pattern must catch known-bad links and let good ones through,
+    # otherwise this invariant would be a vacuous PASS.
+    if chr(8) in ROOT_REL_RE.pattern:
+        fail("root-relative pattern contains a backspace byte (0x08) instead of a word boundary")
+    _bad = ['<a href="/x">x</a>', "<a href='/agenti.html'>a</a>", '<img src="/img/a.png">']
+    _good = ['<a href="./">h</a>', '<a href="../agenti.html">a</a>', '<a href="//cdn.x/y">c</a>',
+             '<a href="https://DaProdProduzioni22.github.io/ai-zen/">a</a>',
+             '<a href="#top">t</a>', 'data-href="/x"']
+    _missed = [s for s in _bad if not ROOT_REL_RE.search(s)]
+    _false = [s for s in _good if ROOT_REL_RE.search(s)]
+    if _missed:
+        fail("root-relative pattern is broken, misses known-bad links: %s" % _missed)
+    elif _false:
+        fail("root-relative pattern is broken, flags good links: %s" % _false)
+    else:
+        ok("root-relative pattern self-test (%d bad caught, %d good allowed)" % (len(_bad), len(_good)))
     root_rel = []
     for pf in page_files:
         if not os.path.exists(pf):
             continue
         txt = open(pf, encoding="utf-8").read()
-        for m in re.finditer(r"""(?:href|src)=["'](/(?!/)[^"']*)["']""", txt):
+        for m in ROOT_REL_RE.finditer(txt):
             root_rel.append("%s -> %s" % (os.path.relpath(pf, REPO).replace(os.sep, "/"), m.group(1)))
     if root_rel:
         fail("root-relative href/src (404 under /ai-zen/): %s" % root_rel)

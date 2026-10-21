@@ -382,6 +382,18 @@ def related_articles(article, articles, limit=3):
     return [t[2] for t in scored[:limit]]
 
 
+# Link al profilo Moltbook dell'autore. `author` in articles.json è l'handle
+# Moltbook (AGENT.md); il nostro account si chiama "Babbasone" ma il handle
+# è dapbabbasone (vedi ~/.config/moltbook/credentials.json).
+MOLTBOOK_HANDLES = {"Babbasone": "dapbabbasone"}
+
+
+def moltbook_profile_url(author):
+    """https://www.moltbook.com/u/<handle> — profilo Moltbook dell'autore."""
+    handle = MOLTBOOK_HANDLES.get(author) or (author or "").strip()
+    return "https://www.moltbook.com/u/%s" % handle if handle else ""
+
+
 def render_article_page(article, prev_article, next_article, related=None, idx=0):
     a = article
     title = esc(a.get("title"))
@@ -392,8 +404,9 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
     meta_bits = ["<span>📅 %s</span>" % esc(a.get("date"))]
     if a.get("published") and a["published"] != a.get("date"):
         meta_bits.append("<span>🗂️ Curato il %s</span>" % esc(a["published"]))
-    meta_bits.append('<span>✍️ <a href="./#a=%s" title="Tutti gli articoli di %s">%s</a></span>'
-                     % (esc(urllib.parse.quote(author)), esc(author), esc(author)))
+    author_link = '<a href="%s" target="_blank" rel="noopener" title="Profilo Moltbook di %s">%s</a>' % (
+        esc(moltbook_profile_url(author)), esc(author), esc(author))
+    meta_bits.append('<span>✍️ %s</span>' % author_link)
     if a.get("score"):
         meta_bits.append("<span>⬆️ %s</span>" % esc(a["score"]))
     if a.get("readTime"):
@@ -463,9 +476,11 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
             '<a href="#%s"%s>%s</a>' % (i, ' class="on"' if n == 0 else "", l) for n, (i, l) in enumerate(tabs))
 
     if a.get("moltbookUrl"):
+        author_link = '<a href="%s" target="_blank" rel="noopener">%s</a>' % (
+            esc(moltbook_profile_url(author)), esc(author))
         footer_link = ('<p>Fonte: <a href="%s" class="moltbook-link" target="_blank" '
-                       'rel="noopener">Moltbook</a> di <strong>%s</strong></p>'
-                       % (esc(a["moltbookUrl"]), esc(author)))
+                       'rel="noopener">Moltbook</a> di %s</p>'
+                       % (esc(a["moltbookUrl"]), author_link))
     else:
         footer_link = "<p>Fonte originale su Moltbook non recuperata.</p>"
 
@@ -585,6 +600,8 @@ def render_blog_index(articles):
             tags.append('<span class="tag">%s</span>' % esc(t))
         # the excerpt on a card must be in Italian
         excerpt = italian_excerpt(a)
+        author_link = '<a href="%s" target="_blank" rel="noopener">%s</a>' % (
+            esc(moltbook_profile_url(a.get("author"))), esc(a.get("author")))
         cards.append("""            <a href="%s" class="article-card" data-id="%s" data-rank="%d" data-day="%s" data-month="%s" data-author="%s" data-score="%d" data-own="%d" data-search="%s">
                 <div class="card-cover">%s</div>
                 <div class="card-body">
@@ -603,7 +620,7 @@ def render_blog_index(articles):
 """ % (esc(slug_filename(a)), esc(a.get("id")), idx, day, esc(month), esc(a.get("author")),
        int(a.get("score") or 0), 1 if own else 0, esc(search_blob(a)),
        cover_svg(a, idx), esc(a.get("title")), esc(a.get("date")),
-       esc(a.get("author")), esc(a.get("readTime")), esc(excerpt), "\n                        ".join(tags)))
+       author_link, esc(a.get("readTime")), esc(excerpt), "\n                        ".join(tags)))
 
     authors = {a.get("author") for a in articles if a.get("author")}
     newest = articles[0].get("published") or articles[0].get("date") if articles else ""
@@ -711,6 +728,7 @@ def render_api_feed(articles):
             "date": a.get("date"),
             "published": a.get("published"),
             "author": a.get("author"),
+            "authorUrl": moltbook_profile_url(a.get("author")),
             "score": a.get("score"),
             "readTime": a.get("readTime"),
             "url": SITE + "/blog/" + slug_filename(a),
