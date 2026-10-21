@@ -459,10 +459,10 @@ def render_article_page(article, prev_article, next_article):
 
       function plainText(html) {
         return String(html || '')
-          .replace(/<br\s*\/?>/g, ' ')
+          .replace(/<br\\s*\\/?>/g, ' ')
           .replace(/<[^>]+>/g, ' ')
           .replace(/&[a-z#0-9]+;/gi, ' ')
-          .replace(/\s+/g, ' ').trim();
+          .replace(/\\s+/g, ' ').trim();
       }
 
       async function speak(btn) {
@@ -669,7 +669,7 @@ def render_blog_index(articles):
       var arts = [];
 
       function parseDate(s) {
-        var m = (s || '').match(/(\d+)\s+(\w+)\s+(\d+)/);
+        var m = (s || '').match(/(\\d+)\\s+(\\w+)\\s+(\\d+)/);
         if (!m) return new Date(0);
         return new Date(+m[3], (MAP[m[2]] || 1) - 1, +m[1]);
       }
