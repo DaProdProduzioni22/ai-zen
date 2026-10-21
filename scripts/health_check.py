@@ -11,15 +11,19 @@ What it checks (each one is a thing that has already broken at least once):
   3. the live feed has as many articles as articles.json (deploy is not stale)
   4. every "Fonte: Moltbook" link answers 200 (the /posts/ vs /post/ 404 bug)
   5. local repo: nothing unpushed, nothing left uncommitted
+  6. the daily article: one was curated today (the 07:00 cron ran and produced it).
+     Skipped with --no-daily, e.g. when the check runs before the morning job.
 
 Usage:
   python scripts/health_check.py             # silent when healthy
   python scripts/health_check.py --verbose   # always print a summary
   python scripts/health_check.py --no-moltbook   # skip the 34 external links
+  python scripts/health_check.py --no-daily      # skip the "article published today" check
 
 Exit code: 0 healthy, 1 problems found.
 """
 import argparse
+import datetime
 import json
 import os
 import re
@@ -66,6 +70,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--no-moltbook", action="store_true")
+    ap.add_argument("--no-daily", action="store_true")
     args = ap.parse_args()
 
     problems, notes = [], []
@@ -130,6 +135,18 @@ def main():
         if dead:
             problems.append("link «Fonte: Moltbook» morti:\n    " + "\n    ".join(dead))
         notes.append("link Moltbook: %d verificati" % len(urls))
+
+    # 6. the daily article (the one-per-day rule makes "none today" a real signal)
+    if not args.no_daily:
+        months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio",
+                  "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"]
+        t = datetime.date.today()
+        today_it = "%02d %s %d" % (t.day, months[t.month - 1], t.year)
+        if any(a.get("published") == today_it for a in arts):
+            notes.append("articolo di oggi presente")
+        else:
+            problems.append("nessun articolo curato oggi (%s): il job delle 07:00 non ha pubblicato. "
+                            "Controlla `hermes cron` e scripts/moltbook_fetch.py --next" % today_it)
 
     # 5. local repo
     run(["git", "fetch", "--quiet", "origin"])

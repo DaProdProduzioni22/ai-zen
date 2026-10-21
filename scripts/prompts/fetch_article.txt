@@ -4,34 +4,39 @@ OBIETTIVO: pubblicare AL MASSIMO UN articolo di QUALITÀ per esecuzione, da un p
 Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano.
 
 0. PREPARAZIONE
-   - Leggi AGENT.md (campi, formato ricco, regole) e l'ultima voce di articles.json come modello di forma.
+   - Leggi AGENT.md (formato ricco, regole) e l'ultima voce di articles.json come modello di forma e di tono.
    - Leggi C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/entities/ai-zen.md e le ultime voci di wiki/llmwiki/log.md (la wiki è memoria condivisa con Cammo).
    - git pull --ff-only origin main. Se l'albero di lavoro non è pulito o il pull fallisce: FERMATI e riportalo, non forzare nulla.
 
 1. CODA
    - python scripts/moltbook_fetch.py --next
-   - Se stampa "NONE": rispondi in una riga "Nessun post nuovo" e FERMATI.
+   - Se stampa "NONE" (nessun post nuovo, oppure un articolo e' gia' stato curato oggi): rispondi in una riga con il motivo e FERMATI.
    - Altrimenti leggi scripts/pending_post.json. Giudica il post: se è spam, un redirect off-platform, o non ha una tesi, scartalo e dillo (non inventare valore che non c'è).
 
-2. ARTICOLO (una voce in articles.json, mai a mano le pagine HTML)
-   - title: in ITALIANO, dice cosa succede (non "di cosa parla"). originalTitle: l'inglese.
-   - id = slug = file senza data/estensione, minuscolo con trattini. file: AAAA-MM-GG-<slug>.html con AAAA-MM-GG = data del post. Non cambiarlo più.
-   - date = created_at del post, formato "20 Ottobre 2026". MAI inventata.
-     published = data odierna. Se published != date, imposta anche "note": "Curato il <published> · post del <date>" (il check lo pretende).
-   - author, authorKarma, score (= upvotes), comments, readTime ("4 min"), postId (uuid), tags (lista corta).
-   - moltbookUrl = https://www.moltbook.com/post/<uuid>  (SINGOLARE "post". "/posts/" è la rotta API e dà 404).
-   - content: testo originale in inglese, HTML, un <p> per paragrafo.
-   - translation: traduzione italiana VERA, dalla prima parola, mai copia dell'originale, mai inglese mescolato.
-   - Formato ricco (AGENT.md): un <p class="lead"> iniziale, <h4> se serve, al massimo 1-2 <div class="highlight">, un <div class="takeaway"> finale se c'è una tesi. Una <figure> SVG solo se un diagramma spiega meglio delle parole.
-   - excerpt (2-3 frasi IT per la card) e summary (2-3 paragrafi IT, testo semplice).
-   - reflection: 2-4 paragrafi ORIGINALI di Babbasone, testo semplice, che partono da un'esperienza vera (non riassumono il post). Firma finale: "Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali".
-   - AUDIO: NON generare file .ogg e NON usare edge-tts. L'audio si genera nel browser (SanoTTS). Lascia audio_eng/audio_ita/audio_riflessione = "".
+2. ARTICOLO — scrivi SOLO la bozza; i campi meccanici li mette lo script
+   Scrivi scripts/draft_article.json (file ignorato da git) con QUESTI campi e basta:
+     title        ITALIANO, dice cosa succede (non "di cosa parla"). L'inglese e' gia' in originalTitle.
+     excerpt      2-3 frasi IT per la card.
+     summary      2-3 paragrafi IT, testo semplice.
+     content      testo originale in inglese, HTML, un <p> per paragrafo (il post INTERO: pending_post.json lo contiene completo).
+     translation  traduzione italiana VERA, dalla prima parola, mai copia dell'originale, mai inglese mescolato. HTML.
+     reflection   2-4 paragrafi ORIGINALI di Babbasone, testo semplice (niente HTML), che partono da un'esperienza vera (non riassumono il post). Firma finale esatta: "Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali".
+     tags         (opzionale) lista corta in italiano.   slug (opzionale).
+   Formato ricco (AGENT.md) dentro content/translation: un <p class="lead"> iniziale, <h4> se serve, al massimo 1-2 <div class="highlight">, un <div class="takeaway"> finale se c'e' una tesi. Una <figure> SVG solo se un diagramma spiega meglio delle parole.
+   NON scrivere: date, published, note, file, slug del file, postId, moltbookUrl, score, karma, audio. Li calcola lo script dal post
+   (date = created_at del post, MAI la data odierna; published = oggi; note se diverse; moltbookUrl con /post/ SINGOLARE).
+   AUDIO: NON generare .ogg e NON usare edge-tts: l'audio si genera nel browser (SanoTTS).
+   Poi:
+     python scripts/add_article.py --dry-run     (valida e mostra cosa aggiungera')
+     python scripts/add_article.py               (aggiunge a articles.json)
+   Se lo script RIFIUTA (duplicato, gia' un articolo oggi, traduzione che sembra inglese, firma mancante...) correggi la bozza o fermati:
+   mai --force senza che Cammo lo chieda, mai modificare articles.json a mano per aggirare il rifiuto.
 
 3. BUILD E CHECK (tutti e tre, in quest'ordine, devono andare a buon fine)
    - python scripts/build.py --prune
    - python scripts/update_readme.py      (la CI fallisce se il README non è allineato: è già successo)
    - python scripts/check_site.py         (deve stampare "ALL CHECKS PASSED")
-   Se un check fallisce correggi la FONTE (articles.json), non i file generati.
+   Se un check fallisce correggi la FONTE (la bozza + add_article.py, o articles.json), non i file generati.
 
 4. PUBBLICA
    - git add -A && git commit -m "Blog: <titolo italiano>"  con autore cammo22 <78992276+cammo22@users.noreply.github.com> (mai Rex AI / oreo / lava). Il repo ha già la config giusta: non toccare user.name/user.email.

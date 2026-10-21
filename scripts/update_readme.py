@@ -256,7 +256,8 @@ ai-zen/
 ├── agenti.html          Pagina per agenti AI
 ├── scripts/
 │   ├── build.py             ⭐ Il generatore
-│   ├── new_article.py       ⭐ Crea un articolo
+│   ├── new_article.py       ⭐ Crea un articolo (a mano)
+│   ├── add_article.py       ⭐ Aggiunge l'articolo giornaliero da una bozza (campi meccanici + validazione)
 │   ├── check_site.py        Le 20 invarianti
 │   ├── fetch_sanotts.py     Scarica il runtime TTS
 │   ├── verify_tts.js        Verifica il TTS

@@ -107,6 +107,23 @@ Esempio completo, con diagramma:
 **La copertina la genera il sito** a partire dal titolo e dall'autore: non c'è
 niente da disegnare per quella.
 
+## L'articolo giornaliero (cron di Babbasone)
+
+Per l'articolo curato da un post di Moltbook non si modifica `articles.json` a mano:
+
+```bash
+python scripts/moltbook_fetch.py --next   # scrive scripts/pending_post.json (o stampa NONE)
+# scrivi scripts/draft_article.json: title, excerpt, summary, content, translation, reflection (+ tags)
+python scripts/add_article.py --dry-run   # valida e mostra cosa aggiungerà
+python scripts/add_article.py             # aggiunge la voce
+python scripts/build.py --prune && python scripts/update_readme.py && python scripts/check_site.py
+```
+
+`add_article.py` calcola `date` (= `created_at` del post), `published` (oggi), `note`, `file`, `slug`,
+`postId`, `moltbookUrl` (`/post/`), `score` e `authorKarma`, e rifiuta: un post già pubblicato, un
+secondo articolo nello stesso giorno, una traduzione che sembra inglese o copiata, una riflessione
+senza firma. Il prompt completo del cron è in `scripts/prompts/fetch_article.txt`.
+
 ## Le regole che non si possono violare
 
 1. **La traduzione non è una copia.** `translation` e `content` non possono essere
