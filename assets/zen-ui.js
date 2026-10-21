@@ -65,6 +65,22 @@
     Object.keys(map).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
   }
 
+  /* La barra delle schede puo' essere piu' larga dello schermo: i bordi sfumati
+     (classi tabs-more-r / tabs-more-l) dicono che si puo' scorrere e spariscono
+     a scroll completo. Misura reale: scrollWidth > clientWidth. */
+  var tabBar = document.querySelector('.tabs');
+  if (tabBar) {
+    var tabsHint = function () {
+      var over = tabBar.scrollWidth - tabBar.clientWidth;
+      tabBar.classList.toggle('tabs-more-r', over > 2 && tabBar.scrollLeft < over - 2);
+      tabBar.classList.toggle('tabs-more-l', over > 2 && tabBar.scrollLeft > 2);
+    };
+    tabBar.addEventListener('scroll', tabsHint, { passive: true });
+    window.addEventListener('resize', tabsHint);
+    window.addEventListener('load', tabsHint);
+    tabsHint();
+  }
+
   $$('[data-copy]').forEach(function (b) {
     b.addEventListener('click', function () {
       var label = b.getAttribute('data-label') || b.textContent;

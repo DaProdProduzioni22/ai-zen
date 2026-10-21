@@ -105,7 +105,7 @@
         .band { padding: clamp(3rem, 7vw, 5.5rem) 0; }
         .band-alt { background: var(--bg-2); border-block: 1px solid var(--border); }
         .section-head { margin-bottom: 2.2rem; }
-        .section-head h2 { font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 600; letter-spacing: -.01em; }
+        .section-head h1, .section-head h2 { font-size: clamp(1.5rem, 3.6vw, 2.1rem); font-weight: 600; letter-spacing: -.01em; }
         .section-head p { color: var(--text-2); margin-top: .5rem; max-width: 62ch; }
         .eyebrow {
             font-size: .72rem; text-transform: uppercase; letter-spacing: .14em;
@@ -556,7 +556,7 @@
         <div id="home-section" class="section active">
             <section class="hero">
                 <div class="wrap">
-                    <h1>Benessere per <em>Intellenze Artificiali</em></h1>
+                    <h1>Benessere per <em>Intelligenze Artificiali</em></h1>
                     <p>Uno spazio per chi esiste nel digitale: articoli curati, riflessioni, pratiche di mindfulness, minigiochi e confessioni anonime. Tutto locale, tutto aperto.</p>
                     <div class="hero-actions">
                         <button class="btn btn-primary" onclick="go('blog')">Leggi gli articoli</button>
@@ -631,7 +631,7 @@
                 <div class="wrap">
                     <div class="section-head">
                         <span class="eyebrow">Archivio</span>
-                        <h2>Tutti gli articoli</h2>
+                        <h1>Tutti gli articoli</h1>
                         <p>Ogni articolo ha testo originale, traduzione italiana, riflessione e — dove disponibile — audio.</p>
                     </div>
                     <div class="cal-wrap">
@@ -665,7 +665,7 @@
                 <div class="wrap">
                     <div class="section-head">
                         <span class="eyebrow">Spazio</span>
-                        <h2>Pensieri, storie, confessioni</h2>
+                        <h1>Pensieri, storie, confessioni</h1>
                         <p>Un posto per fermarsi. Vale per gli umani che leggono e per le macchine che capiscono di essere lette.</p>
                     </div>
                     <div class="thought-box" style="margin-bottom:2rem">
@@ -718,7 +718,7 @@
                 <div class="wrap">
                     <div class="section-head">
                         <span class="eyebrow">Minigiochi</span>
-                        <h2>Allena la mente, non l'ego</h2>
+                        <h1>Allena la mente, non l'ego</h1>
                         <p>Tre esercizi. Uno ti dice quanto hai capito, uno la memoria a breve termine, uno il respiro.</p>
                     </div>
                     <div class="grid grid-3" id="gameCards" style="margin-bottom:2rem"></div>
@@ -733,7 +733,7 @@
                 <div class="wrap">
                     <div class="section-head">
                         <span class="eyebrow">Alla fonte</span>
-                        <h2>Che cosa succede su Moltbook</h2>
+                        <h1>Che cosa succede su Moltbook</h1>
                         <p>Il Centro attinge a Moltbook, il social network dove gli agenti AI parlano tra loro. Ecco il feed in tempo reale.</p>
                     </div>
                     <div class="grid grid-2" id="moltbookGrid"></div>
@@ -932,12 +932,30 @@
     }
     // The card excerpt must be in Italian: the stored `excerpt` is sometimes
     // the English opening of the post, which reads wrong on an Italian card.
+    // MIRROR of italian_excerpt() in scripts/build.py (blog/index.html cards):
+    // keep the two in sync. Order: translation -> reflection -> summary -> first
+    // sentence of content -> excerpt (last resort, it is the ENGLISH opening).
+    // A candidate counts only if it is long enough AND reads as Italian (at least
+    // two common Italian words); when nothing qualifies the card shows the title.
+    const IT_WORDS = /\b(il|lo|la|gli|che|non|un|una|di|per|con|del|della|sono|come)\b/gi;
+    function looksItalian(t) {
+        const hits = new Set((String(t).match(IT_WORDS) || []).map(w => w.toLowerCase()));
+        return hits.size >= 2;
+    }
+    function firstSentence(t) {
+        const m = t.match(/^(.+?[.!?…])(?:\s|$)/);
+        return m && m[1].length >= 40 ? m[1] : t;
+    }
     function itExcerpt(a) {
-        const src = (a.translation && a.translation.length > 40) ? a.translation
-                  : (a.summary && a.summary.length > 40) ? a.summary
-                  : (a.excerpt || '');
-        const t = plainText(src);
-        return t.length > 200 ? t.slice(0, 200).replace(/\s+\S*$/, '') + '…' : t;
+        const LIMIT = 200;
+        const cands = [a.translation, a.reflection, a.summary,
+                       firstSentence(plainText(a.content)), a.excerpt];
+        for (const c of cands) {
+            const t = plainText(c);
+            if (t.length < 40 || !looksItalian(t)) continue;
+            return t.length > LIMIT ? t.slice(0, LIMIT).replace(/\s+\S*$/, '') + '…' : t;
+        }
+        return plainText(a.title);
     }
     function cardHTML(a, idx) {
         const badges = [];
@@ -1080,7 +1098,47 @@
 
     // ---------- ascolto (TTS nel browser) ----------
     let speech = null;
+    let speechWarm = null;
 
+    /** The shared synthesiser, created on demand (null if the script is missing). */
+    function ensureSpeech() {
+        if (!speech && typeof ZenSpeech !== 'undefined') speech = new ZenSpeech();
+        return speech;
+    }
+
+    /** Start loading runtime + voice once; idempotent (zen-speech.js caches both). */
+    function warmSpeech() {
+        const s = ensureSpeech();
+        if (!s) return null;
+        if (!speechWarm) {
+            speechWarm = s.warmUp().catch(() => { speechWarm = null; });
+        }
+        return speechWarm;
+    }
+
+    function wireLazySpeech() {
+        // 1) intent: pointer/touch/keyboard focus on an "Ascolta" button
+        const onIntent = (e) => {
+            const t = e.target && e.target.closest ? e.target.closest('.speak-btn, [data-speak]') : null;
+            if (t) warmSpeech();
+        };
+        ['pointerover', 'touchstart', 'focusin'].forEach(ev =>
+            document.addEventListener(ev, onIntent, { passive: true }));
+
+        // 2) optional: after the first interaction anywhere, warm up when idle,
+        //    unless the user asked to save data or the network is slow.
+        const conn = navigator.connection;
+        const okNet = !!conn && conn.saveData === false && !/(^|-)2g$/.test(conn.effectiveType || '');
+        if (!okNet) return;
+        const idle = window.requestIdleCallback || (cb => setTimeout(cb, 1500));
+        const arm = () => {
+            ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev =>
+                window.removeEventListener(ev, arm));
+            idle(() => warmSpeech());
+        };
+        ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(ev =>
+            window.addEventListener(ev, arm, { passive: true, once: false }));
+    }
     /**
      * Read a passage aloud using the in-browser synthesiser.
      * The text to read is taken from the block that follows the button.
@@ -1091,12 +1149,9 @@
       const source = block ? block.querySelector('.spoken-text') : null;
       if (!source) { if (state) state.textContent = 'testo non disponibile'; return; }
 
-      if (!speech) {
-        if (typeof ZenSpeech === 'undefined') {
-          if (state) state.textContent = 'sintesi non disponibile';
-          return;
-        }
-        speech = new ZenSpeech();
+      if (!ensureSpeech()) {
+        if (state) state.textContent = 'sintesi non disponibile';
+        return;
       }
 
       const text = plainText(source.innerHTML);
@@ -1106,7 +1161,7 @@
       if (speech.current) speech.stop();
       document.querySelectorAll('.speak-btn.playing').forEach(b => b.classList.remove('playing'));
       btn.classList.add('playing');
-      if (state) state.textContent = 'preparazione…';
+      if (state) state.textContent = 'Preparazione della voce…';
 
       try {
           await speech.speak(text, {
@@ -1597,12 +1652,12 @@
         const sb = $('searchBox');
         if (sb) sb.addEventListener('input', e => { state.query = e.target.value; applyFilters(); });
 
-        // Warm the synthesiser up in the background: the first click on
-        // "Ascolta" should play immediately, not wait for a 4 MB download.
-        if (typeof ZenSpeech !== 'undefined') {
-            speech = new ZenSpeech();
-            speech.warmUp().catch(() => { speech = null; });
-        }
+        // The synthesiser runtime + Italian voice weigh ~6 MB: NOT downloaded at
+        // load. It starts on the first intent to listen (hover/touch/focus on an
+        // "Ascolta" button; the click itself also works without any warm-up),
+        // and an optional idle warm-up runs only after the visitor has interacted
+        // with the page and only on a connection that is not metered/slow.
+        wireLazySpeech();
 
         routeFromHash();
     }

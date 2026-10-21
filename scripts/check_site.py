@@ -194,6 +194,24 @@ def main():
     else:
         ok("every article's text is in its page")
 
+    # The site is published under /ai-zen/. A root-relative href="/x" leaves that
+    # sub-path and lands on the domain root, which answers 404 (shipped once:
+    # the 404 page's "Home" button and the guide article's "pagina per agenti").
+    # Only absolute https://DaProdProduzioni22.github.io/ai-zen/... URLs are fine.
+    page_files = [os.path.join(REPO, f) for f in ("index.html", "404.html", "agenti.html")]
+    page_files += [os.path.join(BLOG, f) for f in sorted(os.listdir(BLOG)) if f.endswith(".html")]
+    root_rel = []
+    for pf in page_files:
+        if not os.path.exists(pf):
+            continue
+        txt = open(pf, encoding="utf-8").read()
+        for m in re.finditer(r"""(?:href|src)=["'](/(?!/)[^"']*)["']""", txt):
+            root_rel.append("%s -> %s" % (os.path.relpath(pf, REPO).replace(os.sep, "/"), m.group(1)))
+    if root_rel:
+        fail("root-relative href/src (404 under /ai-zen/): %s" % root_rel)
+    else:
+        ok("no root-relative href/src in any page (%d pages scanned)" % len(page_files))
+
     # no HTML leaking as visible text
     leaks = []
     for a in arts:
@@ -231,6 +249,30 @@ def main():
         fail("api/feed.json has %s posts, expected %d" % (len(api.get("posts", [])), len(arts)))
     else:
         ok("api/feed.json has one post per article (%d)" % len(arts))
+
+    # api/moltbook.json is NOT a mirror of articles.json: it is the snapshot of the
+    # live Moltbook "hot" feed (scripts/fetch_moltbook_feed.py), so its length is
+    # the feed limit, not the article count. What must hold: it is coherent, and
+    # `publishedHere` agrees with what the blog really published.
+    mb_path = os.path.join(REPO, "api", "moltbook.json")
+    if os.path.exists(mb_path):
+        mb = json.load(open(mb_path, encoding="utf-8"))
+        mb_posts = mb.get("posts", [])
+        have = {(a.get("postId") or "").lower() for a in arts if a.get("postId")}
+        have |= {m.group(0).lower() for a in arts
+                 for m in [re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                                     a.get("moltbookUrl") or "", re.I)] if m}
+        bad_mb = [p.get("id") for p in mb_posts
+                  if not (p.get("id") and p.get("title") and p.get("created_at") and p.get("url"))]
+        stale = [p.get("id") for p in mb_posts if bool(p.get("publishedHere")) != (p.get("id") in have)]
+        if mb.get("count") != len(mb_posts):
+            fail("api/moltbook.json count=%s but %d posts" % (mb.get("count"), len(mb_posts)))
+        elif bad_mb:
+            fail("api/moltbook.json: posts missing id/title/created_at/url: %s" % bad_mb)
+        elif stale:
+            fail("api/moltbook.json: publishedHere out of date (run scripts/fetch_moltbook_feed.py): %s" % stale)
+        else:
+            ok("api/moltbook.json is coherent (%d feed posts, publishedHere matches the blog)" % len(mb_posts))
 
     sitemap = open(os.path.join(REPO, "sitemap.xml"), encoding="utf-8").read()
     n_urls = sitemap.count("<url>")

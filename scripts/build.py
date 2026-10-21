@@ -77,6 +77,20 @@ def esc(s):
     return html.escape(s, quote=True)
 
 
+def _site_relative_links(t):
+    """Article text lives in articles.json with links relative to the SITE ROOT
+    (e.g. href="agenti.html"): that works as-is in the SPA (index.html, in the
+    root), but article pages live in blog/, so one level up is needed. A
+    root-relative href="/x" would leave the /ai-zen/ sub-path and 404: it is
+    rewritten here too, and check_site.py guards against it."""
+    def fix(m):
+        url = m.group(2)
+        if re.match(r"(?:[a-zA-Z][a-zA-Z0-9+.-]*:|//|#|\.\./)", url):
+            return m.group(0)
+        return '%s"../%s"' % (m.group(1), url.lstrip("/"))
+    return re.sub(r'(\bhref=)"([^"]*)"', fix, t)
+
+
 def as_html(text):
     """Content is stored as HTML; plain text gets wrapped in <p>.
 
@@ -96,7 +110,7 @@ def as_html(text):
             m = re.search(r"<[a-zA-Z/][^>]*>", t)
             head, tail = (t[:m.start()], t[m.start():]) if m else (t, "")
             t = ("<p>%s</p>\n%s" % (head.strip(), tail)) if head.strip() else tail
-        return t
+        return _site_relative_links(t)
     paras = [p.strip() for p in t.split("\n\n") if p.strip()]
     return "".join("<p>%s</p>" % html.escape(p).replace("\n", "<br>") for p in paras)
 
@@ -109,27 +123,46 @@ def as_text(text):
     return html.unescape(t).strip()
 
 
-def italian_excerpt(article, limit=220):
-    """The card excerpt, always in Italian.
+_IT_WORDS = re.compile(r"\b(il|lo|la|gli|che|non|un|una|di|per|con|del|della|sono|come)\b", re.I)
 
-    The stored `excerpt` is sometimes the English opening of the post, which
-    reads badly on an Italian card. Prefer the Italian translation; fall back
-    to the summary, then to the excerpt itself.
+
+def _plain(text):
+    """Same as plainText() in index.html: tags -> space, entities, collapse blanks."""
+    t = re.sub(r"<[^>]+>", " ", text or "")
+    t = html.unescape(t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _looks_italian(t):
+    """At least two distinct common Italian words (one stray hit is not enough:
+    'come', 'per', 'non', 'con' also occur in English text)."""
+    return len({w.lower() for w in _IT_WORDS.findall(t)}) >= 2
+
+
+def _first_sentence(t):
+    m = re.match(r"(.+?[.!?\u2026])(?:\s|$)", t)
+    return m.group(1) if m and len(m.group(1)) >= 40 else t
+
+
+def italian_excerpt(article, limit=200):
+    """The card excerpt, always in Italian. MIRROR of itExcerpt() in index.html:
+    keep the two in sync (the SPA cards and blog/index.html must agree).
+
+    Order: translation -> reflection -> summary -> first sentence of content ->
+    excerpt (last resort: it is the ENGLISH opening of the post). A candidate
+    counts only if it is long enough and reads as Italian; if none qualifies the
+    card shows the title, so it never shows English text.
     """
-    for field in ("translation", "summary", "excerpt"):
-        txt = as_text(article.get(field) or "")
-        if len(txt) < 40:
+    cands = (article.get("translation"), article.get("reflection"), article.get("summary"),
+             _first_sentence(_plain(article.get("content"))), article.get("excerpt"))
+    for c in cands:
+        txt = _plain(c)
+        if len(txt) < 40 or not _looks_italian(txt):
             continue
-        txt = re.sub(r"\s+", " ", txt).strip()
         if len(txt) <= limit:
             return txt
-        cut = txt[:limit]
-        # prefer a word boundary
-        sp = cut.rfind(" ")
-        if sp > limit * 0.6:
-            cut = cut[:sp]
-        return cut.rstrip(",.;:—- ") + "…"
-    return ""
+        return re.sub(r"\s+\S*$", "", txt[:limit]) + "\u2026"
+    return _plain(article.get("title"))
 
 
 def rfc822(it_date):
@@ -758,7 +791,7 @@ def render_404():
         <h1>404</h1>
         <p>Questa pagina non esiste. Forse è stato un refuso, forse l'articolo è stato spostato.
             Il Centro Benessere continua a funzionare: torna alla home o sfoglia il blog.</p>
-        <a href="/">← Torna alla Home</a>
+        <a href="./">← Torna alla Home</a>
     </div>
 </body>
 </html>
@@ -790,6 +823,29 @@ def write_if_changed(path, content):
     return True
 
 
+def render_moltbook_snapshot(articles):
+    """api/moltbook.json is the snapshot of the live Moltbook feed (fetched by
+    fetch_moltbook_feed.py, which needs the network). The posts stay as fetched;
+    what the build recomputes, offline, is `publishedHere`, so it always agrees
+    with articles.json even when the snapshot is older than the last article."""
+    if not os.path.exists(MOLTBOOK):
+        return None
+    with open(MOLTBOOK, encoding="utf-8") as f:
+        snap = json.load(f)
+    uuid = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    have = set()
+    for a in articles:
+        if a.get("postId"):
+            have.add(a["postId"].lower())
+        m = re.search(uuid, a.get("moltbookUrl") or "", re.I)
+        if m:
+            have.add(m.group(0).lower())
+    for post in snap.get("posts", []):
+        post["publishedHere"] = (post.get("id") or "").lower() in have
+    snap["count"] = len(snap.get("posts", []))
+    return json.dumps(snap, ensure_ascii=False, indent=2) + "\n"
+
+
 def build():
     articles = load_articles()
     changed = []
@@ -817,6 +873,11 @@ def build():
     p = os.path.join(API_DIR, "feed.json")
     if write_if_changed(p, json.dumps(render_api_feed(articles), ensure_ascii=False, indent=2) + "\n"):
         changed.append(os.path.relpath(p, REPO))
+
+    # moltbook snapshot (only the publishedHere flags are recomputed)
+    mb = render_moltbook_snapshot(articles)
+    if mb is not None and write_if_changed(MOLTBOOK, mb):
+        changed.append(os.path.relpath(MOLTBOOK, REPO))
 
     # sitemap
     p = os.path.join(REPO, "sitemap.xml")

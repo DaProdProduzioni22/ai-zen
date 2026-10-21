@@ -103,6 +103,19 @@ a { color: var(--link); }
 }
 .tabs a:hover { color: var(--text); background: var(--card); }
 .tabs a.on { color: var(--on-accent); background: var(--cyan); font-weight: 600; }
+/* scroll affordance: the bar fades out on the side where more tabs are hidden
+   (classes set by zen-ui.js from the real scrollWidth/clientWidth) */
+.tabs.tabs-more-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.2rem), transparent); }
+.tabs.tabs-more-l { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 2.2rem), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - 2.2rem), transparent); }
+.tabs.tabs-more-l.tabs-more-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 2.2rem, #000 calc(100% - 2.2rem), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 2.2rem, #000 calc(100% - 2.2rem), transparent); }
+/* narrow phones: tighter tabs so that "Italiano / Riflessione / Originale" fit */
+@media (max-width: 480px) {
+  .tabs { gap: .2rem; }
+  .tabs a { padding: .38rem .6rem; font-size: .78rem; }
+}
 
 .article-section {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
