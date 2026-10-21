@@ -1,0 +1,42 @@
+/* illu-css:begin — IDENTICAL in index.html and assets/zen-ui.css (check_site.py compares them).
+   Drawings: scripts/illustrations.py. Only site variables here, so both themes work. */
+.illu, .nav-strip { --ic: var(--cyan); }
+.illu .c1, .nav-strip .c1 { --ic: var(--cyan); }
+.illu .c2, .nav-strip .c2 { --ic: var(--violet); }
+.illu .c3, .nav-strip .c3 { --ic: var(--amber); }
+.illu .c4, .nav-strip .c4 { --ic: var(--rose); }
+.illu .c5, .nav-strip .c5 { --ic: var(--green); }
+.illu { margin: 0; min-width: 0; }
+.illu svg { display: block; width: 100%; height: auto; max-width: 100%; overflow: visible; }
+.illu text { font-family: inherit; }
+.illu figcaption { font-size: .8rem; color: var(--text-3); text-align: center; margin-top: .55rem; font-style: italic; }
+.ill-box { fill: var(--card); stroke: var(--ic, var(--border-strong)); stroke-opacity: .8; stroke-width: 1.3; }
+.ill-hub { fill: var(--card); stroke: var(--cyan); stroke-width: 2; }
+.ill-dot, .ill-fill { fill: var(--ic); }
+.ill-ghost { fill: transparent; stroke: var(--border-strong); stroke-width: 1; }
+.ill-t { fill: var(--text); }
+.ill-s { fill: var(--text-2); }
+.ill-m { fill: var(--text-3); }
+.ill-tx { fill: var(--ic); }
+.ill-on { fill: var(--on-accent, #07070c); }
+.ill-line { stroke: var(--text-3); stroke-width: 1.4; fill: none; }
+.ill-ah { fill: var(--text-3); }
+.ill-rule { fill: var(--border-strong); }
+.nav-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem; margin-top: 1rem; }
+.ns-item {
+  display: flex; align-items: center; gap: .7rem; text-align: left; padding: .65rem .8rem; min-width: 0;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: var(--text);
+  font-family: inherit; cursor: pointer; transition: border-color .2s, background .2s, transform .2s;
+}
+.ns-item:hover { border-color: var(--ic); background: var(--card-hover); transform: translateY(-1px); }
+.ns-ico {
+  flex: 0 0 36px; width: 36px; height: 36px; padding: 7px; border-radius: 10px;
+  background: color-mix(in srgb, var(--ic) 14%, transparent); border: 1px solid color-mix(in srgb, var(--ic) 38%, transparent);
+  stroke: var(--ic); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.ns-ico .ill-icofill { fill: var(--ic); stroke: none; }
+.ns-txt { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.ns-txt b { font-size: .88rem; font-weight: 600; }
+.ns-txt span { font-size: .74rem; color: var(--text-2); }
+@media (max-width: 900px) { .nav-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* illu-css:end */

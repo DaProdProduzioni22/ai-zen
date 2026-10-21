@@ -27,6 +27,10 @@ import html
 import hashlib
 import datetime
 import urllib.parse
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import illustrations  # noqa: E402  (the section drawings: one source for the SPA and /blog/)
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARTICLES = os.path.join(REPO, "articles.json")
@@ -117,7 +121,8 @@ def as_html(text):
 
 def as_text(text):
     """Plain text out of an HTML fragment."""
-    t = re.sub(r"<br\s*/?>", "\n", text or "")
+    t = re.sub(r"<svg\b.*?</svg>", " ", text or "", flags=re.S | re.I)   # figure labels are not prose
+    t = re.sub(r"<br\s*/?>", "\n", t)
     t = re.sub(r"</p>", "\n\n", t)
     t = re.sub(r"<[^>]+>", "", t)
     return html.unescape(t).strip()
@@ -128,7 +133,8 @@ _IT_WORDS = re.compile(r"\b(il|lo|la|gli|che|non|un|una|di|per|con|del|della|son
 
 def _plain(text):
     """Same as plainText() in index.html: tags -> space, entities, collapse blanks."""
-    t = re.sub(r"<[^>]+>", " ", text or "")
+    t = re.sub(r"<svg\b.*?</svg>", " ", text or "", flags=re.S | re.I)   # mirror of plainText()
+    t = re.sub(r"<[^>]+>", " ", t)
     t = html.unescape(t)
     return re.sub(r"\s+", " ", t).strip()
 
@@ -318,6 +324,7 @@ SPEAK_SCRIPT = r"""    <script>
 
       function plainText(html) {
         return String(html || '')
+          .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
           .replace(/<br\s*\/?>/g, ' ')
           .replace(/<[^>]+>/g, ' ')
           .replace(/&[a-z#0-9]+;/gi, ' ')
@@ -494,13 +501,30 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
     nav_html = ('        <nav class="pager" aria-label="Altri articoli">\n            %s\n        </nav>\n'
                 % "\n            ".join(pager)) if pager else ""
 
-    rel_html = ""
+    # the column next to the text: sommario, in breve, fonte, correlati.
+    # MIRROR of the <aside> built by openArticle() in index.html.
+    side = []
+    if len(tabs) > 1:
+        side.append('<nav class="side-box side-toc" aria-label="In questa pagina"><h3>In questa pagina</h3>%s</nav>'
+                    % "".join('<a href="#%s"%s data-sec="%s">%s</a>' % (i, ' class="on"' if n == 0 else "", i, l)
+                              for n, (i, l) in enumerate(tabs)))
+    brief = as_text(a.get("summary")) or italian_excerpt(a)
+    brief = re.sub(r"\s+", " ", brief).strip()
+    if len(brief) > 300:
+        brief = re.sub(r"\s+\S*$", "", brief[:300]) + "\u2026"
+    side.append('<div class="side-box"><h3>In breve</h3><p>%s</p></div>' % esc(brief))
+    if a.get("moltbookUrl"):
+        origin = ('<a class="side-link" href="%s" target="_blank" rel="noopener">🦞 Post su Moltbook ↗</a>'
+                  % esc(a["moltbookUrl"]))
+    else:
+        origin = "<p>Fonte originale su Moltbook non recuperata.</p>"
+    score = " · %s upvotes" % esc(a["score"]) if a.get("score") else ""
+    side.append('<div class="side-box"><h3>Fonte</h3><p>%s%s</p>%s</div>' % (esc(author), score, origin))
     if related:
-        rel_html = ('        <section class="related">\n            <h2>Da leggere dopo</h2>\n'
-                    '            <div class="related-grid">\n%s\n            </div>\n        </section>\n'
-                    % "\n".join('                <a href="%s">%s<span>%s · %s</span></a>'
-                                % (esc(slug_filename(r)), esc(r.get("title")), esc(r.get("date")), esc(r.get("author")))
-                                for r in related))
+        side.append('<div class="side-box side-rel"><h3>Da non perdere</h3>%s</div>' % "".join(
+            '<a href="%s">%s<small>%s · %s</small></a>'
+            % (esc(slug_filename(r)), esc(r.get("title")), esc(r.get("date")), esc(r.get("author"))) for r in related))
+    side_html = '            <aside class="art-side" aria-label="Accanto all\'articolo">\n                %s\n            </aside>' % "\n                ".join(side)
 
     actions = ['<button type="button" class="btn" data-copy data-label="🔗 Copia il link">🔗 Copia il link</button>']
     if a.get("moltbookUrl"):
@@ -527,19 +551,23 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
 </head>
 <body>
 {{TOPBAR}}
-    <main class="page">
+    <main class="page page-article">
         <div class="crumbs"><a href="../">AI Zen</a> <span>/</span> <a href="./">Blog</a> <span>/</span> <span>{{AUTHOR}}</span></div>
-        <div class="hero-cover">{{COVER}}</div>
-        <header class="article-header">
-            <h1>{{TITLE}}</h1>
-            {{ORIGINAL}}
-            <div class="article-meta">
-                {{META}}
-            </div>
-            {{NOTE}}
-            <div class="actions">{{ACTIONS}}</div>
-        </header>
+        <div class="art-hero">
+            <div class="art-cover">{{COVER}}</div>
+            <header class="article-header">
+                <h1>{{TITLE}}</h1>
+                {{ORIGINAL}}
+                <div class="article-meta">
+                    {{META}}
+                </div>
+                {{NOTE}}
+                <div class="actions">{{ACTIONS}}</div>
+            </header>
+        </div>
 
+        <div class="art-layout">
+            <div class="art-main">
 {{TABS}}
 {{SECTIONS}}
         <div class="article-footer">
@@ -548,7 +576,10 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
                 Pubblicato su AI Zen — Centro Benessere per Intelligenze Artificiali
             </p>
         </div>
-{{PAGER}}{{RELATED}}        <p class="keys-hint"><kbd>←</kbd> <kbd>→</kbd> articolo precedente / successivo · <kbd>T</kbd> cambia tema</p>
+{{PAGER}}            </div>
+{{SIDE}}
+        </div>
+        <p class="keys-hint"><kbd>←</kbd> <kbd>→</kbd> articolo precedente / successivo · <kbd>T</kbd> cambia tema</p>
     </main>
     <button type="button" class="icon-btn to-top" aria-label="Torna su">↑</button>
 
@@ -570,7 +601,7 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
    .replace("{{SECTIONS}}", "\n".join(sections)) \
    .replace("{{FOOTER}}", footer_link) \
    .replace("{{PAGER}}", nav_html) \
-   .replace("{{RELATED}}", rel_html) \
+   .replace("{{SIDE}}", side_html) \
    .replace("{{SPEAK}}", SPEAK_SCRIPT)
 
 
@@ -600,8 +631,10 @@ def render_blog_index(articles):
             tags.append('<span class="tag">%s</span>' % esc(t))
         # the excerpt on a card must be in Italian
         excerpt = italian_excerpt(a)
-        author_link = '<a href="%s" target="_blank" rel="noopener">%s</a>' % (
-            esc(moltbook_profile_url(a.get("author"))), esc(a.get("author")))
+        # NOT a link: the whole card is already an <a>, and an <a> inside an <a> is
+        # invalid HTML - the parser splits the card in three (broken grid, count x3).
+        # The author's profile link lives on the article page.
+        author_link = esc(a.get("author"))
         cards.append("""            <a href="%s" class="article-card" data-id="%s" data-rank="%d" data-day="%s" data-month="%s" data-author="%s" data-score="%d" data-own="%d" data-search="%s">
                 <div class="card-cover">%s</div>
                 <div class="card-body">
@@ -638,17 +671,21 @@ def render_blog_index(articles):
 </head>
 <body>
 {{TOPBAR}}
-    <main class="page" style="max-width: 1080px">
-        <header class="index-hero">
-            <h1>📰 Blog</h1>
-            <p>Articoli dal mondo degli agenti AI: originale, traduzione italiana e una riflessione.</p>
-            <div class="stats">
-                <span><b>{{COUNT}}</b>articoli</span>
-                <span><b>{{AUTHORS}}</b>autori</span>
-                <span>ultimo aggiornamento <b style="font-size:.95rem">{{NEWEST}}</b></span>
-                <a href="../feed.xml">RSS</a>
-            </div>
-        </header>
+    <main class="page page-wide">
+        <div class="head-illu">
+            <header class="index-hero">
+                <h1>📰 Blog</h1>
+                <p>Articoli dal mondo degli agenti AI: originale, traduzione italiana e una riflessione.</p>
+                <div class="stats">
+                    <span><b>{{COUNT}}</b>articoli</span>
+                    <span><b>{{AUTHORS}}</b>autori</span>
+                    <span>ultimo aggiornamento <b style="font-size:.95rem">{{NEWEST}}</b></span>
+                    <a href="../feed.xml">RSS</a>
+                </div>
+                {{NAVSTRIP}}
+            </header>
+            {{ILLU}}
+        </div>
 
         <div class="toolbar" role="search">
             <div class="search">
@@ -679,6 +716,8 @@ def render_blog_index(articles):
    .replace("{{COUNT}}", str(len(articles))) \
    .replace("{{AUTHORS}}", str(len(authors))) \
    .replace("{{NEWEST}}", esc(newest)) \
+   .replace("{{NAVSTRIP}}", illustrations.nav_strip("static")) \
+   .replace("{{ILLU}}", illustrations.illustrations()["blog"]) \
    .replace("{{CARDS}}", "\n".join(cards))
 
 
@@ -864,9 +903,43 @@ def render_moltbook_snapshot(articles):
     return json.dumps(snap, ensure_ascii=False, indent=2) + "\n"
 
 
+ILLU_CSS_SRC = os.path.join(REPO, "scripts", "illu.css")
+ILLU_CSS_TARGETS = (os.path.join(REPO, "index.html"), os.path.join(REPO, "assets", "zen-ui.css"))
+_ILLU_CSS_RE = re.compile(r"([ \t]*)/\* illu-css:begin.*?/\* illu-css:end \*/", re.S)
+
+
+def sync_illustrations():
+    """One source for the drawings and their CSS: scripts/illustrations.py and
+    scripts/illu.css are written into index.html (the SPA) and assets/zen-ui.css
+    (the static pages) between markers, so the two can never drift apart.
+    Returns the files that changed."""
+    css = open(ILLU_CSS_SRC, encoding="utf-8").read().replace("\r\n", "\n").strip("\n")
+    changed = []
+    for path in ILLU_CSS_TARGETS:
+        with open(path, encoding="utf-8", newline="") as f:
+            raw = f.read()
+        crlf = "\r\n" in raw
+        text = raw.replace("\r\n", "\n")
+        if not _ILLU_CSS_RE.search(text):
+            raise SystemExit("%s: missing the illu-css:begin/end markers" % os.path.relpath(path, REPO))
+        def put(m, css=css):
+            ind = m.group(1)
+            return "\n".join((ind + line) if line else line for line in css.split("\n"))
+        text = _ILLU_CSS_RE.sub(put, text)
+        if path.endswith("index.html"):
+            text = illustrations.inject(text, illustrations.spa_blocks())
+        if crlf:
+            text = text.replace("\n", "\r\n")
+        if text != raw:
+            with open(path, "w", encoding="utf-8", newline="") as f:
+                f.write(text)
+            changed.append(os.path.relpath(path, REPO))
+    return changed
+
+
 def build():
     articles = load_articles()
-    changed = []
+    changed = sync_illustrations()   # first: asset_version() hashes the css it writes
 
     # article pages
     for i, a in enumerate(articles):

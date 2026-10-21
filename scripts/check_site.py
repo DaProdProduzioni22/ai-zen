@@ -16,6 +16,8 @@ import os
 import re
 import sys
 import html
+import shutil
+import subprocess
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARTICLES = os.path.join(REPO, "articles.json")
@@ -292,6 +294,127 @@ def main():
         fail("bad filename: %s" % unstable)
     else:
         ok("filenames are well formed")
+
+    print("\n=== covers, illustrations and the CSS the two copies share ===")
+    # The cover is drawn by THREE copies of one function: cover_svg() in build.py
+    # (static pages), coverSVG() in index.html (SPA) and assets/cover.js. Compare
+    # them on every article (gradient ids and aria-hidden aside).
+    def norm_cover(svg):
+        svg = re.sub(r'\s+aria-hidden="true"', "", svg)
+        svg = re.sub(r'id="[^"]*"', 'id="ID"', svg)
+        return re.sub(r'url\(#[^)]*\)', "url(#ID)", svg)
+
+    cards_html = open(os.path.join(BLOG, "index.html"), encoding="utf-8").read()
+    n_cards = len(re.findall(r'<div class="card-cover"><svg', cards_html))
+    n_heroes = 0
+    for a in arts:
+        pg = open(os.path.join(BLOG, a["file"]), encoding="utf-8").read()
+        n_heroes += len(re.findall(r'<div class="art-cover"><svg', pg))
+    if n_cards != len(arts):
+        fail("blog/index.html has %d card covers, expected %d (one per article)" % (n_cards, len(arts)))
+    elif n_heroes != len(arts):
+        fail("article pages have %d hero covers, expected %d (one per article)" % (n_heroes, len(arts)))
+    else:
+        ok("static pages: %d card covers + %d article covers (one per article)" % (n_cards, n_heroes))
+
+    # an <a> nested in the card's own <a> is invalid HTML: the parser splits the card
+    # (grid broken, counters x3). Compare what the browser would build with what we wrote.
+    nested = [m.group(1) for m in re.finditer(r'<a href="([^"]+)" class="article-card"[^>]*>(.*?)</a>', cards_html, re.S)
+              if "<a " in m.group(2)]
+    if nested:
+        fail("blog/index.html: link nested inside a card link (card splits into pieces): %s" % nested[:3])
+    else:
+        ok("blog/index.html: no link nested inside the %d card links" % n_cards)
+
+    node = shutil.which("node")
+    spa_src = open(os.path.join(REPO, "index.html"), encoding="utf-8").read()
+    m = re.search(r"function coverSVG\(a, idx\) \{.*?\n    \}\n", spa_src, re.S)
+    # the page's own index (the gradient id carries it: azg<idx>_<seed>) is what the
+    # cover of that article was drawn with; the other two copies must draw the same
+    static, idxs = [], []
+    for a in arts:
+        pg = open(os.path.join(BLOG, a["file"]), encoding="utf-8").read()
+        mm = re.search(r'<div class="art-cover">(<svg.*?</svg>)</div>', pg, re.S)
+        static.append(mm.group(1) if mm else "")
+        gi = re.search(r'id="azg(\d+)_', static[-1])
+        idxs.append(int(gi.group(1)) if gi else 0)
+    if not node:
+        print("  WARN  node not found: cover.js / SPA coverSVG parity not checked")
+    elif not m:
+        fail("coverSVG() not found in index.html")
+    else:
+        js = ("const fs=require('fs');const vm=require('vm');\n"
+              "const arts=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));\n"
+              "const ix=JSON.parse(process.argv[5]);\n"
+              "const cj=fs.readFileSync(process.argv[3],'utf8');\n"
+              "const ctx={window:{}};vm.createContext(ctx);vm.runInContext(cj,ctx);\n"
+              "const spa=new Function(fs.readFileSync(process.argv[4],'utf8')+';return coverSVG;')();\n"
+              "console.log(JSON.stringify(arts.map((a,i)=>[ctx.window.coverSVG(a.id,a.author,ix[i]),spa(a,ix[i])])));\n")
+        tmp_js = os.path.join(os.environ.get("TMPDIR") or os.environ.get("TEMP") or REPO, "_check_cover.js")
+        tmp_spa = tmp_js + ".spa.js"
+        try:
+            open(tmp_js, "w", encoding="utf-8").write(js)
+            open(tmp_spa, "w", encoding="utf-8").write(m.group(0))
+            r = subprocess.run([node, tmp_js, ARTICLES, os.path.join(REPO, "assets", "cover.js"), tmp_spa,
+                                json.dumps(idxs)], capture_output=True, text=True, timeout=60, encoding="utf-8")
+        finally:
+            for t in (tmp_js, tmp_spa):
+                if os.path.exists(t):
+                    os.remove(t)
+        if r.returncode != 0:
+            fail("could not run cover.js / SPA coverSVG under node: %s" % r.stderr.strip()[:200])
+        else:
+            pairs = json.loads(r.stdout)
+            n_js = sum(1 for c, _ in pairs if c.startswith("<svg"))
+            n_spa = sum(1 for _, c in pairs if c.startswith("<svg"))
+            if n_js != len(arts) or n_spa != len(arts):
+                fail("covers: cover.js drew %d, SPA coverSVG %d, expected %d" % (n_js, n_spa, len(arts)))
+            else:
+                ok("cover.js and the SPA's coverSVG() each draw %d covers (one per article)" % len(arts))
+            drift = [arts[i]["id"] for i, (c, sp) in enumerate(pairs)
+                     if not (norm_cover(c) == norm_cover(sp) == norm_cover(static[i]))]
+            if drift:
+                fail("cover drawing differs between build.py, cover.js and index.html for: %s" % drift[:5])
+            else:
+                ok("cover drawing identical in build.py, cover.js and index.html (%d articles)" % len(arts))
+
+    css = open(os.path.join(REPO, "assets", "zen-ui.css"), encoding="utf-8").read()
+    need = [".card-cover", ".article-card", ".card-body", ".art-hero", ".art-cover", ".art-layout",
+            ".art-side", ".side-box", ".article-header h1", ".index-hero h1", ".nav-strip", ".illu"]
+    missing = [sel for sel in need if sel not in css]
+    if missing:
+        fail("assets/zen-ui.css lacks the card/title/column rules: %s" % missing)
+    else:
+        ok("zen-ui.css defines cards, titles, article columns and illustrations (%d selectors)" % len(need))
+
+    def illu_block(txt):
+        mb = re.search(r"/\* illu-css:begin.*?/\* illu-css:end \*/", txt, re.S)
+        return re.sub(r"\s+", " ", mb.group(0)) if mb else None
+    b_css, b_spa = illu_block(css), illu_block(spa_src)
+    if not b_css or not b_spa:
+        fail("illu-css block missing in zen-ui.css or index.html")
+    elif b_css != b_spa:
+        fail("the illustration CSS differs between index.html and assets/zen-ui.css (run build.py)")
+    else:
+        ok("illustration CSS identical in index.html and zen-ui.css")
+
+    sections = {"home": "illu-home", "blog": "illu-blog-read", "wellbeing": "illu-wellbeing",
+                "games": "illu-games", "moltbook": "illu-moltbook", "about": "illu-about"}
+    no_illu = [k for k, cls in sections.items() if ('<figure class="illu %s"' % cls) not in spa_src]
+    if no_illu:
+        fail("SPA sections without an illustration: %s" % no_illu)
+    elif '<figure class="illu illu-blog-read"' not in cards_html:
+        fail("blog/index.html lacks the 'how to read' illustration")
+    else:
+        ok("all %d SPA sections + /blog/ carry an inline SVG illustration" % len(sections))
+
+    figs = re.findall(r'<figure class="illu.*?</figure>', spa_src, re.S)
+    bad_col = [c for f in figs for c in re.findall(r'(?:fill|stroke)="(#[0-9a-fA-F]{3,8}|rgba?\([^"]*)"', f)]
+    if bad_col:
+        fail("hard-coded colours in the illustrations (breaks the light theme): %s" % bad_col[:5])
+    else:
+        ok("illustrations use only site variables (no hard-coded colours)")
+
 
     print("\n=== feeds ===")
     feed = open(os.path.join(REPO, "feed.xml"), encoding="utf-8").read()

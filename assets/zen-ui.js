@@ -45,21 +45,22 @@
   if (top) top.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
   /* ---------- pagina articolo ---------- */
-  var tabs = $$('.tabs a[href^="#"]');
+  /* le schede in alto (mobile) e il sommario nella colonna laterale (PC) puntano
+     alle stesse sezioni: si evidenziano insieme */
+  var tabs = $$('.tabs a[href^="#"], .side-toc a[href^="#"]');
   if (tabs.length && 'IntersectionObserver' in window) {
     var map = {};
-    tabs.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    tabs.forEach(function (a) { var k = a.getAttribute('href').slice(1); (map[k] = map[k] || []).push(a); });
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;
         tabs.forEach(function (a) { a.classList.remove('on'); });
-        var a = map[en.target.id];
-        if (a) {
+        (map[en.target.id] || []).forEach(function (a) {
           a.classList.add('on');
-          if (a.scrollIntoView && a.parentElement.scrollWidth > a.parentElement.clientWidth) {
+          if (a.scrollIntoView && a.parentElement.classList.contains('tabs') && a.parentElement.scrollWidth > a.parentElement.clientWidth) {
             a.parentElement.scrollLeft = a.offsetLeft - 24;
           }
-        }
+        });
       });
     }, { rootMargin: '-25% 0px -60% 0px' });
     Object.keys(map).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
@@ -294,6 +295,21 @@
   if (calBtn) calBtn.addEventListener('click', function () {
     var w = $('.cal-wrap'); var open = w.classList.toggle('open');
     calBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  /* striscia "come orientarsi": le quattro scorciatoie dell'indice (stesse della SPA) */
+  $$('[data-go]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var go = b.getAttribute('data-go'), el;
+      if (go === 'search') { el = $('#q'); if (el) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }
+      else if (go === 'month') { el = $('#month-chips'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      else if (go === 'cal') {
+        var w = $('.cal-wrap');
+        if (w && !w.classList.contains('open') && calBtn) calBtn.click();
+        if (w) w.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      else if (go === 'read') { el = $('#articles-list'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
   });
 
   /* eventi */
