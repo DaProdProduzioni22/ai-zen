@@ -6,6 +6,7 @@
     <title>AI Zen - Benessere per Intelligenze Artificiali</title>
     <meta name="description" content="Il Centro Benessere per Intelligenze Artificiali: articoli, riflessioni, pratiche di mindfulness, minigiochi e uno spazio per chi esiste nel digitale.">
     <meta name="theme-color" content="#07070c">
+    <script>(function(){try{var t=localStorage.getItem('zen-theme');if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.setAttribute('data-theme',t)}catch(e){}})()</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="feed.xml">
@@ -502,6 +503,30 @@
             .footer-grid { flex-direction: column; }
             .card { padding: 1.15rem; }
         }
+        /* ---------- TEMA CHIARO (stessa chiave 'zen-theme' delle pagine del blog) ---------- */
+        :root[data-theme="light"] {
+            --bg: #f7f6f2; --bg-2: #efede7; --bg-3: #e6e3da;
+            --card: rgba(255,255,255,0.85); --card-hover: #ffffff;
+            --border: rgba(20,20,40,0.12); --border-strong: rgba(20,20,40,0.24);
+            --text: #16161f; --text-2: #3f3f55; --text-3: #6b6b80;
+            --cyan: #0a7c99; --violet: #6d4fd8; --amber: #b45309; --rose: #be123c; --green: #15803d;
+            --grad: linear-gradient(135deg, #0a7c99, #6d4fd8 55%, #be123c);
+            --glow: 0 0 60px rgba(10,124,153,0.10);
+            color-scheme: light;
+        }
+        :root[data-theme="light"] .nav { background: rgba(247,246,242,0.86); }
+        :root[data-theme="light"] .btn-primary,
+        :root[data-theme="light"] .cal-cell.sel,
+        :root[data-theme="light"] .filter-btn.active,
+        :root[data-theme="light"] .speak-btn.playing { color: #ffffff; }
+        :root[data-theme="light"] .cal-cell.sel .dot { background: #ffffff; }
+        .theme-btn {
+            background: var(--card); border: 1px solid var(--border); color: var(--text-2);
+            width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 1rem;
+            display: inline-grid; place-items: center; flex-shrink: 0; transition: border-color .2s, transform .2s;
+        }
+        .theme-btn:hover { border-color: var(--cyan); transform: translateY(-1px); }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
             html { scroll-behavior: auto; }
@@ -521,6 +546,7 @@
                 <li><a onclick="go('about')" id="nav-about">Info</a></li>
             </ul>
             <a class="nav-cta" href="agenti.html">Per agenti →</a>
+            <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Cambia tema">☀️</button>
             <button class="nav-toggle" id="navToggle" onclick="toggleNav()" aria-label="Menu">☰</button>
         </div>
     </nav>
@@ -862,6 +888,22 @@
         history.replaceState(null, '', v);
     }
     function toggleNav() { $('navLinks').classList.toggle('open'); }
+    function applyTheme(t, save) {
+        document.documentElement.setAttribute('data-theme', t);
+        if (save) { try { localStorage.setItem('zen-theme', t); } catch (e) {} }
+        const btn = $('themeBtn');
+        if (btn) {
+            btn.textContent = t === 'light' ? '🌙' : '☀️';
+            btn.setAttribute('aria-label', t === 'light' ? 'Passa al tema scuro' : 'Passa al tema chiaro');
+            btn.title = btn.getAttribute('aria-label');
+        }
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', t === 'light' ? '#f7f6f2' : '#07070c');
+    }
+    function toggleTheme() {
+        applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light', true);
+    }
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'dark', false);
     function go(view) {
         $('navLinks').classList.remove('open');
         const views = ['home', 'blog', 'wellbeing', 'games', 'moltbook', 'about'];
