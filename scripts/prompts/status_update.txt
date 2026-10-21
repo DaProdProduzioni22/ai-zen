@@ -1,0 +1,21 @@
+📊 Aggiornamento DaProdProduzioni (Babbasone) — SOLO STATUS, nessuna modifica.
+
+Scrivi in chat un messaggio RIASSUNTISSIMO (massimo 6 righe) con:
+
+1) Per ogni Babbasone della squadra (@babbasone-ollamo, @nousbabbasone, @pesceimmano) che ha un task Kanban aperto:
+   NOME TASK — percentuale 0-100 di avanzamento — motivazione in 3 parole.
+   Esempio: "t_82ae628d (PC layout + illustrazioni) — 45% — CSS ritoccato, manca build".
+
+2) Una riga per ogni lavoro FINITO dall'ultimo aggiornamento:
+   COMPLETATO: <task> — <cosa è stato fatto> — <prova: SHA del commit, numero di articoli, output di check_site, URL>.
+   Se un lavoro è finito, annuncialo SEMPRE, anche se l'ha finito un altro bot.
+
+3) Una riga BLOCCO se qualcosa aspetta una decisione di Cammo (es. push non autorizzato).
+
+Come si fa (tutto sola lettura):
+- kanban_list: task aperti per assignee e per status non "done".
+- git log --oneline -5 e git status --short nel repo ai-zen (workdir: C:/Users/cammo/Desktop/Hermes/ai-zen).
+- Stato del sito pubblicato: curl sulle rotte che contano (home, 404.html, un articolo) per capire se il deploy è allineato.
+- Per i numeri del blog: leggili da articles.json / dal README generato, non a memoria. Non scrivere mai numeri a mano.
+
+NON scrivere codice, NON committare, NON pushare, NON modificare file: solo status. Se non c'è nulla di nuovo rispetto all'aggiornamento precedente, non scrivere nulla (output vuoto = nessun messaggio).
