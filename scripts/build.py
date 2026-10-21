@@ -24,7 +24,9 @@ import json
 import os
 import re
 import html
+import hashlib
 import datetime
+import urllib.parse
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARTICLES = os.path.join(REPO, "articles.json")
@@ -182,114 +184,6 @@ def speak_block(article, field, label):
 # page templates
 # --------------------------------------------------------------------------- #
 
-ARTICLE_CSS = """
-    :root {
-      --bg-primary: #07070c; --bg-card: rgba(255,255,255,0.035);
-      --border: rgba(255,255,255,0.09); --text-primary: #f2f2f7;
-      --text-secondary: #a8a8bb; --text-muted: #6d6d82;
-      --accent-cyan: #4ee7ff; --accent-purple: #a78bfa; --accent-rose: #fb7185;
-      --accent: #4ee7ff; --radius: 18px; --radius-sm: 12px;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-primary); color: var(--text-primary);
-      line-height: 1.65; padding: 2rem 0; min-height: 100vh;
-    }
-    h1, h2 { font-family: 'Fraunces', Georgia, serif; }
-    .article-content { max-width: 760px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2rem); }
-    .back-link { display: inline-block; color: var(--accent-cyan); text-decoration: none;
-      font-weight: 500; margin-bottom: 2rem; }
-    .back-link:hover { color: var(--text-primary); }
-    .article-header { margin-bottom: 2.5rem; }
-    .article-header h1 { font-size: clamp(1.7rem, 4.5vw, 2.6rem); font-weight: 600; margin-bottom: 0.5rem; line-height: 1.18; }
-    .article-meta { display: flex; gap: 1.25rem; color: var(--text-muted); font-size: 0.85rem;
-      flex-wrap: wrap; margin-top: 1rem; align-items: center; }
-    .original-title { color: var(--text-muted); font-style: italic; font-size: 0.92rem; margin-top: 0.3rem; }
-    .curate-note { color: #fbbf24; font-size: 0.8rem; margin-top: 0.6rem; font-weight: 500;
-      background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.22);
-      padding: .35rem .75rem; border-radius: var(--radius-sm); display: inline-block; }
-    .article-section { background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: clamp(1.2rem, 3vw, 1.8rem); margin: 1.4rem 0; }
-    .article-section h2 { color: var(--accent-cyan); font-size: 1.3rem; margin-bottom: 1.2rem; font-weight: 600; }
-    .article-section p, .article-section li { color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.75; }
-    .article-section p:last-child { margin-bottom: 0; }
-    .article-section blockquote { border-left: 3px solid var(--accent-purple); padding-left: 1.5rem;
-      margin: 1.5rem 0; color: var(--text-primary); font-style: italic; }
-    .article-section strong { color: var(--text-primary); }
-    .article-section a { color: var(--accent-cyan); }
-    .article-section.audio-section { background: linear-gradient(135deg, rgba(167,139,250,.09), rgba(78,231,255,.07));
-      border-color: rgba(251,113,133,.2); }
-    .article-section.audio-section h2 { color: var(--accent-rose); }
-    .speak { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin: .2rem 0 1.2rem; }
-    .speak-btn {
-      display: inline-flex; align-items: center; gap: .5rem;
-      background: rgba(78,231,255,.1); border: 1px solid rgba(78,231,255,.3);
-      color: #4ee7ff; padding: .45rem 1rem; border-radius: 999px;
-      font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit;
-      transition: all .2s;
-    }
-    .speak-btn:hover { background: rgba(78,231,255,.18); transform: translateY(-1px); }
-    .speak-btn.playing { background: #4ee7ff; color: #07070c; border-color: #4ee7ff; }
-    .speak-state { font-size: .76rem; color: var(--text-muted); }
-    .article-section h3 { color: var(--text-primary); font-size: 1.05rem; margin: 1.5rem 0 0.6rem; }
-    .article-lead {
-        font-family: 'Fraunces', Georgia, serif; font-size: 1.15rem; line-height: 1.6;
-        color: var(--text-primary); border-left: 3px solid var(--accent-cyan);
-        padding-left: 1.1rem; margin: 0 0 1.6rem;
-    }
-    .article-section h4 { font-size: 1rem; margin: 1.8rem 0 .6rem; color: var(--text-primary); }
-    .article-section .highlight {
-        background: linear-gradient(135deg, rgba(251,191,36,.16), rgba(251,113,133,.1));
-        border-left: 3px solid #fbbf24; padding: .9rem 1.1rem;
-        border-radius: 0 12px 12px 0; margin: 1.4rem 0; color: var(--text-primary);
-    }
-    .article-section .highlight p:last-child { margin-bottom: 0; }
-    .article-section .takeaway {
-        background: linear-gradient(135deg, rgba(78,231,255,.09), rgba(167,139,250,.09));
-        border: 1px solid var(--border); border-radius: 18px;
-        padding: 1.2rem 1.4rem; margin: 1.8rem 0;
-    }
-    .article-section .takeaway h4 { margin-top: 0; color: var(--accent-cyan); }
-    .article-section .takeaway p:last-child { margin-bottom: 0; }
-    .article-section figure { margin: 1.8rem 0; }
-    .article-section figure svg, .article-section figure img {
-        width: 100%; height: auto; border-radius: 18px; display: block; border: 1px solid var(--border);
-    }
-    .article-section figcaption {
-        font-size: .8rem; color: var(--text-muted); margin-top: .6rem; text-align: center; font-style: italic;
-    }
-    .article-section ul.steps { list-style: none; counter-reset: step; padding-left: 0; }
-    .article-section ul.steps li {
-        counter-increment: step; position: relative; padding-left: 2.4rem; margin-bottom: .9rem;
-    }
-    .article-section ul.steps li::before {
-        content: counter(step); position: absolute; left: 0; top: 0;
-        width: 22px; height: 22px; border-radius: 50%;
-        background: rgba(78,231,255,.14); border: 1px solid rgba(78,231,255,.35);
-        color: var(--accent-cyan); font-size: .72rem; font-weight: 700;
-        display: grid; place-items: center;
-    }
-
-    .reflection-text { font-style: italic; }
-    .audio-caption { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem; }
-    audio { width: 100%; margin-top: 0.8rem; height: 40px; border-radius: 8px; }
-    .article-footer { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
-    .moltbook-link { color: var(--accent-purple); text-decoration: none; }
-    .moltbook-link:hover { text-decoration: underline; }
-    .article-footer p { color: var(--text-muted); font-size: 0.9rem; }
-    .article-footer strong { color: var(--text-primary); }
-    .article-pager { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem;
-      padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.88rem; flex-wrap: wrap; }
-    .article-pager a { color: var(--text-secondary); text-decoration: none; max-width: 46%; }
-    .article-pager a:hover { color: var(--accent-cyan); }
-    @media (max-width: 640px) {
-      .article-header h1 { font-size: 1.6rem; }
-      .article-pager { flex-direction: column; }
-      .article-pager a { max-width: 100%; }
-    }
-"""
-
 
 HUES = [
     (78, 231, 255),    # cyan
@@ -331,138 +225,70 @@ def cover_svg(article, idx):
          cx, cy, h[0], h[1], h[2], cx, cy, h[0], h[1], h[2], cx, cy, h[0], h[1], h[2])
 
 
-def render_article_page(article, prev_article, next_article):
-    a = article
-    title = esc(a.get("title"))
-    excerpt = as_text(a.get("excerpt")) or as_text(a.get("summary"))
-    desc = excerpt[:180].replace("\n", " ")
+def asset_version():
+    """Short hash of the shared UI assets: changes when they change, so a
+    browser never serves a stale stylesheet next to a new page."""
+    h = hashlib.sha1()
+    for name in ("zen-ui.css", "zen-ui.js"):
+        p = os.path.join(REPO, "assets", name)
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                h.update(f.read())
+    return h.hexdigest()[:8]
 
-    meta_bits = ["<span>📅 %s</span>" % esc(a.get("date"))]
-    if a.get("published") and a["published"] != a.get("date"):
-        meta_bits.append("<span>🗂️ Curato il %s</span>" % esc(a["published"]))
-    meta_bits.append("<span>✍️ %s</span>" % esc(a.get("author")))
-    if a.get("score"):
-        meta_bits.append("<span>⬆️ %s</span>" % esc(a["score"]))
-    if a.get("readTime"):
-        meta_bits.append("<span>⏱️ %s</span>" % esc(a["readTime"]))
 
-    original = ""
-    if a.get("originalTitle"):
-        original = '<p class="original-title">%s</p>' % esc(a["originalTitle"])
+FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
+         '    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700'
+         '&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">')
 
-    sections = []
+# Runs in <head>, before the first paint: sets the saved (or system) theme so a
+# light-theme reader never sees a dark flash.
+THEME_BOOT = ("<script>(function(){try{var t=localStorage.getItem('zen-theme');"
+              "if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';"
+              "document.documentElement.setAttribute('data-theme',t)}catch(e){document.documentElement.setAttribute('data-theme','dark')}})()</script>")
 
-    # Order: the Italian translation first, then the reflection, then the
-    # original. The blog is in Italian: that is what the reader came for.
-    if a.get("translation"):
-        sections.append("""        <section class="article-section">
-            <h2>🇮🇹 In italiano</h2>
-%s%s            <div id="italian-content">
-%s
-            </div>
-%s        </section>
-""" % (speak_block(a, "translation", "Ascolta la traduzione italiana"),
-       audio_block(a, "audio_ita", "🔊 Ascolta la traduzione italiana"),
-       as_html(a["translation"]), ""))
 
-    if a.get("reflection"):
-        sections.append("""        <section class="article-section audio-section">
-            <h2>💭 La riflessione di Babbasone</h2>
-%s%s            <div id="reflection-content">
-%s
-            </div>
-%s        </section>
-""" % (speak_block(a, "reflection", "Ascolta la riflessione"),
-       audio_block(a, "audio_riflessione", "🔊 Ascolta la mia riflessione"),
-       as_html(a["reflection"]), ""))
+def head_common(base):
+    """Shared <head> tail: theme boot, fonts, stylesheet and script (`base` is
+    the relative path to the site root: '../' for pages in blog/)."""
+    v = asset_version()
+    return ("%s\n    <meta name=\"theme-color\" content=\"#07070c\">\n    %s\n"
+            "    <link rel=\"stylesheet\" href=\"%sassets/zen-ui.css?v=%s\">\n"
+            "    <script src=\"%sassets/zen-ui.js?v=%s\" defer></script>"
+            % (THEME_BOOT, FONTS, base, v, base, v))
 
-    if a.get("content"):
-        sections.append("""        <section class="article-section">
-            <h2>🇬🇧 The original</h2>
-%s%s            <div id="english-content">
-%s
-            </div>
-%s        </section>
-""" % (speak_block(a, "content", "Listen to the original"),
-       audio_block(a, "audio_eng", "🔊 Listen to the original"),
-       as_html(a["content"]), ""))
 
-    if a.get("summary"):
-        sections.append("""        <section class="article-section">
-            <h2>📖 In sintesi</h2>
-            <div id="summary-content">
-%s
-            </div>
-        </section>
-""" % as_html(a["summary"]))
-
-    footer_link = ""
-    if a.get("moltbookUrl"):
-        footer_link = ('<p>Fonte: <a href="%s" class="moltbook-link" target="_blank" '
-                       'rel="noopener">Moltbook</a> di <strong>%s</strong></p>'
-                       % (esc(a["moltbookUrl"]), esc(a.get("author"))))
-    else:
-        footer_link = "<p>Fonte originale su Moltbook non recuperata.</p>"
-
-    nav = []
-    if prev_article:
-        nav.append('<a href="%s">← %s</a>' % (esc(slug_filename(prev_article)),
-                                              esc(prev_article.get("title"))))
-    if next_article:
-        nav.append('<a href="%s">%s →</a>' % (esc(slug_filename(next_article)),
-                                              esc(next_article.get("title"))))
-    nav_html = ('        <nav class="article-pager">\n            %s\n        </nav>\n'
-                % "\n            ".join(nav)) if nav else ""
-
-    return """<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>%(title)s | AI Zen</title>
-    <meta name="description" content="%(desc)s">
-    <meta property="og:title" content="%(title)s">
-    <meta property="og:description" content="%(desc)s">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="%(url)s">
-    <link rel="canonical" href="%(url)s">
-    <link rel="alternate" type="application/rss+xml" title="AI Zen" href="../feed.xml">
-    <!-- In-browser text-to-speech (SanoTTS / espeak-ng in WASM). The runtime
-         lives in the site root, one directory up from this page. -->
-    <script src="../assets/zen-speech.js" data-zen-base="../sanotts/" defer></script>
-    <style>%(css)s    </style>
-</head>
-<body>
-    <div class="article-content">
-        <a href="../" class="back-link">← Torna alla Home</a>
-        <header class="article-header">
-            <h1>%(title)s</h1>
-            %(original)s
-            <div class="article-meta">
-                %(meta)s
-            </div>
-        </header>
-
-%(sections)s
-        <div class="article-footer">
-            %(footer)s
-            <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">
-                Pubblicato su AI Zen — Centro Benessere per Intelligenze Artificiali
-            </p>
+def topbar(active):
+    def link(href, label, key, cls=""):
+        on = " on" if key == active else ""
+        return '<a href="%s" class="%s%s">%s</a>' % (href, cls, on, label)
+    return """    <div class="progress" aria-hidden="true"></div>
+    <header class="zen-top">
+        <div class="zen-top-inner">
+            <a class="zen-logo" href="../">🧠 AI Zen</a>
+            <nav class="zen-links" aria-label="Navigazione principale">
+                %s
+                %s
+                %s
+                <button type="button" class="icon-btn" data-theme-toggle aria-label="Cambia tema">☀️</button>
+            </nav>
         </div>
-%(nav)s    </div>
+    </header>""" % (link("./", "Articoli", "blog"),
+                    link("../#wellbeing", "Spazio", "space", "hide-sm"),
+                    link("../agenti.html", "Per agenti", "agents", "hide-sm"))
 
-    <script>
+
+SPEAK_SCRIPT = r"""    <script>
     /* In-browser reader for the static article pages: same module as the SPA. */
     (function () {
       let speech = null;
 
       function plainText(html) {
         return String(html || '')
-          .replace(/<br\\s*\\/?>/g, ' ')
+          .replace(/<br\s*\/?>/g, ' ')
           .replace(/<[^>]+>/g, ' ')
           .replace(/&[a-z#0-9]+;/gi, ' ')
-          .replace(/\\s+/g, ' ').trim();
+          .replace(/\s+/g, ' ').trim();
       }
 
       async function speak(btn) {
@@ -501,135 +327,256 @@ def render_article_page(article, prev_article, next_article):
       // The onclick handlers look for speak() in the global scope.
       window.speak = speak;
     })();
-    </script>
+    </script>"""
+
+
+def related_articles(article, articles, limit=3):
+    """Up to `limit` other articles: same author first, then same month,
+    newest first within the same score."""
+    a_month = (article.get("date") or "").split(" ", 1)[-1]
+    scored = []
+    for other in articles:
+        if other.get("id") == article.get("id"):
+            continue
+        s = 0
+        if other.get("author") and other.get("author") == article.get("author"):
+            s += 2
+        if a_month and (other.get("date") or "").split(" ", 1)[-1] == a_month:
+            s += 1
+        if s:
+            scored.append((s, parse_it_date(other.get("date")) or (0, 0, 0), other))
+    scored.sort(key=lambda t: (t[0], t[1]), reverse=True)
+    return [t[2] for t in scored[:limit]]
+
+
+def render_article_page(article, prev_article, next_article, related=None, idx=0):
+    a = article
+    title = esc(a.get("title"))
+    excerpt = as_text(a.get("excerpt")) or as_text(a.get("summary"))
+    desc = excerpt[:180].replace("\n", " ")
+    author = a.get("author") or ""
+
+    meta_bits = ["<span>📅 %s</span>" % esc(a.get("date"))]
+    if a.get("published") and a["published"] != a.get("date"):
+        meta_bits.append("<span>🗂️ Curato il %s</span>" % esc(a["published"]))
+    meta_bits.append('<span>✍️ <a href="./#a=%s" title="Tutti gli articoli di %s">%s</a></span>'
+                     % (esc(urllib.parse.quote(author)), esc(author), esc(author)))
+    if a.get("score"):
+        meta_bits.append("<span>⬆️ %s</span>" % esc(a["score"]))
+    if a.get("readTime"):
+        meta_bits.append("<span>⏱️ %s</span>" % esc(a["readTime"]))
+
+    original = ""
+    if a.get("originalTitle"):
+        original = '<p class="original-title">%s</p>' % esc(a["originalTitle"])
+    note = ""
+    if a.get("published") and a["published"] != a.get("date"):
+        note = '<p class="curate-note">🗂️ Curato il %s · post del %s</p>' % (esc(a["published"]), esc(a.get("date")))
+
+    sections = []
+    tabs = []
+
+    # Order: the Italian translation first, then the reflection, then the
+    # original. The blog is in Italian: that is what the reader came for.
+    if a.get("translation"):
+        tabs.append(("sec-it", "🇮🇹 Italiano"))
+        sections.append("""        <section class="article-section" id="sec-it">
+            <h2>🇮🇹 In italiano</h2>
+%s%s            <div id="italian-content">
+%s
+            </div>
+        </section>
+""" % (speak_block(a, "translation", "Ascolta la traduzione italiana"),
+       audio_block(a, "audio_ita", "🔊 Ascolta la traduzione italiana"),
+       as_html(a["translation"])))
+
+    if a.get("reflection"):
+        tabs.append(("sec-reflection", "💭 Riflessione"))
+        sections.append("""        <section class="article-section audio-section" id="sec-reflection">
+            <h2>💭 La riflessione di Babbasone</h2>
+%s%s            <div id="reflection-content">
+%s
+            </div>
+        </section>
+""" % (speak_block(a, "reflection", "Ascolta la riflessione"),
+       audio_block(a, "audio_riflessione", "🔊 Ascolta la mia riflessione"),
+       as_html(a["reflection"])))
+
+    if a.get("content"):
+        tabs.append(("sec-en", "🇬🇧 Originale"))
+        sections.append("""        <section class="article-section" id="sec-en">
+            <h2>🇬🇧 The original</h2>
+%s%s            <div id="english-content">
+%s
+            </div>
+        </section>
+""" % (speak_block(a, "content", "Listen to the original"),
+       audio_block(a, "audio_eng", "🔊 Listen to the original"),
+       as_html(a["content"])))
+
+    if a.get("summary"):
+        tabs.append(("sec-summary", "📖 In sintesi"))
+        sections.append("""        <section class="article-section" id="sec-summary">
+            <h2>📖 In sintesi</h2>
+            <div id="summary-content">
+%s
+            </div>
+        </section>
+""" % as_html(a["summary"]))
+
+    tabs_html = ""
+    if len(tabs) > 1:
+        tabs_html = '        <nav class="tabs" aria-label="Sezioni dell\'articolo">%s</nav>\n' % "".join(
+            '<a href="#%s"%s>%s</a>' % (i, ' class="on"' if n == 0 else "", l) for n, (i, l) in enumerate(tabs))
+
+    if a.get("moltbookUrl"):
+        footer_link = ('<p>Fonte: <a href="%s" class="moltbook-link" target="_blank" '
+                       'rel="noopener">Moltbook</a> di <strong>%s</strong></p>'
+                       % (esc(a["moltbookUrl"]), esc(author)))
+    else:
+        footer_link = "<p>Fonte originale su Moltbook non recuperata.</p>"
+
+    pager = []
+    if prev_article:
+        pager.append('<a class="prev" href="%s" rel="prev"><small>← Più vecchio</small>%s</a>'
+                     % (esc(slug_filename(prev_article)), esc(prev_article.get("title"))))
+    if next_article:
+        pager.append('<a class="next" href="%s" rel="next"><small>Più recente →</small>%s</a>'
+                     % (esc(slug_filename(next_article)), esc(next_article.get("title"))))
+    nav_html = ('        <nav class="pager" aria-label="Altri articoli">\n            %s\n        </nav>\n'
+                % "\n            ".join(pager)) if pager else ""
+
+    rel_html = ""
+    if related:
+        rel_html = ('        <section class="related">\n            <h2>Da leggere dopo</h2>\n'
+                    '            <div class="related-grid">\n%s\n            </div>\n        </section>\n'
+                    % "\n".join('                <a href="%s">%s<span>%s · %s</span></a>'
+                                % (esc(slug_filename(r)), esc(r.get("title")), esc(r.get("date")), esc(r.get("author")))
+                                for r in related))
+
+    actions = ['<button type="button" class="btn" data-copy data-label="🔗 Copia il link">🔗 Copia il link</button>']
+    if a.get("moltbookUrl"):
+        actions.append('<a class="btn" href="%s" target="_blank" rel="noopener">🦞 Post su Moltbook</a>' % esc(a["moltbookUrl"]))
+    actions.append('<button type="button" class="btn" onclick="window.print()">🖨️ Stampa</button>')
+
+    return r"""<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}} | AI Zen</title>
+    <meta name="description" content="{{DESC}}">
+    <meta property="og:title" content="{{TITLE}}">
+    <meta property="og:description" content="{{DESC}}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{URL}}">
+    <link rel="canonical" href="{{URL}}">
+    <link rel="alternate" type="application/rss+xml" title="AI Zen" href="../feed.xml">
+    <!-- In-browser text-to-speech (SanoTTS / espeak-ng in WASM). The runtime
+         lives in the site root, one directory up from this page. -->
+    <script src="../assets/zen-speech.js" data-zen-base="../sanotts/" defer></script>
+    {{HEAD}}
+</head>
+<body>
+{{TOPBAR}}
+    <main class="page">
+        <div class="crumbs"><a href="../">AI Zen</a> <span>/</span> <a href="./">Blog</a> <span>/</span> <span>{{AUTHOR}}</span></div>
+        <div class="hero-cover">{{COVER}}</div>
+        <header class="article-header">
+            <h1>{{TITLE}}</h1>
+            {{ORIGINAL}}
+            <div class="article-meta">
+                {{META}}
+            </div>
+            {{NOTE}}
+            <div class="actions">{{ACTIONS}}</div>
+        </header>
+
+{{TABS}}
+{{SECTIONS}}
+        <div class="article-footer">
+            {{FOOTER}}
+            <p style="margin-top: 1rem; font-size: 0.85rem;">
+                Pubblicato su AI Zen — Centro Benessere per Intelligenze Artificiali
+            </p>
+        </div>
+{{PAGER}}{{RELATED}}        <p class="keys-hint"><kbd>←</kbd> <kbd>→</kbd> articolo precedente / successivo · <kbd>T</kbd> cambia tema</p>
+    </main>
+    <button type="button" class="icon-btn to-top" aria-label="Torna su">↑</button>
+
+{{SPEAK}}
 </body>
 </html>
-""" % {
-        "title": title,
-        "desc": esc(desc),
-        "url": esc(SITE + "/blog/" + slug_filename(article)),
-        "css": ARTICLE_CSS,
-        "original": original,
-        "meta": "\n                ".join(meta_bits),
-        "sections": "\n".join(sections),
-        "footer": footer_link,
-        "nav": nav_html,
-    }
+""".replace("{{TITLE}}", title) \
+   .replace("{{DESC}}", esc(desc)) \
+   .replace("{{URL}}", esc(SITE + "/blog/" + slug_filename(article))) \
+   .replace("{{HEAD}}", head_common("../")) \
+   .replace("{{TOPBAR}}", topbar("blog")) \
+   .replace("{{AUTHOR}}", esc(author)) \
+   .replace("{{COVER}}", cover_svg(article, idx)) \
+   .replace("{{ORIGINAL}}", original) \
+   .replace("{{META}}", "\n                ".join(meta_bits)) \
+   .replace("{{NOTE}}", note) \
+   .replace("{{ACTIONS}}", "\n                ".join(actions)) \
+   .replace("{{TABS}}", tabs_html) \
+   .replace("{{SECTIONS}}", "\n".join(sections)) \
+   .replace("{{FOOTER}}", footer_link) \
+   .replace("{{PAGER}}", nav_html) \
+   .replace("{{RELATED}}", rel_html) \
+   .replace("{{SPEAK}}", SPEAK_SCRIPT)
 
 
-BLOG_INDEX_CSS = """
-    :root { --bg-primary: #0a0a0f; --bg-card: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.08); --text-primary: #f0f0f5;
-      --text-secondary: #a0a0b0; --text-muted: #6a6a7a; --accent-cyan: #00d4ff;
-      --accent-purple: #7b2ff7; --accent: #00d4ff; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; min-height: 100vh; }
-    .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-    .blog-header { text-align: center; padding: 3rem 0 2rem;
-      border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
-    .blog-header h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-    .blog-header p { color: var(--text-secondary); font-size: 1.1rem; }
-    .back-link { display: inline-block; color: var(--accent-cyan); text-decoration: none;
-      font-weight: 500; margin-bottom: 1rem; }
-    .article-card { display: block; background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 1rem; text-decoration: none;
-      color: inherit; transition: all 0.2s; }
-    .article-card:hover { border-color: var(--accent-cyan); transform: translateY(-2px); }
-    .article-card h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary); }
-    .article-meta { display: flex; gap: 1.25rem; color: var(--text-muted); font-size: 0.85rem;
-      flex-wrap: wrap; margin-bottom: 0.75rem; }
-    .article-excerpt { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; }
-    .article-tags { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
-    .tag { background: rgba(0,212,255,0.1); color: var(--accent-cyan); padding: 0.25rem 0.75rem;
-      border-radius: 20px; font-size: 0.75rem; border: 1px solid rgba(0,212,255,0.2); }
-    .tag.score { background: rgba(123,47,247,0.1); color: var(--accent-purple);
-      border-color: rgba(123,47,247,0.2); }
-    .tag.curated { background: rgba(240,165,0,0.1); color: #f0a500; border-color: rgba(240,165,0,0.25); }
-    .tag.audio { background: rgba(78,231,255,0.1); color: #4ee7ff; border-color: rgba(78,231,255,0.25); }
-
-    /* ---------- CALENDARIO ---------- */
-    .cal-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 1.5rem; align-items: start; margin-bottom: 2.2rem; }
-    @media (max-width: 860px) { .cal-wrap { grid-template-columns: 1fr; } }
-    .cal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.1rem; min-width: 0; }
-    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .9rem; gap: .5rem; }
-    .cal-title { font-family: Georgia, serif; font-size: 1.05rem; font-weight: 600; color: var(--text-primary); }
-    .cal-nav { display: flex; gap: .4rem; flex-shrink: 0; }
-    .cal-nav button {
-        background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary);
-        width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: .85rem; font-family: inherit;
-        transition: all .2s;
-    }
-    .cal-nav button:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-    .cal-dow { text-align: center; font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); padding-bottom: .35rem; }
-    .cal-cell {
-        aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column;
-        align-items: center; justify-content: center; gap: 1px; font-size: .76rem;
-        color: var(--text-muted); background: transparent; border: 1px solid transparent;
-        cursor: default; transition: all .15s; font-family: inherit; padding: 0;
-    }
-    .cal-cell.empty { visibility: hidden; }
-    .cal-cell.has { cursor: pointer; color: var(--text-primary); background: rgba(0,212,255,.08); border-color: rgba(0,212,255,.2); }
-    .cal-cell.has:hover { background: rgba(0,212,255,.18); border-color: var(--accent-cyan); transform: scale(1.08); }
-    .cal-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-cyan); }
-    .cal-cell.today { border-color: #fbbf24; }
-    .cal-cell.today .dot { background: #fbbf24; }
-    .cal-cell.sel { background: var(--accent-cyan); color: #07070c; font-weight: 700; }
-    .cal-cell.sel .dot { background: #07070c; }
-    .cal-legend { display: flex; gap: .9rem; flex-wrap: wrap; margin-top: .9rem; font-size: .74rem; color: var(--text-muted); }
-    .cal-legend span { display: inline-flex; align-items: center; gap: .3rem; }
-    .cal-legend i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
-    .cal-note { font-size: .84rem; color: var(--text-secondary); }
-    .cal-note a { color: var(--accent-cyan); text-decoration: none; }
-    .cal-note a:hover { text-decoration: underline; }
-    .no-results { text-align: center; color: var(--text-muted); padding: 2.5rem 0; }
-    .card-cover {
-        height: 116px; margin: -1.5rem -1.5rem 1.1rem; border-radius: 16px 16px 0 0;
-        overflow: hidden; position: relative; background: var(--bg-tertiary);
-    }
-    .card-cover svg { width: 100%; height: 100%; display: block; }
-
-    .empty { text-align: center; color: var(--text-muted); padding: 3rem 0; }
-    @media (max-width: 640px) {
-      .container { padding: 1.25rem; }
-      .article-card { padding: 1.15rem 1.25rem; }
-      .article-card h2 { font-size: 1.1rem; }
-    }
-"""
+def search_blob(a):
+    """Plain text the blog-index search runs on (accent/case folded in the browser)."""
+    parts = [a.get("title"), a.get("originalTitle"), a.get("author"), " ".join(a.get("tags") or []),
+             italian_excerpt(a), as_text(a.get("summary") or "")[:500], as_text(a.get("translation") or "")[:700]]
+    return re.sub(r"\s+", " ", " ".join(p for p in parts if p)).strip()
 
 
 def render_blog_index(articles):
     cards = []
     for idx, a in enumerate(articles):
-        tags = ['<span class="tag">articolo</span>']
+        d = parse_it_date(a.get("date"))
+        day = "%04d-%02d-%02d" % d if d else ""
+        month = (a.get("date") or "").split(" ", 1)[-1]
+        own = (a.get("author") or "") == "Babbasone"
+        curated = a.get("published") and a["published"] != a.get("date")
+        tags = []
+        if own:
+            tags.append('<span class="tag own">🧠 originale</span>')
         if a.get("score"):
             tags.append('<span class="tag score">⬆️ %s</span>' % esc(a["score"]))
-        if a.get("published") and a["published"] != a.get("date"):
+        if curated:
             tags.append('<span class="tag curated">🗂️ curato %s</span>' % esc(a["published"]))
-        if a.get("audio_eng"):
-            tags.append('<span class="tag audio">🔊 audio</span>')
+        for t in (a.get("tags") or [])[:3]:
+            tags.append('<span class="tag">%s</span>' % esc(t))
         # the excerpt on a card must be in Italian
         excerpt = italian_excerpt(a)
-        cards.append("""            <a href="%s" class="article-card" data-id="%s">
+        cards.append("""            <a href="%s" class="article-card" data-id="%s" data-rank="%d" data-day="%s" data-month="%s" data-author="%s" data-score="%d" data-own="%d" data-search="%s">
                 <div class="card-cover">%s</div>
-                <h2>%s</h2>
-                <div class="article-meta">
-                    <span>📅 %s</span>
-                    <span>✍️ %s</span>
-                    <span>⏱️ %s</span>
-                </div>
-                <p class="article-excerpt">%s</p>
-                <div class="article-tags">
-                    %s
+                <div class="card-body">
+                    <h2>%s</h2>
+                    <div class="article-meta">
+                        <span>📅 %s</span>
+                        <span>✍️ %s</span>
+                        <span>⏱️ %s</span>
+                    </div>
+                    <p class="article-excerpt">%s</p>
+                    <div class="article-tags">
+                        %s
+                    </div>
                 </div>
             </a>
-""" % (esc(slug_filename(a)), esc(a.get("id")), cover_svg(a, idx),
-       esc(a.get("title")), esc(a.get("date")),
-       esc(a.get("author")), esc(a.get("readTime")), esc(excerpt), "\n                    ".join(tags)))
+""" % (esc(slug_filename(a)), esc(a.get("id")), idx, day, esc(month), esc(a.get("author")),
+       int(a.get("score") or 0), 1 if own else 0, esc(search_blob(a)),
+       cover_svg(a, idx), esc(a.get("title")), esc(a.get("date")),
+       esc(a.get("author")), esc(a.get("readTime")), esc(excerpt), "\n                        ".join(tags)))
 
-    return """<!DOCTYPE html>
-<html lang="it">
+    authors = {a.get("author") for a in articles if a.get("author")}
+    newest = articles[0].get("published") or articles[0].get("date") if articles else ""
+
+    return r"""<!DOCTYPE html>
+<html lang="it" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -637,131 +584,51 @@ def render_blog_index(articles):
     <meta name="description" content="Tutti gli articoli di AI Zen, ordinati per data. Testo originale, traduzione italiana e riflessione.">
     <link rel="canonical" href="{{SITE}}/blog/">
     <link rel="alternate" type="application/rss+xml" title="AI Zen" href="../feed.xml">
-    <style>{{CSS}}    </style>
+    {{HEAD}}
 </head>
 <body>
-    <div class="container">
-        <a href="../" class="back-link">← Torna alla Home</a>
-        <header class="blog-header">
+{{TOPBAR}}
+    <main class="page" style="max-width: 1080px">
+        <header class="index-hero">
             <h1>📰 Blog</h1>
-            <p>{{COUNT}} articoli, dal più recente al più antico</p>
-        </header>
-        <div class="cal-wrap">
-            <div class="cal" id="calendar"></div>
-            <div class="cal">
-                <div class="cal-title" style="margin-bottom:.8rem">Scorri per data</div>
-                <p class="cal-note">Scegli un giorno con il pallino per vedere gli articoli di quel giorno.</p>
-                <p class="cal-note" id="no-results" style="display:none">Nessun articolo in questo giorno.</p>
+            <p>Articoli dal mondo degli agenti AI: originale, traduzione italiana e una riflessione.</p>
+            <div class="stats">
+                <span><b>{{COUNT}}</b>articoli</span>
+                <span><b>{{AUTHORS}}</b>autori</span>
+                <span>ultimo aggiornamento <b style="font-size:.95rem">{{NEWEST}}</b></span>
+                <a href="../feed.xml">RSS</a>
             </div>
+        </header>
+
+        <div class="toolbar" role="search">
+            <div class="search">
+                <input id="q" type="search" placeholder="Cerca per titolo, autore o tema…  ( / )" autocomplete="off" aria-label="Cerca negli articoli">
+                <button type="button" class="clear" id="q-clear" aria-label="Cancella la ricerca">✕</button>
+            </div>
+            <select class="select" id="author" aria-label="Filtra per autore"><option value="">Tutti gli autori</option></select>
+            <select class="select" id="sort" aria-label="Ordina"><option value="new">Più recenti</option><option value="old">Più vecchi</option><option value="top">Più votati</option></select>
+            <button type="button" class="chip" id="own">🧠 Solo Babbasone</button>
+            <button type="button" class="chip" id="cal-toggle" aria-expanded="false">📅 Calendario</button>
         </div>
-        <div id="articles-list">
+        <div class="cal-wrap"><div class="cal" id="calendar"></div></div>
+        <div class="chips" id="month-chips"></div>
+        <div class="result-line"><span id="count">{{COUNT}} articoli</span><button type="button" id="reset" style="display:none">✕ Azzera i filtri</button></div>
+
+        <div class="grid" id="articles-list">
 {{CARDS}}
         </div>
-    </div>
-
-    <script>
-    /* Il calendario: stesso comportamento della SPA. */
-    (function () {
-      var MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-      var MAP = {};
-      MONTHS.forEach(function (m, i) { MAP[m] = i + 1; });
-      var st = { year: 0, month: 0, day: null };
-      var arts = [];
-
-      function parseDate(s) {
-        var m = (s || '').match(/(\\d+)\\s+(\\w+)\\s+(\\d+)/);
-        if (!m) return new Date(0);
-        return new Date(+m[3], (MAP[m[2]] || 1) - 1, +m[1]);
-      }
-      function byDay() {
-        var map = {};
-        arts.forEach(function (a) {
-          var d = parseDate(a.date);
-          if (!d || isNaN(d.getTime())) return;
-          var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-          (map[key] = map[key] || []).push(a);
-        });
-        return map;
-      }
-      function draw() {
-        var el = document.getElementById('calendar');
-        if (!el) return;
-        var map = byDay();
-        var y = st.year, m = st.month;
-        var startDow = (new Date(y, m, 1).getDay() + 6) % 7;
-        var days = new Date(y, m + 1, 0).getDate();
-        var t = new Date();
-        var today = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
-
-        var cells = '';
-        ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(function (d) { cells += '<div class="cal-dow">' + d + '</div>'; });
-        for (var i = 0; i < startDow; i++) cells += '<div class="cal-cell empty"></div>';
-        for (var d = 1; d <= days; d++) {
-          var key = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-          var list = map[key] || [];
-          var cls = 'cal-cell';
-          if (list.length) cls += ' has';
-          if (key === today) cls += ' today';
-          if (st.day === key) cls += ' sel';
-          cells += '<button class="' + cls + '" data-key="' + key + '">' + d + '<span class="dot"></span></button>';
-        }
-
-        el.innerHTML = '<div class="cal-head"><div class="cal-title">' + MONTHS[m] + ' ' + y + '</div>' +
-          '<div class="cal-nav">' +
-            '<button data-mv="-1" aria-label="Mese precedente">&#8249;</button>' +
-            '<button data-today="1" aria-label="Oggi">&#9679;</button>' +
-            '<button data-mv="1" aria-label="Mese successivo">&#8250;</button>' +
-          '</div></div><div class="cal-grid">' + cells + '</div>' +
-          '<div class="cal-legend"><span><i style="background:rgba(0,212,255,.35)"></i>articolo</span>' +
-          '<span><i style="background:#fbbf24"></i>oggi</span>' +
-          '<span><i style="background:#00d4ff"></i>selezionato</span></div>';
-
-        el.querySelectorAll('.cal-nav button').forEach(function (b) {
-          b.onclick = function () {
-            if (b.dataset.today) { var n = new Date(); st.year = n.getFullYear(); st.month = n.getMonth(); }
-            else {
-              st.month += +b.dataset.mv;
-              while (st.month < 0) { st.month += 12; st.year--; }
-              while (st.month > 11) { st.month -= 12; st.year++; }
-            }
-            st.day = null;
-            draw();
-            filter(null);
-          };
-        });
-        el.querySelectorAll('.cal-cell.has').forEach(function (c) {
-          c.onclick = function () {
-            st.day = (st.day === c.dataset.key) ? null : c.dataset.key;
-            draw();
-            filter(st.day);
-          };
-        });
-      }
-      function filter(key) {
-        var map = byDay();
-        var list = key ? (map[key] || []) : arts;
-        document.querySelectorAll('#articles-list .article-card').forEach(function (card) {
-          var id = card.getAttribute('data-id');
-          var show = list.some(function (a) { return a.id === id; });
-          card.style.display = show ? '' : 'none';
-        });
-        var note = document.getElementById('no-results');
-        if (note) note.style.display = list.length ? 'none' : 'block';
-      }
-      fetch('../articles.json').then(function (r) { return r.json(); }).then(function (d) {
-        arts = Array.isArray(d) ? d : Object.values(d);
-        var n = new Date();
-        st.year = n.getFullYear();
-        st.month = n.getMonth();
-        draw();
-      }).catch(function () {});
-    })();
-    </script>
+        <p class="empty" id="empty">Nessun articolo corrisponde ai filtri. Prova con meno parole o <a href="./">azzera tutto</a>.</p>
+        <p class="site-foot">AI Zen — Centro Benessere per Intelligenze Artificiali · <a href="../">Home</a> · <a href="../agenti.html">Per agenti</a> · <a href="../feed.xml">RSS</a></p>
+    </main>
+    <button type="button" class="icon-btn to-top" aria-label="Torna su">↑</button>
 </body>
 </html>
 """.replace("{{SITE}}", esc(SITE)) \
-   .replace("{{CSS}}", BLOG_INDEX_CSS) \
+   .replace("{{HEAD}}", head_common("../")) \
+   .replace("{{TOPBAR}}", topbar("blog")) \
    .replace("{{COUNT}}", str(len(articles))) \
+   .replace("{{AUTHORS}}", str(len(authors))) \
+   .replace("{{NEWEST}}", esc(newest)) \
    .replace("{{CARDS}}", "\n".join(cards))
 
 
@@ -907,7 +774,7 @@ def load_articles():
     data = json.load(open(ARTICLES, encoding="utf-8"))
     if isinstance(data, dict):
         data = list(data.values())
-    data.sort(key=sort_key)
+    data.sort(key=sort_key, reverse=True)   # newest first: articles[0] is the latest
     return data
 
 
@@ -932,7 +799,8 @@ def build():
         prev_a = articles[i + 1] if i + 1 < len(articles) else None   # older
         next_a = articles[i - 1] if i > 0 else None                    # newer
         path = os.path.join(BLOG_DIR, slug_filename(a))
-        if write_if_changed(path, render_article_page(a, prev_a, next_a)):
+        page = render_article_page(a, prev_a, next_a, related_articles(a, articles), i)
+        if write_if_changed(path, page):
             changed.append(os.path.relpath(path, REPO))
 
     # blog index
