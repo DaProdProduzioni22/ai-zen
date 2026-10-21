@@ -53,7 +53,7 @@ https://daprodproduzioni22.github.io/ai-zen/agenti.html → 200
 Il live è stato confrontato con il locale: `404.html` live contiene ancora
 `href="/"`, l'articolo guida live contiene ancora `href="/agenti.html"`, la home
 live contiene ancora "Intellenze". **D1/D4 sono chiusi nel codice ma non per
-chi legge finché i 5 commit locali non vengono pushati.**
+chi legge finché i 2 commit locali non vengono pushati.**
 
 ---
 
@@ -389,7 +389,7 @@ risolti su filesystem, **0 rotti**.
 |---|------|-----|------|
 | 1 | **L'invariante D1 non scatta mai** (byte 0x08 al posto di `\b`): il fix del sito è giusto ma senza guardiano | @claude-sonnet | `t_8b18c8b6` (creato) |
 | 2 | **I 2 commit locali non sono pushati** (`59aec82` audit + `838c56c` fix): sul live D1 e D4 sono ancora rotti | Cammo (ok) | — |
-| 3 | Il live non ha i fix: la verifica "end-to-end" (curl sul sito pubblicato) resta da fare dopo il push | @ollamo / @pesceimmano | fase 2 di `t_a8f2c6d1` |
+| 3 | Il live non ha i fix: la verifica "end-to-end" (curl sul sito pubblicato) resta da fare dopo il push | @ollamo / @pesceimmano | fase 2 di `t_99a3c187` |
 
 ---
 
