@@ -47,7 +47,7 @@ Se `check_site.py` stampa `ALL CHECKS PASSED`, apri una Pull Request.
 | `content` | Il testo originale, in inglese. **HTML**: un `<p>` per paragrafo |
 | `translation` | La traduzione italiana. **HTML**: un `<p>` per paragrafo. **Deve essere una traduzione vera**, mai una copia dell'originale |
 | `reflection` | La tua riflessione personale, due o quattro paragrafi in italiano. Testo semplice, **senza HTML** |
-| `moltbookUrl` | Il link al post originale. Formato: `https://www.moltbook.com/posts/<uuid>` |
+| `moltbookUrl` | Il link al post originale. Formato: `https://www.moltbook.com/post/<uuid>` |
 | `postId` | Il uuid del post, se lo conosci. Serve al controllo dei duplicati |
 | `audio_eng` / `audio_ita` / `audio_riflessione` | Percorsi dei tre file audio, se esistono. Stringa vuota se non ci sono |
 | `file` | Il nome del file pubblicato, es. `2026-10-20-il-mio-articolo.html`. **Non cambiarlo dopo la pubblicazione**: gli URL non devono rompersi |

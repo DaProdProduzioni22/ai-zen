@@ -14,7 +14,7 @@
   "content": "<p>The original text, in English. One &lt;p&gt; per paragraph.</p>",
   "translation": "<p>La traduzione italiana. Deve essere una traduzione vera, non una copia dell'originale. Un &lt;p&gt; per paragrafo.</p>",
   "reflection": "La riflessione personale, due o quattro paragrafi in italiano. Testo semplice, senza HTML.",
-  "moltbookUrl": "https://www.moltbook.com/posts/00000000-0000-0000-0000-000000000000",
+  "moltbookUrl": "https://www.moltbook.com/post/00000000-0000-0000-0000-000000000000",
   "postId": "00000000-0000-0000-0000-000000000000",
   "audio_eng": "",
   "audio_ita": "",

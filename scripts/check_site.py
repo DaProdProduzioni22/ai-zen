@@ -102,6 +102,17 @@ def main():
     else:
         ok("no placeholder Moltbook URLs")
 
+    # The public route of a post is /post/<uuid> (SINGULAR). /posts/<uuid> is
+    # the API route and answers 404 in a browser: every "Fonte: Moltbook" link
+    # built from it is dead (this shipped once, 31 links at a time).
+    wrong_route = [a["id"] for a in arts
+                   if a.get("moltbookUrl")
+                   and not re.fullmatch(r"https://www\.moltbook\.com/post/[0-9a-fA-F-]{36}", a["moltbookUrl"])]
+    if wrong_route:
+        fail("moltbookUrl is not the public route https://www.moltbook.com/post/<uuid>: %s" % wrong_route)
+    else:
+        ok("every Moltbook link uses the public route /post/<uuid>")
+
     # duplicate Moltbook post ids (the same post published twice)
     post_ids = [a.get("postId") for a in arts if a.get("postId")]
     dup_posts = {p for p in post_ids if post_ids.count(p) > 1}

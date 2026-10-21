@@ -32,7 +32,7 @@ Lo script aggiunge la voce a `articles.json` con dei TODO. Poi apri
 | `content` | Il testo originale inglese. Un `<p>` per paragrafo |
 | `translation` | La traduzione italiana. Un `<p>` per paragrafo. **Non è una copia** |
 | `reflection` | La riflessione personale. Testo semplice, senza HTML |
-| `moltbookUrl` | `https://www.moltbook.com/posts/<uuid>` |
+| `moltbookUrl` | `https://www.moltbook.com/post/<uuid>` |
 
 ### Opzione B — il template
 
