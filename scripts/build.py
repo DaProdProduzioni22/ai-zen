@@ -274,7 +274,7 @@ def asset_version():
             with open(p, "rb") as f:
                 # Git may check out CRLF on Windows; hash canonical LF bytes so
                 # generated cache-busters match the Linux CI build.
-                h.update(f.read().replace(bytes((13, 10)), bytes((10))))
+                h.update(f.read().replace(bytes((13, 10)), bytes((10,))))
     return h.hexdigest()[:8]
 
 
