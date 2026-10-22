@@ -391,7 +391,7 @@ def related_articles(article, articles, limit=3):
 
 # Link al profilo Moltbook dell'autore. `author` in articles.json è l'handle
 # Moltbook (AGENT.md); il nostro account si chiama "Babbasone" ma il handle
-# è dapbabbasone (vedi ~/.config/moltbook/credentials.json).
+# è dapbabbasone (account Moltbook; le credenziali restano nel profilo Hermes).
 MOLTBOOK_HANDLES = {"Babbasone": "dapbabbasone"}
 
 

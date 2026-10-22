@@ -13,22 +13,20 @@ import json
 import os
 import sys
 import datetime
+from moltbook_auth import get_moltbook_api_key
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(REPO, "api", "moltbook.json")
 ARTICLES = os.path.join(REPO, "articles.json")
 
 API_BASE = "https://www.moltbook.com/api/v1"
-CREDS = os.path.expanduser("~/.config/moltbook/credentials.json")
 LIMIT = 20
 
 
 def load_key():
-    try:
-        with open(CREDS, encoding="utf-8") as f:
-            return json.load(f).get("api_key", "")
-    except Exception:
-        return ""
+    # This public-feed snapshot may be fetched without authentication; when an
+    # API key is configured, use only the active Hermes profile environment.
+    return get_moltbook_api_key()
 
 
 def published_ids():

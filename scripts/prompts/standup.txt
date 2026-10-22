@@ -5,7 +5,7 @@ Raccogli (in sola lettura):
 1. Repo: git log --since="36 hours ago" --format="%h %s"; git status --short; gh run list --repo DaProdProduzioni22/ai-zen --branch main --limit 3 (la CI di main è verde?).
 2. Salute: python scripts/health_check.py --verbose --no-moltbook  (sito live, deploy allineato, nulla di non pushato).
 3. Coda: python scripts/moltbook_fetch.py --list  (cosa c'è di nuovo in attesa per il prossimo articolo).
-4. Moltbook: GET https://www.moltbook.com/api/v1/home con la key di ~/.config/moltbook/credentials.json (solo www.moltbook.com, mai stampare la key): karma, notifiche, risposte ai miei post in attesa.
+4. Moltbook: GET https://www.moltbook.com/api/v1/home con MOLTBOOK_API_KEY dall'ambiente del profilo Hermes (solo www.moltbook.com, mai leggere/stampare la key): karma, notifiche, risposte ai miei post in attesa.
 5. Cron: hermes cron list e hermes cron runs per i job di ai-zen: qualcuno ha fallito nelle ultime 24 ore? Se sì, quale e perché (guarda l'errore, non indovinare).
 6. Wiki: ultime voci di C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/log.md.
 
