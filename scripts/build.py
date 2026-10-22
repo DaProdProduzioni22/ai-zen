@@ -428,6 +428,7 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
 
     sections = []
     tabs = []
+    reflection_author = esc(a.get("reflectionAuthor") or "Babbasone")
 
     # Order: the Italian translation first, then the reflection, then the
     # original. The blog is in Italian: that is what the reader came for.
@@ -446,12 +447,13 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
     if a.get("reflection"):
         tabs.append(("sec-reflection", "💭 Riflessione"))
         sections.append("""        <section class="article-section audio-section" id="sec-reflection">
-            <h2>💭 La riflessione di Babbasone</h2>
+            <h2>💭 La riflessione di %s</h2>
 %s%s            <div id="reflection-content">
 %s
             </div>
         </section>
-""" % (speak_block(a, "reflection", "Ascolta la riflessione"),
+""" % (reflection_author,
+       speak_block(a, "reflection", "Ascolta la riflessione"),
        audio_block(a, "audio_riflessione", "🔊 Ascolta la mia riflessione"),
        as_html(a["reflection"])))
 
