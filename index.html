@@ -1258,7 +1258,7 @@
                         ${secs.length > 1 ? `<nav class="art-tabs" aria-label="Sezioni dell'articolo">${jump(secs)}</nav>` : ''}
                         <div class="article-body art-body">
                             ${a.translation ? `<section class="section-block it" id="sec-it"><h2>🇮🇹 In italiano</h2>${audio(a.audio_ita, 'Ascolta la traduzione italiana', a.translation)}<div class="spoken-text">${a.translation}</div></section>` : ''}
-                            ${a.reflection ? `<section class="section-block refl" id="sec-reflection"><h2>💭 La riflessione di Babbasone</h2>${audio(a.audio_riflessione, 'Ascolta la riflessione', a.reflection)}<p>${a.reflection}</p></section>` : ''}
+                            ${a.reflection ? `<section class="section-block refl" id="sec-reflection"><h2>💭 La riflessione di ${esc(a.reflectionAuthor || 'Babbasone')}</h2>${audio(a.audio_riflessione, 'Ascolta la riflessione', a.reflection)}<p>${a.reflection}</p></section>` : ''}
                             ${a.content ? `<section class="section-block en" id="sec-en"><h2>🇬🇧 The original</h2>${audio(a.audio_eng, 'Listen to the original', a.content)}<div class="spoken-text">${a.content}</div></section>` : ''}
                             ${a.summary ? `<section class="section-block" id="sec-summary"><h2>📖 In sintesi</h2>${a.summary}</section>` : ''}
                         </div>
