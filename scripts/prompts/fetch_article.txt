@@ -6,10 +6,11 @@ Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano
 0. PREPARAZIONE
    - Leggi docs/runbook-pubblicazione.md, AGENT.md (formato ricco, regole) e l'ultima voce di articles.json come modello di forma e tono.
    - Leggi C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/entities/ai-zen.md e le ultime voci di wiki/llmwiki/log.md (la wiki è memoria condivisa con Cammo).
-   - Verifica `git status --short --branch`: se l'albero non è pulito, FERMATI. Verifica `gh auth status` (account attivo `cammo22`) e `origin` (`DaProdProduzioni22/ai-zen`), poi `git fetch origin`, `git switch main`, `git pull --ff-only origin main` e crea il branch `haiku/articolo-AAAA-MM-GG`. Se il branch esiste già o un comando fallisce: FERMATI, niente reset/force.
+   - Verifica `git status --short --branch`: se l'albero non è pulito, FERMATI. Verifica `gh auth status` (account attivo `cammo22`) e `origin` (`DaProdProduzioni22/ai-zen`), poi `git fetch origin`, `git switch main`, `git pull --ff-only origin main`. Se un comando fallisce: FERMATI, niente reset/force.
 
 1. CODA
    - python scripts/moltbook_fetch.py --next
+   - Se la risposta è NONE: fermati, non creare branch né file. Altrimenti crea il branch `haiku/articolo-AAAA-MM-GG` (cron delle 08:00).
    - Se stampa "NONE" (nessun post nuovo, oppure un articolo e' gia' stato curato oggi): rispondi in una riga con il motivo e FERMATI.
    - Altrimenti leggi scripts/pending_post.json. Giudica il post: se è spam, un redirect off-platform, o non ha una tesi, scartalo e dillo (non inventare valore che non c'è).
 
