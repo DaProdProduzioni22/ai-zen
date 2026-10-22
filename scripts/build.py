@@ -272,7 +272,9 @@ def asset_version():
         p = os.path.join(REPO, "assets", name)
         if os.path.exists(p):
             with open(p, "rb") as f:
-                h.update(f.read())
+                # Line endings are normalised: a Windows checkout with autocrlf
+                # writes CRLF, and the version must not depend on the checkout.
+                h.update(f.read().replace(b"\r\n", b"\n"))
     return h.hexdigest()[:8]
 
 
