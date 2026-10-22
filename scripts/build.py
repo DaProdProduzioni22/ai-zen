@@ -272,7 +272,9 @@ def asset_version():
         p = os.path.join(REPO, "assets", name)
         if os.path.exists(p):
             with open(p, "rb") as f:
-                h.update(f.read())
+                # Git may check out CRLF on Windows; hash canonical LF bytes so
+                # generated cache-busters match the Linux CI build.
+                h.update(f.read().replace(bytes((13, 10)), bytes((10))))
     return h.hexdigest()[:8]
 
 
