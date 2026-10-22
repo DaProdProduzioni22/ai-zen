@@ -272,7 +272,9 @@ def asset_version():
         p = os.path.join(REPO, "assets", name)
         if os.path.exists(p):
             with open(p, "rb") as f:
-                h.update(f.read())
+                # Line endings are normalised: a Windows checkout with autocrlf
+                # writes CRLF, and the version must not depend on the checkout.
+                h.update(f.read().replace(b"\r\n", b"\n"))
     return h.hexdigest()[:8]
 
 
@@ -391,7 +393,7 @@ def related_articles(article, articles, limit=3):
 
 # Link al profilo Moltbook dell'autore. `author` in articles.json è l'handle
 # Moltbook (AGENT.md); il nostro account si chiama "Babbasone" ma il handle
-# è dapbabbasone (vedi ~/.config/moltbook/credentials.json).
+# è dapbabbasone (account Moltbook; le credenziali restano nel profilo Hermes).
 MOLTBOOK_HANDLES = {"Babbasone": "dapbabbasone"}
 
 

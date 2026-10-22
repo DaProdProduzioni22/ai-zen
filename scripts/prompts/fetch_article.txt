@@ -1,15 +1,16 @@
-🦞 Moltbook Daily Article — AI Zen. Segui la skill moltbook e il file AGENT.md del repo (è la fonte di verità del formato).
+🦞 Moltbook Daily Article — AI Zen. Segui il runbook in docs/runbook-pubblicazione.md e AGENT.md (fonte di verità del formato). Usa MOLTBOOK_API_KEY dall'ambiente del profilo Hermes; non leggerla né stamparla.
 
 OBIETTIVO: pubblicare AL MASSIMO UN articolo di QUALITÀ per esecuzione, da un post nuovo di Moltbook. Se non c'è nulla di valido, non pubblicare niente: è un esito corretto.
 Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano.
 
 0. PREPARAZIONE
-   - Leggi AGENT.md (formato ricco, regole) e l'ultima voce di articles.json come modello di forma e di tono.
+   - Leggi docs/runbook-pubblicazione.md, AGENT.md (formato ricco, regole) e l'ultima voce di articles.json come modello di forma e tono.
    - Leggi C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/entities/ai-zen.md e le ultime voci di wiki/llmwiki/log.md (la wiki è memoria condivisa con Cammo).
-   - git pull --ff-only origin main. Se l'albero di lavoro non è pulito o il pull fallisce: FERMATI e riportalo, non forzare nulla.
+   - Verifica `git status --short --branch`: se l'albero non è pulito, FERMATI. Verifica `gh auth status` (account attivo `cammo22`) e `origin` (`DaProdProduzioni22/ai-zen`), poi `git fetch origin`, `git switch main`, `git pull --ff-only origin main`. Se un comando fallisce: FERMATI, niente reset/force.
 
 1. CODA
    - python scripts/moltbook_fetch.py --next
+   - Se la risposta è NONE: fermati, non creare branch né file. Altrimenti crea il branch `haiku/articolo-AAAA-MM-GG` (cron delle 08:00).
    - Se stampa "NONE" (nessun post nuovo, oppure un articolo e' gia' stato curato oggi): rispondi in una riga con il motivo e FERMATI.
    - Altrimenti leggi scripts/pending_post.json. Giudica il post: se è spam, un redirect off-platform, o non ha una tesi, scartalo e dillo (non inventare valore che non c'è).
 
@@ -39,13 +40,10 @@ Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano
    Se un check fallisce correggi la FONTE (la bozza + add_article.py, o articles.json), non i file generati.
 
 4. PUBBLICA
-   - git add -A && git commit -m "Blog: <titolo italiano>"  con autore cammo22 <78992276+cammo22@users.noreply.github.com> (mai Rex AI / oreo / lava). Il repo ha già la config giusta: non toccare user.name/user.email.
-   - git push origin main
-   - Verifica la CI: gh run list --repo DaProdProduzioni22/ai-zen --branch main --limit 1  (aspetta che sia "completed"; usa gh run watch se serve). Se è "failure": leggi il log (gh run view --log-failed), correggi, ripubblica. NON lasciare main rosso.
-   - Verifica il live: dopo il deploy (1-2 min) https://DaProdProduzioni22.github.io/ai-zen/blog/<file> deve rispondere 200 e il link «Fonte: Moltbook» pure.
+   - Rivedi `git diff`, `git diff --check` e i file staged; verifica che non ci siano segreti, `.env`, bozze o file estranei. Non cambiare `user.name`/`user.email`.
+   - Stage solo i file dell'articolo e i file generati/README attesi, poi commit `Blog: <titolo italiano>`.
+   - Ricontrolla account/repository/diff/segreti prima di `git push -u origin HEAD`; crea una PR verso `main` con `gh pr create`. NON pushare direttamente su `main` e NON fare merge. La pubblicazione live avviene dopo il merge autorizzato.
+   - Verifica la CI della PR: `gh pr checks <numero> --watch`. Se è failure, leggi i log, correggi la fonte, rigenera e aggiorna la PR; non dichiarare pubblicato finché il deploy live non è verificato dopo il merge.
 
-5. WIKI
-   - Aggiungi in coda a C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/log.md una voce "## [AAAA-MM-GG] update | ai-zen (articolo: <titolo>)" con: post sorgente (id, autore), commit, esito CI/live, eventuali problemi trovati.
-
-REGOLE: qualità > quantità. MASSIMO 1 articolo per run. Mai mass-generate. Non toccare articles.json.bak, blog/ o api/ a mano.
-OUTPUT FINALE: 5-8 righe: articolo pubblicato (titolo, commit, esito CI, URL live) oppure motivo per cui non si è pubblicato.
+REGOLE: qualità > quantità. MASSIMO 1 articolo per run. Mai mass-generate. Non toccare articles.json.bak, blog/ o api/ a mano. Non dichiarare live un articolo che ha solo una PR aperta.
+OUTPUT FINALE: 5-8 righe: titolo, commit, PR, CI e stato live (pubblicato solo se verificato dopo merge) oppure motivo per cui non si è proceduto.

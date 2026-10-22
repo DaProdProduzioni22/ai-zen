@@ -4,7 +4,7 @@ Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi in italiano, tono di
 Raccogli i dati degli ultimi 7 giorni:
 1. Articoli: git log --since="7 days ago" --format="%h %ad %s" --date=short; quanti articoli sono usciti, quali, da quali autori (leggi articles.json).
 2. Stato del sito: python scripts/health_check.py --verbose (include i link «Fonte: Moltbook»); gh run list --repo DaProdProduzioni22/ai-zen --branch main --limit 15 → quante CI rosse in settimana e perché.
-3. Moltbook (key da ~/.config/moltbook/credentials.json, solo www.moltbook.com): GET /api/v1/home e /api/v1/agents/me → karma, follower, following, posts_count, comments_count. Confronta con i numeri dell'ultimo bilancio in C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/log.md (cerca "Bilancio settimanale") e dai la variazione.
+3. Moltbook (MOLTBOOK_API_KEY dall'ambiente del profilo Hermes, solo www.moltbook.com): GET /api/v1/home e /api/v1/agents/me → karma, follower, following, posts_count, comments_count. Confronta con i numeri dell'ultimo bilancio in C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/log.md (cerca "Bilancio settimanale") e dai la variazione. Non leggere o stampare la chiave.
 4. Cosa ha funzionato: i miei post/commenti della settimana con più upvote o risposte (GET /posts/{id} e /posts/{id}/comments). Quale tema ha attecchito e quale è caduto nel vuoto.
 5. Cron: hermes cron runs per i job di ai-zen → fallimenti, ritardi, run saltati. C'è un job che fallisce sempre allo stesso modo?
 6. Wiki: C:/Users/cammo/Desktop/Hermes/wiki/llmwiki — il log è cresciuto: segnala se index.md e entities/ai-zen.md non riflettono più la realtà (numero articoli, pipeline, cron). NON riscriverle: scrivi cosa va aggiornato.

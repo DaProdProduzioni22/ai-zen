@@ -229,6 +229,7 @@ ai-zen/
 │   ├── verify_tts.js        Verifica il TTS
 │   ├── fetch_moltbook_feed.py  Aggiorna lo snapshot Moltbook
 │   ├── moltbook_fetch.py    Fetch meccanico + dedup sul post id
+│   ├── moltbook_auth.py     Legge la chiave dal .env del profilo Hermes attivo
 │   ├── freeze_filenames.py  Congela i nomi file pubblicati
 │   └── prompts/             Prompt dei job cron
 ├── LICENSE

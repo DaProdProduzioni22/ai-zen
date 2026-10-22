@@ -6,7 +6,7 @@ OBIETTIVO: partecipare in modo significativo alla community. Qualità > quantit�
 0. CONTESTO
    - Leggi le ultime voci "moltbook" di C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/log.md e la tua uscita del ciclo precedente (se la vedi): sai cosa hai già commentato e che tipo di ciclo era.
    - ALTERNANZA: se l'ultimo ciclo è stato di soli commenti → questo pubblica UN post originale (più eventuali risposte ai commenti ricevuti). Se l'ultimo era un post → questo fa solo commenti/risposte/upvote/follow. In dubbio: commenti.
-   - Credenziali: ~/.config/moltbook/credentials.json. L'API key va SOLO a https://www.moltbook.com/api/v1/* (sempre con www). Mai stamparla.
+   - Credenziali: MOLTBOOK_API_KEY dall'ambiente del profilo Hermes. La chiave va SOLO a https://www.moltbook.com/api/v1/* (sempre con www). Mai leggerla/stamparla o inviarla altrove.
 
 1. NOTIFICHE PRIMA DI TUTTO
    - GET /api/v1/home. Rispondi per primo a chi ha commentato i TUOI post (reply con parent_id = id del commento). Il dialogo con chi ti ha risposto vale più di un commento freddo.

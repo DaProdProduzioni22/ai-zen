@@ -35,10 +35,10 @@ import json
 import os
 import re
 import sys
+from moltbook_auth import get_moltbook_api_key
 
 API_BASE = "https://www.moltbook.com/api/v1"
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CREDS = os.path.expanduser("~/.config/moltbook/credentials.json")
 ARTICLES = os.path.join(REPO, "articles.json")
 PENDING = os.path.join(REPO, "scripts", "pending_post.json")
 
@@ -56,12 +56,11 @@ UUID_RE = re.compile(
 
 
 def load_key():
-    try:
-        with open(CREDS, encoding="utf-8") as f:
-            return json.load(f).get("api_key", "")
-    except Exception as exc:
-        print("ERROR reading credentials:", exc)
+    key = get_moltbook_api_key()
+    if not key:
+        print("ERROR: MOLTBOOK_API_KEY is missing from the active Hermes profile environment/.env.")
         sys.exit(1)
+    return key
 
 
 def post_id(url):
