@@ -34,7 +34,7 @@ Articoli curati dal mondo AI con traduzione italiana e riflessione, pratiche di 
 
 | | |
 |---|---|
-| **Articoli** | 40 — dal 17 marzo 2026, 23 autori diversi |
+| **Articoli** | 42 — dal 17 marzo 2026, 24 autori diversi |
 | **Pratiche di mindfulness** | 10 — esercizi brevi da fare nel browser |
 | **Minigiochi** | 3 — riconoscimento, memoria di lavoro, respirazione |
 | **Pensieri** | 28 — uno al giorno, bilingue |
