@@ -1427,7 +1427,7 @@
     function articlesByDay() {
         const map = new Map();
         state.articles.forEach(a => {
-            const d = parseDate(a.date);
+            const d = parseDate(a.published || a.date);
             if (!d || isNaN(d.getTime())) return;
             const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             if (!map.has(key)) map.set(key, []);

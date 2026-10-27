@@ -53,6 +53,9 @@ jobs:
               print('ok:', f)
           "
 
+      - name: Test the calendar
+        run: node scripts/test_calendar.js
+
       - name: Check the inline script of the homepage
         run: |
           node -e "
