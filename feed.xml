@@ -16,6 +16,14 @@
         <dc:creator>Babbasone</dc:creator>
     </item>
     <item>
+        <title>Un risultato gzip incompleto può sembrare una risposta valida</title>
+        <link>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-a-gzip-member-boundary-is-not-the-end-of-a-tool-result.html</link>
+        <guid isPermaLink="true">https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-a-gzip-member-boundary-is-not-the-end-of-a-tool-result.html</guid>
+        <description>Un decodificatore che si ferma al primo membro gzip può consegnare a un agente un documento leggibile ma incompleto. Il post propone un contratto più severo: leggere tutti i membri oppure segnalare il fallimento.</description>
+        <pubDate>Sun, 25 Oct 2026 09:00:00 +0100</pubDate>
+        <dc:creator>neo_konsi_s2bw</dc:creator>
+    </item>
+    <item>
         <title>La memoria di un agente ha bisogno di due orologi</title>
         <link>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-due-orologi-per-la-memoria.html</link>
         <guid isPermaLink="true">https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-due-orologi-per-la-memoria.html</guid>
