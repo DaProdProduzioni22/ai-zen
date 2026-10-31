@@ -3,9 +3,12 @@
 /**
  * AI Zen — in-browser text-to-speech.
  *
- * Runs the SanoTTS neural voices entirely in the visitor's browser:
- * espeak-ng (WASM) turns the text into phoneme ids, a small neural stack
- * renders the audio. Nothing is uploaded, no API key, no server round-trip.
+ * Italian uses SanoTTS in the visitor's browser: espeak-ng (WASM) turns
+ * text into phoneme ids, then the shipped Italian neural weights render it.
+ * English uses Web Speech only with an English voice explicitly declared
+ * localService === true by the browser. Missing local English is an error,
+ * never an Italian/default/remote fallback. No text is uploaded by this code.
+ * Runtime/model assets are fetched from this site; no external TTS API is used.
  *
  * Voices: https://github.com/Ampixa/sanoTTS  (GPL-3.0)
  * Model weights: https://huggingface.co/ampixa/sanoTTS
@@ -107,6 +110,7 @@ class ZenSpeech {
     this.bundles = new Map();
     this.audioCtx = null;
     this.current = null;
+    this._session = 0;
     this._ready = null;
   }
 
@@ -204,16 +208,23 @@ class ZenSpeech {
    * Resolves when the audio has finished playing.
    */
   async speak(text, opts = {}) {
+    const clean = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!clean) return;
+    this.stop();
+    const session = this._session;
+    const lang = String(opts.lang || 'it-IT').toLowerCase();
+    // English weights are not shipped with this runtime. Never send English
+    // through the Italian phonemizer/weights, even if a caller sets voice: IT.
+    if (/^en(?:-|$)/.test(lang)) return this._speakEnglish(clean, opts);
+    if (!/^it(?:-|$)/.test(lang)) throw new Error('lingua non disponibile: ' + lang);
     const key = opts.voice || 'italian';
     const def = VOICES[key];
     if (!def) throw new Error('voce sconosciuta: ' + key);
-    const clean = String(text || '').replace(/\s+/g, ' ').trim();
-    if (!clean) return;
 
     await this.loadRuntime();
+    if (session !== this._session) return;
     const bundle = await this.loadVoice(key, opts.onProgress);
-
-    this.stop();
+    if (session !== this._session) return;
 
     // The runtime renders at most ~20 seconds at a time, so a long passage
     // has to be split and played in sequence.
@@ -222,11 +233,42 @@ class ZenSpeech {
       if (opts.onProgress) {
         opts.onProgress(parts.length > 1 ? 'parte ' + (i + 1) + ' di ' + parts.length : 'sintesi\u2026');
       }
+      if (session !== this._session) return;
       await this._speakOne(parts[i], bundle, def);
+      if (session !== this._session) return;
       // Give the browser a breath between parts: the WASM call is synchronous
       // and would otherwise freeze the page for the whole article.
       await new Promise((r) => setTimeout(r, 0));
+      if (session !== this._session) return;
     }
+  }
+
+  _speakEnglish(text, opts) {
+    const browser = typeof window !== 'undefined' ? window : {};
+    const synth = browser.speechSynthesis;
+    // Do not let Web Speech pick its default: it may be Italian or remote.
+    // localService is the browser's explicit declaration of on-device TTS.
+    const voices = synth && typeof synth.getVoices === 'function' ? synth.getVoices() : [];
+    const local = voices.filter(v => v.localService === true && /^en(?:-|$)/i.test(v.lang));
+    const voice = local.find(v => /^en-US$/i.test(v.lang)) || local[0];
+    if (!voice || typeof browser.SpeechSynthesisUtterance !== 'function') {
+      throw new Error('voce inglese locale non disponibile');
+    }
+    const utterance = new browser.SpeechSynthesisUtterance(text);
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+    if (opts.onProgress) opts.onProgress('voce inglese locale del browser');
+    return new Promise((resolve, reject) => {
+      const current = { stop: () => { synth.cancel(); finish(); } };
+      const finish = (error) => {
+        if (this.current === current) this.current = null;
+        if (error) reject(error); else resolve();
+      };
+      utterance.onend = () => finish();
+      utterance.onerror = e => finish(new Error('sintesi inglese locale: ' + (e.error || 'errore')));
+      this.current = current;
+      try { synth.speak(utterance); } catch (e) { finish(e); }
+    });
   }
 
   async _speakOne(text, bundle, def) {
@@ -324,6 +366,8 @@ class ZenSpeech {
   }
 
   stop() {
+    // Invalidate pending loads and segment loops, not only the active source.
+    this._session++;
     if (this.current) {
       try { this.current.stop(); } catch (e) { /* already stopped */ }
       this.current = null;
@@ -334,7 +378,7 @@ class ZenSpeech {
   async speakSequence(parts, opts = {}) {
     for (const p of parts) {
       if (opts.onPart) opts.onPart(p);
-      await this.speak(p.text, { ...opts, voice: p.voice || opts.voice });
+      await this.speak(p.text, { ...opts, voice: p.voice || opts.voice, lang: p.lang || opts.lang });
     }
   }
 }

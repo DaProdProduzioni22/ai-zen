@@ -18,20 +18,29 @@ Usage:
 
 Draft (scripts/draft_article.json), all text fields in Italian except `content`:
   {
+    "contentType": "summary",                          (editorial default, explicit)
     "title":       "Titolo italiano che dice cosa succede",
     "excerpt":     "2-3 frasi per la card",
     "summary":     "2-3 paragrafi, testo semplice",
-    "content":     "<p class=\\"lead\\">…</p><p>…</p>      (testo originale, inglese, HTML)",
-    "translation": "<p class=\\"lead\\">…</p><p>…</p>      (traduzione italiana vera, HTML)",
+    "content":     "<p>Original English synthesis, not the entire source post.</p>",
+    "translation": "<p>Sintesi originale italiana, non traduzione integrale del post.</p>",
     "reflection":  "2-4 paragrafi di Babbasone, testo semplice, con la firma finale",
     "tags":        ["memoria", "agenti"],                  (opzionale, lista corta)
     "slug":        "slug-opzionale"                        (opzionale)
   }
 
+Full republication is exceptional: contentType='full' requires a verified
+reusePermission string including an evidence URL (permission for reproduction
+and translation). The URL check is structural; the editor must verify the rights.
+Legacy drafts missing contentType remain full and require permission for NEW
+inserts. Historical entries are never migrated or renamed. New filenames use
+the publication date, while date stays the source's validated created_at day.
+
 Exit codes: 0 ok, 1 refused (validation failed, duplicate, already one today).
 """
 import argparse
 import datetime
+import html
 import json
 import os
 import re
@@ -58,6 +67,25 @@ IT_WORDS = {"il", "lo", "la", "le", "gli", "di", "che", "è", "un", "una", "per"
 
 def it_date(d):
     return "%02d %s %d" % (d.day, MONTHS[d.month - 1], d.year)
+
+
+def parse_it_date(value):
+    """Compare calendar dates, not their historical zero-padding or case."""
+    if not isinstance(value, str):
+        raise ValueError("data italiana non valida")
+    match = re.fullmatch(r"(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", value or "")
+    if not match:
+        raise ValueError("data italiana non valida")
+    months = {name.lower(): i for i, name in enumerate(MONTHS, 1)}
+    return datetime.date(int(match[3]), months.get(match[2].lower(), 0), int(match[1]))
+
+
+def source_date(value):
+    """Validate the whole ISO value, retaining the source's calendar date."""
+    if not isinstance(value, str) or not re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?", value):
+        raise ValueError("created_at deve essere una data o timestamp ISO valido")
+    return datetime.datetime.fromisoformat(value.replace("Z", "+00:00")).date()
 
 
 def strip_tags(s):
@@ -99,10 +127,31 @@ def validate(draft, pending, arts, today, force):
     if problems:
         return problems
 
+    # Legacy drafts are full republications, never silently relabelled summaries.
+    content_type = draft.get("contentType", "full")
+    if content_type not in ("summary", "full"):
+        problems.append("bozza: contentType deve essere 'summary' oppure 'full'")
+    if content_type == "full":
+        permission = draft.get("reusePermission")
+        if not isinstance(permission, str) or not re.search(
+                r"https?://[A-Za-z0-9][A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:[/:?#][^\s<>]*)?(?=\s|$)",
+                permission.strip()):
+            problems.append("bozza full: reusePermission richiede un permesso/licenza verificato "
+                            "con URL della prova; non inventare diritti, usa contentType='summary'")
+    elif content_type == "summary":
+        source = strip_tags(html.unescape(pending.get("content") or "")).casefold()
+        english = strip_tags(html.unescape(draft["content"])).casefold()
+        if source and source in english:
+            problems.append("bozza summary: la sintesi contiene il post intero; riscrivila autonomamente")
+
     if not UUID_RE.match(str(pending.get("id") or "").lower()):
         problems.append("pending_post.json: id non è un uuid")
-    if not pending.get("created_at"):
-        problems.append("pending_post.json: manca created_at (la data dell'articolo viene da lì)")
+    try:
+        created = source_date(pending.get("created_at"))
+        if created > today:
+            problems.append("pending_post.json: created_at è nel futuro rispetto alla pubblicazione")
+    except ValueError:
+        problems.append("pending_post.json: created_at mancante o non è una data/timestamp ISO valido")
 
     pid = str(pending.get("id") or "").lower()
     for a in arts:
@@ -110,7 +159,13 @@ def validate(draft, pending, arts, today, force):
             problems.append("duplicato: il post %s è già pubblicato come '%s'" % (pid[:8], a.get("id")))
 
     today_s = it_date(today)
-    todays = [a["id"] for a in arts if a.get("published") == today_s]
+    todays = []
+    for article in arts:
+        try:
+            if parse_it_date(article.get("published")) == today:
+                todays.append(article.get("id", "?"))
+        except ValueError:
+            problems.append("articles.json: published non valida per '%s'" % article.get("id", "?"))
     if todays and not force:
         problems.append("regola 'un solo articolo al giorno': oggi (%s) è già stato pubblicato '%s' "
                         "(--force solo se Cammo lo chiede)" % (today_s, todays[0]))
@@ -134,13 +189,13 @@ def validate(draft, pending, arts, today, force):
             problems.append("%s sembra inglese (parole inglesi %.0f%%, italiane %.0f%%)" % (f, en * 100, it * 100))
     en_c, _ = english_ratio(draft["content"])
     if en_c < 0.03 and len(strip_tags(draft["content"]).split()) > 40:
-        problems.append("content dovrebbe essere il testo ORIGINALE inglese")
+        problems.append("content deve essere in inglese (sintesi originale per summary, fonte per full)")
 
     return problems
 
 
 def build_entry(draft, pending, today):
-    created = datetime.datetime.strptime(pending["created_at"][:10], "%Y-%m-%d").date()
+    created = source_date(pending["created_at"])
     pid = pending["id"].lower()
     slug = draft.get("slug") or slugify(pending.get("title_en") or draft["title"])
     slug = slugify(slug)
@@ -161,6 +216,7 @@ def build_entry(draft, pending, today):
         "readTime": draft.get("readTime") or read,
         "excerpt": draft["excerpt"].strip(),
         "summary": draft["summary"].strip(),
+        "contentType": draft.get("contentType", "full"),
         "content": draft["content"].strip(),
         "translation": draft["translation"].strip(),
         "reflection": draft["reflection"].strip(),
@@ -173,8 +229,10 @@ def build_entry(draft, pending, today):
         "slug": slug,
         "upvotes": int(pending.get("upvotes") or pending.get("score") or 0),
         "comments": int(pending.get("comments") or 0),
-        "file": "%04d-%02d-%02d-%s.html" % (created.year, created.month, created.day, slug),
+        "file": "%04d-%02d-%02d-%s.html" % (today.year, today.month, today.day, slug),
     }
+    if entry["contentType"] == "full":
+        entry["reusePermission"] = draft["reusePermission"].strip()
     if published != date:
         entry["note"] = "Curato il %s · post del %s" % (published, date)
     return entry

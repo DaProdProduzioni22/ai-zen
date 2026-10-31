@@ -53,8 +53,24 @@ jobs:
               print('ok:', f)
           "
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install browser test dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Test publication pipeline and date contracts
+        run: python -m unittest discover -s scripts -p 'test_*.py' -v
+
       - name: Test the calendar
-        run: node scripts/test_calendar.js
+        run: npm test
+
+      - name: Exercise desktop and mobile in Chromium
+        run: npm run test:browser
 
       - name: Check the inline script of the homepage
         run: |

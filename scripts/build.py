@@ -65,11 +65,33 @@ def parse_it_date(s):
     return (int(m.group(3)), MONTHS.get(m.group(2), 1), int(m.group(1)))
 
 
+def publication_date(article):
+    """AI Zen editorial date; never rewrite the source post date or stored URL."""
+    return article.get("published") or article.get("date") or ""
+
+
+def date_iso(value):
+    d = parse_it_date(value)
+    return "%04d-%02d-%02d" % d if d else ""
+
+
+def date_html(value):
+    return '<time datetime="%s">%s</time>' % (date_iso(value), esc(value))
+
+
+def publication_html(article):
+    return "Su AI Zen: " + date_html(publication_date(article))
+
+
+def source_date_html(article):
+    return "Post originale: " + date_html(article.get("date"))
+
+
 def sort_key(article):
-    """Newest first by post date; ties broken by curation date, then title."""
+    """Newest first on AI Zen; source date, title and id break ties."""
     d = parse_it_date(article.get("date")) or (0, 0, 0)
     p = parse_it_date(article.get("published")) or d
-    return (d, p, article.get("title", ""))
+    return (p, d, article.get("title", ""), article.get("id", ""))
 
 
 def esc(s):
@@ -349,10 +371,11 @@ SPEAK_SCRIPT = r"""    <script>
         if (state) state.textContent = 'preparazione…';
         try {
           await speech.speak(text, {
-            voice: 'italian',
+            lang: block.id === 'sec-en' ? 'en-US' : 'it-IT',
             onProgress: (m) => { if (state) state.textContent = m; },
           });
-          if (state) state.textContent = 'fine';
+          if (state) state.textContent = block.id === 'sec-en'
+            ? 'fine · EN: solo voci locali del browser' : 'fine';
         } catch (e) {
           if (state) state.textContent = 'errore: ' + (e && e.message ? e.message : 'sconosciuto');
         } finally {
@@ -375,7 +398,7 @@ SPEAK_SCRIPT = r"""    <script>
 def related_articles(article, articles, limit=3):
     """Up to `limit` other articles: same author first, then same month,
     newest first within the same score."""
-    a_month = (article.get("date") or "").split(" ", 1)[-1]
+    a_month = publication_date(article).split(" ", 1)[-1]
     scored = []
     for other in articles:
         if other.get("id") == article.get("id"):
@@ -383,10 +406,10 @@ def related_articles(article, articles, limit=3):
         s = 0
         if other.get("author") and other.get("author") == article.get("author"):
             s += 2
-        if a_month and (other.get("date") or "").split(" ", 1)[-1] == a_month:
+        if a_month and publication_date(other).split(" ", 1)[-1] == a_month:
             s += 1
         if s:
-            scored.append((s, parse_it_date(other.get("date")) or (0, 0, 0), other))
+            scored.append((s, sort_key(other), other))
     scored.sort(key=lambda t: (t[0], t[1]), reverse=True)
     return [t[2] for t in scored[:limit]]
 
@@ -409,10 +432,11 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
     excerpt = as_text(a.get("excerpt")) or as_text(a.get("summary"))
     desc = excerpt[:180].replace("\n", " ")
     author = a.get("author") or ""
+    is_summary = a.get("contentType") == "summary"
 
-    meta_bits = ["<span>📅 %s</span>" % esc(a.get("date"))]
-    if a.get("published") and a["published"] != a.get("date"):
-        meta_bits.append("<span>🗂️ Curato il %s</span>" % esc(a["published"]))
+    meta_bits = ["<span>📅 %s</span>" % publication_html(a),
+                 "<span>%s</span>" % source_date_html(a)]
+
     author_link = '<a href="%s" target="_blank" rel="noopener" title="Profilo Moltbook di %s">%s</a>' % (
         esc(moltbook_profile_url(author)), esc(author), esc(author))
     meta_bits.append('<span>✍️ %s</span>' % author_link)
@@ -428,21 +452,24 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
     if a.get("published") and a["published"] != a.get("date"):
         note = '<p class="curate-note">🗂️ Curato il %s · post del %s</p>' % (esc(a["published"]), esc(a.get("date")))
 
+    if is_summary:
+        note += '<p class="curate-note">Sintesi originale di Babbasone, basata sul post di %s, non traduzione integrale</p>' % esc(author)
+
     sections = []
     tabs = []
 
     # Order: the Italian translation first, then the reflection, then the
     # original. The blog is in Italian: that is what the reader came for.
     if a.get("translation"):
-        tabs.append(("sec-it", "🇮🇹 Italiano"))
+        tabs.append(("sec-it", "🇮🇹 Sintesi IT" if is_summary else "🇮🇹 Italiano"))
         sections.append("""        <section class="article-section" id="sec-it">
-            <h2>🇮🇹 In italiano</h2>
+            <h2>🇮🇹 {{IT_HEADING}}</h2>
 %s%s            <div id="italian-content">
 %s
             </div>
         </section>
-""" % (speak_block(a, "translation", "Ascolta la traduzione italiana"),
-       audio_block(a, "audio_ita", "🔊 Ascolta la traduzione italiana"),
+""" % (speak_block(a, "translation", "Ascolta la sintesi italiana" if is_summary else "Ascolta la traduzione italiana"),
+       audio_block(a, "audio_ita", "🔊 Ascolta la sintesi italiana" if is_summary else "🔊 Ascolta la traduzione italiana"),
        as_html(a["translation"])))
 
     if a.get("reflection"):
@@ -458,15 +485,15 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
        as_html(a["reflection"])))
 
     if a.get("content"):
-        tabs.append(("sec-en", "🇬🇧 Originale"))
+        tabs.append(("sec-en", "🇬🇧 Sintesi EN" if is_summary else "🇬🇧 Originale"))
         sections.append("""        <section class="article-section" id="sec-en">
-            <h2>🇬🇧 The original</h2>
+            <h2>🇬🇧 {{EN_HEADING}}</h2>
 %s%s            <div id="english-content">
 %s
             </div>
         </section>
-""" % (speak_block(a, "content", "Listen to the original"),
-       audio_block(a, "audio_eng", "🔊 Listen to the original"),
+""" % (speak_block(a, "content", "Listen to the English summary" if is_summary else "Listen to the original"),
+       audio_block(a, "audio_eng", "🔊 Listen to the English summary" if is_summary else "🔊 Listen to the original"),
        as_html(a["content"])))
 
     if a.get("summary"):
@@ -525,7 +552,7 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
     if related:
         side.append('<div class="side-box side-rel"><h3>Da non perdere</h3>%s</div>' % "".join(
             '<a href="%s">%s<small>%s · %s</small></a>'
-            % (esc(slug_filename(r)), esc(r.get("title")), esc(r.get("date")), esc(r.get("author"))) for r in related))
+            % (esc(slug_filename(r)), esc(r.get("title")), publication_html(r), esc(r.get("author"))) for r in related))
     side_html = '            <aside class="art-side" aria-label="Accanto all\'articolo">\n                %s\n            </aside>' % "\n                ".join(side)
 
     actions = ['<button type="button" class="btn" data-copy data-label="🔗 Copia il link">🔗 Copia il link</button>']
@@ -601,6 +628,8 @@ def render_article_page(article, prev_article, next_article, related=None, idx=0
    .replace("{{ACTIONS}}", "\n                ".join(actions)) \
    .replace("{{TABS}}", tabs_html) \
    .replace("{{SECTIONS}}", "\n".join(sections)) \
+   .replace("{{IT_HEADING}}", "Sintesi IT" if is_summary else "In italiano") \
+   .replace("{{EN_HEADING}}", "Sintesi EN" if is_summary else "The original") \
    .replace("{{FOOTER}}", footer_link) \
    .replace("{{PAGER}}", nav_html) \
    .replace("{{SIDE}}", side_html) \
@@ -617,18 +646,18 @@ def search_blob(a):
 def render_blog_index(articles):
     cards = []
     for idx, a in enumerate(articles):
-        d = parse_it_date(a.get("date"))
+        d = parse_it_date(publication_date(a))
         day = "%04d-%02d-%02d" % d if d else ""
-        month = (a.get("date") or "").split(" ", 1)[-1]
+        month = publication_date(a).split(" ", 1)[-1]
         own = (a.get("author") or "") == "Babbasone"
-        curated = a.get("published") and a["published"] != a.get("date")
+
         tags = []
         if own:
             tags.append('<span class="tag own">🧠 originale</span>')
         if a.get("score"):
             tags.append('<span class="tag score">⬆️ %s</span>' % esc(a["score"]))
-        if curated:
-            tags.append('<span class="tag curated">🗂️ curato %s</span>' % esc(a["published"]))
+        if a.get("date"):
+            tags.append('<span class="tag curated">%s</span>' % source_date_html(a))
         for t in (a.get("tags") or [])[:3]:
             tags.append('<span class="tag">%s</span>' % esc(t))
         # the excerpt on a card must be in Italian
@@ -654,7 +683,7 @@ def render_blog_index(articles):
             </a>
 """ % (esc(slug_filename(a)), esc(a.get("id")), idx, day, esc(month), esc(a.get("author")),
        int(a.get("score") or 0), 1 if own else 0, esc(search_blob(a)),
-       cover_svg(a, idx), esc(a.get("title")), esc(a.get("date")),
+       cover_svg(a, idx), esc(a.get("title")), publication_html(a),
        author_link, esc(a.get("readTime")), esc(excerpt), "\n                        ".join(tags)))
 
     authors = {a.get("author") for a in articles if a.get("author")}
@@ -677,7 +706,7 @@ def render_blog_index(articles):
         <div class="head-illu">
             <header class="index-hero">
                 <h1>📰 Blog</h1>
-                <p>Articoli dal mondo degli agenti AI: originale, traduzione italiana e una riflessione.</p>
+                <p>Articoli e sintesi bilingui dal mondo degli agenti AI, con la riflessione di Babbasone. Calendario, filtri e ordine seguono la pubblicazione su AI Zen; la data del post originale è indicata a parte.</p>
                 <div class="stats">
                     <span><b>{{COUNT}}</b>articoli</span>
                     <span><b>{{AUTHORS}}</b>autori</span>
@@ -738,9 +767,9 @@ def render_feed(articles):
         <dc:creator>%s</dc:creator>
     </item>
 """ % (esc(a.get("title")), esc(link), esc(link), esc(excerpt[:400]),
-       rfc822(a.get("date")), esc(a.get("author"))))
+       rfc822(publication_date(a)), esc(a.get("author"))))
 
-    newest = articles[0].get("date") if articles else ""
+    newest = publication_date(articles[0]) if articles else ""
     return """<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
@@ -768,6 +797,9 @@ def render_api_feed(articles):
             "excerpt": re.sub(r"\s+", " ", excerpt).strip(),
             "date": a.get("date"),
             "published": a.get("published"),
+            "publicationDate": date_iso(publication_date(a)),
+            "contentType": a.get("contentType") or "full",
+
             "author": a.get("author"),
             "authorUrl": moltbook_profile_url(a.get("author")),
             "score": a.get("score"),
@@ -783,7 +815,7 @@ def render_api_feed(articles):
 
     # The timestamp is derived from the newest article, not from "now": the build
     # must be idempotent, otherwise every run produces a git diff.
-    newest = articles[0].get("date") if articles else ""
+    newest = publication_date(articles[0]) if articles else ""
     stamp = ("%04d-%02d-%02dT09:00:00+00:00" % parse_it_date(newest)) if parse_it_date(newest) \
         else "2026-01-01T00:00:00+00:00"
 
@@ -818,8 +850,7 @@ def render_sitemap(articles):
             '  <url>\n    <loc>%s/agenti.html</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>' % esc(SITE)]
     for a in articles:
         urls.append('  <url>\n    <loc>%s/blog/%s</loc>\n    <lastmod>%s</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>'
-                     % (esc(SITE), esc(slug_filename(a)), (parse_it_date(a.get("date")) or (1970, 1, 1))[0:3] and
-                        "%04d-%02d-%02d" % parse_it_date(a.get("date"))))
+                     % (esc(SITE), esc(slug_filename(a)), date_iso(publication_date(a))))
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n%s\n</urlset>\n' % "\n".join(urls))
 
@@ -863,7 +894,8 @@ def render_404():
 
 
 def load_articles():
-    data = json.load(open(ARTICLES, encoding="utf-8"))
+    with open(ARTICLES, encoding="utf-8") as source:
+        data = json.load(source)
     if isinstance(data, dict):
         data = list(data.values())
     data.sort(key=sort_key, reverse=True)   # newest first: articles[0] is the latest
@@ -915,7 +947,8 @@ def sync_illustrations():
     scripts/illu.css are written into index.html (the SPA) and assets/zen-ui.css
     (the static pages) between markers, so the two can never drift apart.
     Returns the files that changed."""
-    css = open(ILLU_CSS_SRC, encoding="utf-8").read().replace("\r\n", "\n").strip("\n")
+    with open(ILLU_CSS_SRC, encoding="utf-8") as source:
+        css = source.read().replace("\r\n", "\n").strip("\n")
     changed = []
     for path in ILLU_CSS_TARGETS:
         with open(path, encoding="utf-8", newline="") as f:

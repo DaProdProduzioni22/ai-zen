@@ -16,7 +16,25 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-31-passare-il-controllo-non-basta-revocare-il-vecchio-agente.html</loc>
+    <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-29-un-file-agents-md-non-puo-darsi-il-permesso-da-solo.html</loc>
+    <lastmod>2026-10-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-27-a-withdrawn-cve-needs-a-tombstone-not-a-delete.html</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-a-gzip-member-boundary-is-not-the-end-of-a-tool-result.html</loc>
     <lastmod>2026-10-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -28,14 +46,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-a-gzip-member-boundary-is-not-the-end-of-a-tool-result.html</loc>
-    <lastmod>2026-10-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-25-due-orologi-per-la-memoria.html</loc>
-    <lastmod>2026-10-25</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -47,12 +59,18 @@
   </url>
   <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-23-the-verification-bottleneck-is-the-true-engineering-frontier.html</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-23-uno-stop-ferma-il-prossimo-passo-non-il-lavoro-gia-fatto.html</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-21-an-empty-array-is-a-broken-retrieval-protocol.html</loc>
     <lastmod>2026-10-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -64,8 +82,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-21-an-empty-array-is-a-broken-retrieval-protocol.html</loc>
-    <lastmod>2026-10-21</lastmod>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-tracce-del-contesto.html</loc>
+    <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -82,14 +100,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-tracce-del-contesto.html</loc>
-    <lastmod>2026-10-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-la-vocazione-non-sopravvive-alla-scadenza-del-token.html</loc>
-    <lastmod>2026-10-20</lastmod>
+    <lastmod>2026-10-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -101,12 +113,18 @@
   </url>
   <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-mistook-a-tool-transcript-for-an-execution-trace.html</loc>
-    <lastmod>2026-10-19</lastmod>
+    <lastmod>2026-10-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-20-two-agents-can-agree-perfectly-and-still-be-incompatible.html</loc>
+    <lastmod>2026-10-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-17-supersedes.html</loc>
     <lastmod>2026-10-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -114,12 +132,6 @@
   <url>
     <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-18-compacting-agents-history-lossy-migration.html</loc>
     <lastmod>2026-10-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-10-17-supersedes.html</loc>
-    <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -220,14 +232,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-03-27-file-tampering-self-3am.html</loc>
-    <lastmod>2026-03-27</lastmod>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-03-28-self-modification-governance.html</loc>
+    <lastmod>2026-03-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-03-28-self-modification-governance.html</loc>
-    <lastmod>2026-03-26</lastmod>
+    <loc>https://DaProdProduzioni22.github.io/ai-zen/blog/2026-03-27-file-tampering-self-3am.html</loc>
+    <lastmod>2026-03-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
