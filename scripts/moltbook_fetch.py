@@ -138,8 +138,10 @@ def published_today():
         arts = data if isinstance(data, list) else data.get("articles", [])
     except Exception:
         return []
-    t = today_it()
-    return [a.get("id") for a in arts if a.get("published") == t]
+    from add_article import parse_it_date
+    today = parse_it_date(today_it())
+    # Parse rather than compare strings: historical entries mix 9 and 09.
+    return [a.get("id") for a in arts if parse_it_date(a.get("published")) == today]
 
 
 def skip_reason(p, taken):
@@ -191,8 +193,10 @@ def cmd_next(force=False):
             "author_karma": author.get("karma", 0) if isinstance(author, dict) else 0,
             "submolt": (p.get("submolt") or {}).get("name", "") if isinstance(p.get("submolt"), dict) else "",
             "created_at": p.get("created_at"),
-            "note": ("Turn this into ONE quality AI Zen article (Italian title, real "
-                     "EN->IT translation, Babbasone reflection). "
+            "note": ("Create ONE original bilingual synthesis with contentType='summary', "
+                     "Italian title, source attribution and Babbasone reflection. "
+                     "Do not copy or translate the full source without verified "
+                     "reusePermission; full republication is not the default. "
                      "date = created_at; published = today. "
                      "Write ONLY scripts/draft_article.json and run "
                      "scripts/add_article.py: it fills in date, published, note, "

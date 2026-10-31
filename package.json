@@ -1,0 +1,12 @@
+{
+  "name": "ai-zen-site-checks",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node scripts/test_calendar.js && node --test scripts/test_games.js scripts/test_navigation.js scripts/test_speech.js",
+    "test:browser": "node scripts/test_browser.cjs && node scripts/test_navigation_browser.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

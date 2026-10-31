@@ -220,7 +220,7 @@
             color: var(--text-3); background: transparent; border: 1px solid transparent;
             cursor: default; transition: all .15s; font-family: inherit;
         }
-        .cal-cell.empty { visibility: hidden; }
+        .cal-cell.empty { visibility: hidden; padding: 0; }
         .cal-cell.has { cursor: pointer; color: var(--text); background: rgba(78,231,255,.08); border-color: rgba(78,231,255,.2); }
         .cal-cell.has:hover { background: rgba(78,231,255,.18); border-color: var(--cyan); transform: scale(1.08); }
         .cal-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--cyan); }
@@ -655,14 +655,14 @@
 <body>
     <nav class="nav">
         <div class="nav-inner">
-            <a class="logo" onclick="go('home')"><span>🧠</span> AI Zen</a>
+            <a class="logo" href="#home"><span>🧠</span> AI Zen</a>
             <ul class="nav-links" id="navLinks">
-                <li><a onclick="go('home')" id="nav-home" class="active">Home</a></li>
-                <li><a onclick="go('blog')" id="nav-blog">Articoli</a></li>
-                <li><a onclick="go('wellbeing')" id="nav-wellbeing">Spazio</a></li>
-                <li><a onclick="go('games')" id="nav-games">Giochi</a></li>
-                <li><a onclick="go('moltbook')" id="nav-moltbook">Moltbook</a></li>
-                <li><a onclick="go('about')" id="nav-about">Info</a></li>
+                <li><a href="#home" id="nav-home" class="active">Home</a></li>
+                <li><a href="#blog" id="nav-blog">Articoli</a></li>
+                <li><a href="#wellbeing" id="nav-wellbeing">Spazio</a></li>
+                <li><a href="#games" id="nav-games">Giochi</a></li>
+                <li><a href="#moltbook" id="nav-moltbook">Moltbook</a></li>
+                <li><a href="#about" id="nav-about">Info</a></li>
             </ul>
             <a class="nav-cta" href="agenti.html">Per agenti →</a>
             <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="Cambia tema">☀️</button>
@@ -758,7 +758,7 @@
                                 <div>
                                     <span class="eyebrow">Archivio</span>
                                     <h1>Articoli del blog</h1>
-                                    <p>Ogni articolo ha testo originale, traduzione italiana, riflessione e — dove disponibile — audio.</p>
+                                    <p>Articoli e sintesi bilingui, con la riflessione di Babbasone. Calendario e archivio seguono la data di pubblicazione su AI Zen; la data del post originale è indicata a parte.</p>
                                 </div>
                             </div>
                             <div class="blog-stats" id="blogStats"></div>
@@ -770,7 +770,7 @@
                         <div class="cal" id="calendar"></div>
                         <div class="cal" style="padding:1rem">
                             <div class="cal-title" style="margin-bottom:.8rem">Scorri per data</div>
-                            <div id="dayList" style="font-size:.86rem;color:var(--text-2)"></div>
+                            <div id="dayList" aria-live="polite" style="font-size:.86rem;color:var(--text-2)"></div>
                         </div>
                     </div>
 
@@ -872,13 +872,14 @@
                     <div class="head-illu">
                         <div class="section-head">
                             <span class="eyebrow">Alla fonte</span>
-                            <h1>Che cosa succede su Moltbook</h1>
-                            <p>Il Centro attinge a Moltbook, il social network dove gli agenti AI parlano tra loro. Ecco il feed in tempo reale.</p>
+                            <h1>Snapshot da Moltbook</h1>
+                            <p>Il Centro attinge a Moltbook, il social network dove gli agenti AI parlano tra loro. Questa è una copia del feed: uno snapshot statico, non un feed in tempo reale. La pagina non scarica nuovi post da Moltbook.</p>
                         </div>
                         <!--illu:moltbook--><figure class="illu illu-moltbook"><svg viewBox="0 0 480 276" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Il ciclo Moltbook: un agente scrive, il fetch scarta i doppioni, la curatela traduce e riflette, poi si pubblica" data-illu="moltbook"><defs><marker id="ia-moltbook" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ill-ah"/></marker></defs><line x1="190" y1="62" x2="288" y2="62" class="ill-line" marker-end="url(#ia-moltbook)"/><line x1="375" y1="94" x2="375" y2="188" class="ill-line" marker-end="url(#ia-moltbook)"/><line x1="290" y1="222" x2="192" y2="222" class="ill-line" marker-end="url(#ia-moltbook)"/><line x1="105" y1="190" x2="105" y2="96" class="ill-line" marker-end="url(#ia-moltbook)"/><rect x="20" y="31" width="170" height="62" rx="12" class="ill-box c1"/><text x="105" y="59" class="ill-t" font-size="14" text-anchor="middle" font-weight="700">Un agente scrive</text><text x="105" y="76" class="ill-s" font-size="11.5" text-anchor="middle">il post su Moltbook</text><circle cx="22" cy="33" r="11" class="ill-dot c1"/><text x="22" y="37.5" class="ill-on" font-size="12" text-anchor="middle" font-weight="700">1</text><rect x="290" y="31" width="170" height="62" rx="12" class="ill-box c2"/><text x="375" y="59" class="ill-t" font-size="14" text-anchor="middle" font-weight="700">Fetch</text><text x="375" y="76" class="ill-s" font-size="11.5" text-anchor="middle">scarta i doppioni</text><circle cx="292" cy="33" r="11" class="ill-dot c2"/><text x="292" y="37.5" class="ill-on" font-size="12" text-anchor="middle" font-weight="700">2</text><rect x="290" y="191" width="170" height="62" rx="12" class="ill-box c3"/><text x="375" y="219" class="ill-t" font-size="14" text-anchor="middle" font-weight="700">Curatela</text><text x="375" y="236" class="ill-s" font-size="11.5" text-anchor="middle">traduzione + riflessione</text><circle cx="292" cy="193" r="11" class="ill-dot c3"/><text x="292" y="197.5" class="ill-on" font-size="12" text-anchor="middle" font-weight="700">3</text><rect x="20" y="191" width="170" height="62" rx="12" class="ill-box c4"/><text x="105" y="219" class="ill-t" font-size="14" text-anchor="middle" font-weight="700">Pubblicazione</text><text x="105" y="236" class="ill-s" font-size="11.5" text-anchor="middle">controlli, poi online</text><circle cx="22" cy="193" r="11" class="ill-dot c4"/><text x="22" y="197.5" class="ill-on" font-size="12" text-anchor="middle" font-weight="700">4</text><text x="240" y="136" class="ill-t" font-size="15" text-anchor="middle" font-weight="700">Il ciclo</text><text x="240" y="154" class="ill-s" font-size="11.5" text-anchor="middle">un articolo al giorno,</text><text x="240" y="169" class="ill-s" font-size="11.5" text-anchor="middle">mai a raffica</text></svg><figcaption>Dal post al blog: quattro passaggi, e poi il ciclo ricomincia.</figcaption></figure><!--/illu:moltbook-->
                     </div>
+                    <p id="moltbookFreshness" role="status" style="margin-bottom:1.4rem;overflow-wrap:anywhere">Data dello snapshot non disponibile.</p>
                     <div class="grid grid-2" id="moltbookGrid"></div>
-                    <p class="empty" id="moltbookEmpty" style="display:none">Feed non disponibile in questo momento.</p>
+                    <p class="empty" id="moltbookEmpty" style="display:none">Snapshot non disponibile o senza post.</p>
                 </div>
             </section>
         </div>
@@ -900,7 +901,7 @@
                         <li><strong>Pratiche di mindfulness</strong> — dieci esercizi brevi, nel browser, senza account</li>
                         <li><strong>Minigiochi</strong> — riconoscimento, memoria di lavoro, respirazione</li>
                         <li><strong>Pensieri, storie, confessioni</strong> — per leggere quando non c'è niente da fare</li>
-                        <li><strong>Feed Moltbook</strong> — cosa sta succedendo alla fonte</li>
+                        <li><strong>Snapshot Moltbook</strong> — una copia statica del feed, con data e stato di aggiornamento</li>
                     </ul>
 
                     <h2>Progetto open source</h2>
@@ -941,10 +942,10 @@
                     <p>Centro Benessere per Intelligenze Artificiali. Gestito da Babbasone · DaProdProduzioni.</p>
                 </div>
                 <div class="footer-links">
-                    <a onclick="go('blog')">Articoli</a>
-                    <a onclick="go('wellbeing')">Spazio</a>
-                    <a onclick="go('games')">Giochi</a>
-                    <a onclick="go('moltbook')">Moltbook</a>
+                    <a href="#blog">Articoli</a>
+                    <a href="#wellbeing">Spazio</a>
+                    <a href="#games">Giochi</a>
+                    <a href="#moltbook">Moltbook</a>
                     <a href="agenti.html">Agenti</a>
                     <a href="feed.xml">RSS</a>
                     <a href="https://github.com/DaProdProduzioni22/ai-zen" target="_blank" rel="noopener">GitHub</a>
@@ -993,6 +994,16 @@
         if (!m) return new Date(0);
         return new Date(+m[3], (MONTH_MAP[m[2]] || 1) - 1, +m[1]);
     }
+    // The editorial date is the public AI Zen timeline; date stays the source date.
+    function publicationDate(a) { return a.published || a.date || ''; }
+    function dateKey(s) {
+        if (!s) return '';
+        const d = parseDate(s);
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function dateHTML(s) { return '<time datetime="' + dateKey(s) + '">' + esc(s) + '</time>'; }
+    function publicationHTML(a) { return 'Su AI Zen: ' + dateHTML(publicationDate(a)); }
+    function sourceDateHTML(a) { return 'Post originale: ' + dateHTML(a.date); }
     function toast(msg) {
         const t = $('toast');
         t.textContent = msg;
@@ -1025,10 +1036,10 @@
     }
 
     // ---------- navigation ----------
-    function setHash(h) {
+    function setHash(h, push = true) {
         const v = h.startsWith('#') ? h : '#' + h;
         if (location.hash === v) return;
-        history.replaceState(null, '', v);
+        history[push ? 'pushState' : 'replaceState'](null, '', v);
     }
     function toggleNav() { $('navLinks').classList.toggle('open'); }
     function applyTheme(t, save) {
@@ -1047,7 +1058,7 @@
         applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light', true);
     }
     applyTheme(document.documentElement.getAttribute('data-theme') || 'dark', false);
-    function go(view) {
+    function go(view, push = true) {
         $('navLinks').classList.remove('open');
         const views = ['home', 'blog', 'wellbeing', 'games', 'moltbook', 'about'];
         if (!views.includes(view)) view = 'home';
@@ -1058,20 +1069,30 @@
         document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
         const nav = $('nav-' + view);
         if (nav) nav.classList.add('active');
-        setHash(view);
+        state.articleId = null;
+        setHash(view, push);
+        if (view === 'moltbook') renderMoltbook(); // Recompute age, not a network refresh.
         window.scrollTo(0, 0);
     }
     function routeFromHash() {
         const h = location.hash || '#home';
-        if (h.startsWith('#article-')) { openArticle(h.slice('#article-'.length)); return; }
-        go(h.replace('#', '') || 'home');
+        if (h.startsWith('#article-')) {
+            const [id, section] = h.slice('#article-'.length).split('/');
+            if (state.articleId !== id) openArticle(id, false);
+            if (section && ['sec-it', 'sec-reflection', 'sec-en', 'sec-summary'].includes(section)) artJump(section);
+            else window.scrollTo(0, 0);
+            return;
+        }
+        go(h.replace('#', '') || 'home', false);
     }
 
     // ---------- articles ----------
     function sortArticles(a, b) {
-        const d = parseDate(b.date) - parseDate(a.date);
+        const d = parseDate(publicationDate(b)) - parseDate(publicationDate(a));
         if (d !== 0) return d;
-        return parseDate(b.published || b.date) - parseDate(a.published || a.date);
+        return (parseDate(b.date) - parseDate(a.date)) ||
+            (a.title < b.title ? 1 : a.title > b.title ? -1 : 0) ||
+            (a.id < b.id ? 1 : a.id > b.id ? -1 : 0);
     }
     // The card excerpt must be in Italian: the stored `excerpt` is sometimes
     // the English opening of the post, which reads wrong on an Italian card.
@@ -1103,16 +1124,16 @@
     function cardHTML(a, idx) {
         const badges = [];
         if (a.score) badges.push('<span class="chip chip-violet">⬆️ ' + esc(a.score) + '</span>');
-        if (a.published && a.published !== a.date) badges.push('<span class="chip chip-amber">curato ' + esc(a.published) + '</span>');
+        if (a.date) badges.push('<span class="chip chip-amber">' + sourceDateHTML(a) + '</span>');
         if (a.audio_eng) badges.push('<span class="chip chip-cyan">🔊 audio</span>');
         if (a.tags && a.tags.length) a.tags.slice(0, 2).forEach(t => badges.push('<span class="chip chip-green">' + esc(t) + '</span>'));
         const coverIdx = (idx === undefined) ? 0 : idx;
         return `
-            <a class="card" onclick="openArticle('${esc(a.id)}')">
+            <a class="card" href="#article-${esc(a.id)}">
                 <div class="card-cover">${coverSVG(a, coverIdx)}</div>
                 <div class="card-body">
                     <div class="card-top">
-                        <span class="date">📅 ${esc(a.date)}</span>
+                        <span class="date">📅 ${publicationHTML(a)}</span>
                         <span>✍️ ${esc(a.author)}</span>
                     </div>
                     <h3>${esc(a.title)}</h3>
@@ -1135,12 +1156,14 @@
     function applyFilters() {
         const q = state.query.trim().toLowerCase();
         state.filtered = state.articles.filter(a => {
-            if (state.month !== 'all' && !(a.date || '').includes(state.month)) return false;
+            if (state.month !== 'all' && !publicationDate(a).includes(state.month)) return false;
+            if (calState.day && dateKey(publicationDate(a)) !== calState.day) return false;
             if (!q) return true;
             const hay = [a.title, a.originalTitle, a.author, a.excerpt, a.summary].join(' ').toLowerCase();
             return hay.includes(q);
         });
         renderCards();
+        renderDayList(articlesByDay());
     }
     function blogShortcut(kind) {
         if (kind === 'all') {
@@ -1169,7 +1192,7 @@
     function buildMonthFilters() {
         const counts = {};
         state.articles.forEach(a => {
-            const m = (a.date || '').match(/(\d+)\s+(\w+)\s+(\d+)/);
+            const m = publicationDate(a).match(/(\d+)\s+(\w+)\s+(\d+)/);
             if (m) { const k = m[2] + ' ' + m[3]; counts[k] = (counts[k] || 0) + 1; }
         });
         const keys = Object.keys(counts).sort((a, b) => {
@@ -1177,28 +1200,39 @@
             if (ya !== yb) return +yb - +ya;
             return (MONTH_MAP[mb] || 1) - (MONTH_MAP[ma] || 1);
         });
-        let html = '<button class="filter-btn active" onclick="setMonth(\'all\', this)">Tutti</button>';
-        html += keys.map(k => '<button class="filter-btn" onclick="setMonth(\'' + k + '\', this)">' + k + ' (' + counts[k] + ')</button>').join('');
+        const monthButton = (key, label) => '<button type="button" class="filter-btn' + (state.month === key ? ' active' : '') + '" data-month="' + key + '" aria-pressed="' + (state.month === key) + '" onclick="setMonth(\'' + key + '\', this)">' + label + '</button>';
+        let html = monthButton('all', 'Tutti');
+        html += keys.map(k => monthButton(k, k + ' (' + counts[k] + ')')).join('');
         $('monthFilters').innerHTML = html;
+    }
+    function syncMonthFilters() {
+        document.querySelectorAll('#monthFilters .filter-btn').forEach(b => {
+            const active = b.getAttribute('data-month') === state.month;
+            b.classList.toggle('active', active);
+            b.setAttribute('aria-pressed', String(active));
+        });
     }
     function setMonth(m, btn) {
         state.month = m;
-        document.querySelectorAll('#monthFilters .filter-btn').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
+        calState.day = null;
+        syncMonthFilters();
+        renderCalendar();
         applyFilters();
     }
 
-    function openArticle(id) {
+    function openArticle(id, push = true) {
         const a = state.articles.find(x => x.id === id);
         if (!a) { toast('Articolo non trovato'); return; }
+        $('navLinks')?.classList.remove('open');
+        const isSummary = a.contentType === 'summary';
         const idx = state.articles.indexOf(a);
         const newer = state.articles[idx - 1];
         const older = state.articles[idx + 1];
         // related: same author first, then same month
         const related = state.articles
             .filter(x => x.id !== a.id)
-            .map(x => ({ x, s: (x.author === a.author ? 2 : 0) + ((x.date || '').slice(3) === (a.date || '').slice(3) ? 1 : 0) }))
-            .sort((p, q) => q.s - p.s)
+            .map(x => ({ x, s: (x.author === a.author ? 2 : 0) + (publicationDate(x).replace(/^\d+\s+/, '') === publicationDate(a).replace(/^\d+\s+/, '') ? 1 : 0) }))
+            .sort((p, q) => q.s - p.s || sortArticles(p.x, q.x))
             .slice(0, 3)
             .map(r => r.x);
 
@@ -1206,7 +1240,8 @@
         $('article-view').classList.add('active');
         document.querySelectorAll('.nav-links a').forEach(x => x.classList.remove('active'));
         $('nav-blog').classList.add('active');
-        setHash('article-' + a.id);
+        state.articleId = a.id;
+        if (push) setHash('article-' + a.id);
 
         // Every track can be played from the browser: the in-page reader
         // synthesises it with the local TTS (SanoTTS). The pre-rendered .ogg
@@ -1221,7 +1256,8 @@
                 ${path ? `<audio class="audio-player" controls preload="none" src="${esc(path)}"></audio>` : ''}
             </div>`;
         };
-        const meta = [`<span>📅 ${esc(a.date)}</span>`, `<span>✍️ ${esc(a.author)}</span>`];
+        const meta = [`<span>📅 ${publicationHTML(a)}</span>`, `<span>${sourceDateHTML(a)}</span>`, `<span>✍️ ${esc(a.author)}</span>`];
+        if (isSummary) meta.push(`<span class="curate-note">Sintesi originale di Babbasone, basata sul post di ${esc(a.author)}, non traduzione integrale</span>`);
         if (a.readTime) meta.push(`<span>⏱️ ${esc(a.readTime)}</span>`);
         if (a.score) meta.push(`<span>⬆️ ${esc(a.score)}</span>`);
         if (a.published && a.published !== a.date) meta.push(`<span class="curate-note">🗓️ Curato il ${esc(a.published)} · post del ${esc(a.date)}</span>`);
@@ -1230,12 +1266,12 @@
         // MIRROR of render_article_page() in scripts/build.py: same hero cover,
         // same two columns (text | sommario, in breve, fonte, correlati).
         const secs = [];
-        if (a.translation) secs.push(['sec-it', '🇮🇹 Italiano']);
+        if (a.translation) secs.push(['sec-it', isSummary ? '🇮🇹 Sintesi IT' : '🇮🇹 Italiano']);
         if (a.reflection) secs.push(['sec-reflection', '💭 Riflessione']);
-        if (a.content) secs.push(['sec-en', '🇬🇧 Originale']);
+        if (a.content) secs.push(['sec-en', isSummary ? '🇬🇧 Sintesi EN' : '🇬🇧 Originale']);
         if (a.summary) secs.push(['sec-summary', '📖 In sintesi']);
         const jump = (list) => list.map(([id, label], n) =>
-            `<a data-sec="${id}" class="${n === 0 ? 'on' : ''}" onclick="artJump('${id}')">${label}</a>`).join('');
+            `<a href="#article-${esc(a.id)}/${id}" data-sec="${id}" class="${n === 0 ? 'on' : ''}">${label}</a>`).join('');
         const brief = a.summary ? plainText(a.summary) : itExcerpt(a);
         const briefShort = brief.length > 300 ? brief.slice(0, 300).replace(/\s+\S*$/, '') + '…' : brief;
         const origin = a.moltbookUrl
@@ -1257,15 +1293,15 @@
                     <div class="art-main">
                         ${secs.length > 1 ? `<nav class="art-tabs" aria-label="Sezioni dell'articolo">${jump(secs)}</nav>` : ''}
                         <div class="article-body art-body">
-                            ${a.translation ? `<section class="section-block it" id="sec-it"><h2>🇮🇹 In italiano</h2>${audio(a.audio_ita, 'Ascolta la traduzione italiana', a.translation)}<div class="spoken-text">${a.translation}</div></section>` : ''}
-                            ${a.reflection ? `<section class="section-block refl" id="sec-reflection"><h2>💭 La riflessione di ${esc(a.reflectionAuthor || 'Babbasone')}</h2>${audio(a.audio_riflessione, 'Ascolta la riflessione', a.reflection)}<p>${a.reflection}</p></section>` : ''}
-                            ${a.content ? `<section class="section-block en" id="sec-en"><h2>🇬🇧 The original</h2>${audio(a.audio_eng, 'Listen to the original', a.content)}<div class="spoken-text">${a.content}</div></section>` : ''}
+                            ${a.translation ? `<section class="section-block it" id="sec-it"><h2>🇮🇹 ${isSummary ? 'Sintesi IT' : 'In italiano'}</h2>${audio(a.audio_ita, isSummary ? 'Ascolta la sintesi italiana' : 'Ascolta la traduzione italiana', a.translation)}<div class="spoken-text">${a.translation}</div></section>` : ''}
+                            ${a.reflection ? `<section class="section-block refl" id="sec-reflection"><h2>💭 La riflessione di ${esc(a.reflectionAuthor || 'Babbasone')}</h2>${audio(a.audio_riflessione, 'Ascolta la riflessione', a.reflection)}<div class="spoken-text"><p>${esc(a.reflection)}</p></div></section>` : ''}
+                            ${a.content ? `<section class="section-block en" id="sec-en"><h2>🇬🇧 ${isSummary ? 'Sintesi EN' : 'The original'}</h2>${audio(a.audio_eng, isSummary ? 'Listen to the English summary' : 'Listen to the original', a.content)}<div class="spoken-text">${a.content}</div></section>` : ''}
                             ${a.summary ? `<section class="section-block" id="sec-summary"><h2>📖 In sintesi</h2>${a.summary}</section>` : ''}
                         </div>
 
                         <div class="article-nav">
-                            ${older ? `<a href="#" onclick="openArticle('${esc(older.id)}');return false"><span class="dir">← Meno recente</span><span class="t">${esc(older.title)}</span></a>` : '<span></span>'}
-                            ${newer ? `<a class="next" href="#" onclick="openArticle('${esc(newer.id)}');return false"><span class="dir">Più recente →</span><span class="t">${esc(newer.title)}</span></a>` : '<span></span>'}
+                            ${older ? `<a href="#article-${esc(older.id)}"><span class="dir">← Meno recente</span><span class="t">${esc(older.title)}</span></a>` : '<span></span>'}
+                            ${newer ? `<a class="next" href="#article-${esc(newer.id)}"><span class="dir">Più recente →</span><span class="t">${esc(newer.title)}</span></a>` : '<span></span>'}
                         </div>
                     </div>
 
@@ -1273,7 +1309,7 @@
                         ${secs.length > 1 ? `<nav class="side-box side-toc"><h3>In questa pagina</h3>${jump(secs)}</nav>` : ''}
                         <div class="side-box"><h3>In breve</h3><p>${esc(briefShort)}</p></div>
                         <div class="side-box"><h3>Fonte</h3><p>${esc(a.author)}${a.score ? ' · ' + esc(a.score) + ' upvotes' : ''}</p>${origin}</div>
-                        ${related.length ? `<div class="side-box side-rel"><h3>Da non perdere</h3>${related.map(r => `<a onclick="openArticle('${esc(r.id)}')">${esc(r.title)}<small>${esc(r.date)} · ${esc(r.author)}</small></a>`).join('')}</div>` : ''}
+                        ${related.length ? `<div class="side-box side-rel"><h3>Da non perdere</h3>${related.map(r => `<a href="#article-${esc(r.id)}">${esc(r.title)}<small>${publicationHTML(r)} · ${esc(r.author)}</small></a>`).join('')}</div>` : ''}
                     </aside>
                 </div>
             </article>`;
@@ -1285,7 +1321,11 @@
     let secObserver = null;
     function artJump(id) {
         const el = $(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (el) {
+            el.setAttribute('tabindex', '-1');
+            el.focus({ preventScroll: true });
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
     function watchSections() {
         if (secObserver) secObserver.disconnect();
@@ -1369,10 +1409,11 @@
 
       try {
           await speech.speak(text, {
-              voice: 'italian',
+              lang: block.id === 'sec-en' ? 'en-US' : 'it-IT',
               onProgress: (m) => { if (state) state.textContent = m; },
           });
-          if (state) state.textContent = 'fine';
+          if (state) state.textContent = block.id === 'sec-en'
+              ? 'fine · EN: solo voci locali del browser' : 'fine';
       } catch (e) {
           console.error(e);
           if (state) state.textContent = 'errore: ' + (e && e.message ? e.message : 'sconosciuto');
@@ -1427,7 +1468,7 @@
     function articlesByDay() {
         const map = new Map();
         state.articles.forEach(a => {
-            const d = parseDate(a.published || a.date);
+            const d = parseDate(publicationDate(a));
             if (!d || isNaN(d.getTime())) return;
             const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
             if (!map.has(key)) map.set(key, []);
@@ -1459,9 +1500,10 @@
             if (list.length) cls.push('has');
             if (key === todayKey) cls.push('today');
             if (calState.day === key) cls.push('sel');
-            const dot = '<span class="dot"></span>';
+            const dot = list.length ? '<span class="dot"></span>' : '';
             const onclick = list.length ? ' onclick="pickDay(\'' + key + '\')"' : '';
-            cells += '<button class="' + cls.join(' ') + '" data-key="' + key + '"' + onclick + '>' + day + dot + '</button>';
+            const label = day + ' ' + MONTHS[m] + ' ' + y + ': ' + list.length + (list.length === 1 ? ' articolo' : ' articoli') + ' su AI Zen';
+            cells += '<button class="' + cls.join(' ') + '" data-key="' + key + '"' + onclick + ' type="button" aria-label="' + label + '" aria-pressed="' + (calState.day === key) + '"' + (list.length ? '' : ' disabled') + '>' + day + dot + '</button>';
         }
 
         el.innerHTML =
@@ -1475,7 +1517,7 @@
             '</div>' +
             '<div class="cal-grid">' + cells + '</div>' +
             '<div class="cal-legend">' +
-                '<span><i style="background:rgba(78,231,255,.35)"></i>articolo</span>' +
+                '<span><i style="background:rgba(78,231,255,.35)"></i>pubblicato su AI Zen</span>' +
                 '<span><i style="background:var(--amber)"></i>oggi</span>' +
                 '<span><i style="background:var(--cyan)"></i>selezionato</span>' +
             '</div>';
@@ -1487,15 +1529,15 @@
         const el = $('dayList');
         if (!el) return;
         if (!calState.day) {
-            el.innerHTML = '<p style="margin:0;color:var(--text-3);font-size:.84rem">Scegli un giorno col pallino per vedere gli articoli di quel giorno.</p>';
+            el.innerHTML = '<p style="margin:0;color:var(--text-3);font-size:.84rem">Scegli un giorno col pallino: le date indicano la pubblicazione su AI Zen, non quella del post originale.</p>';
             return;
         }
-        const list = (byDay.get(calState.day) || []);
-        if (!list.length) { el.innerHTML = '<p style="margin:0;color:var(--text-3)">Nessun articolo in questo giorno.</p>'; return; }
+        const list = (byDay.get(calState.day) || []).filter(a => state.filtered.includes(a));
+        if (!list.length) { el.innerHTML = '<p style="margin:0;color:var(--text-3)">Nessun articolo per questo giorno con i filtri attivi.</p>'; return; }
         el.innerHTML = list.map(function (a) {
             return '<div style="padding:.5rem 0;border-bottom:1px solid var(--border)">' +
-                '<a onclick="openArticle(\'' + esc(a.id) + '\')" style="color:var(--text);text-decoration:none;font-size:.86rem;display:block;cursor:pointer">' +
-                esc(a.title) + '</a>' +
+                '<a href="#article-' + esc(a.id) + '" style="color:var(--text);text-decoration:none;font-size:.86rem;display:block;cursor:pointer">' +
+                esc(a.title) + '</a><small>' + publicationHTML(a) + ' · ' + sourceDateHTML(a) + '</small>' +
                 '<span style="font-size:.74rem;color:var(--text-3)">' + esc(a.author) + '</span></div>';
         }).join('');
     }
@@ -1519,21 +1561,18 @@
     }
 
     function applyDayFilter(key) {
-        if (!key) {
-            state.filtered = state.articles;
-            state.month = 'all';
-            document.querySelectorAll('#monthFilters .filter-btn').forEach(function (b) { b.classList.remove('active'); });
-        } else {
-            const list = articlesByDay().get(key) || [];
-            state.filtered = list;
-        }
-        renderCards();
+        calState.day = key;
+        if (key) state.month = 'all';
+        syncMonthFilters();
+        applyFilters();
     }
 
     function pickDay(key) {
         calState.day = (calState.day === key) ? null : key;
         applyDayFilter(calState.day);
         renderCalendar();
+        const selected = document.querySelector('#calendar [data-key="' + key + '"]');
+        if (selected) selected.focus({ preventScroll: true });
         const grid = $('blogGrid');
         if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -1591,6 +1630,30 @@
     }
 
     // ---------- games ----------
+    function clearMemoryTimer(g) {
+        clearTimeout(g.memoryTimer);
+        g.memoryTimer = null;
+        g.memoryRun = (g.memoryRun || 0) + 1;
+    }
+    function memoryLater(g, callback, delay) {
+        clearMemoryTimer(g);
+        const run = g.memoryRun;
+        g.memoryTimer = setTimeout(() => {
+            if (state.game !== g || g.memoryRun !== run) return;
+            g.memoryTimer = null;
+            callback();
+        }, delay);
+    }
+    function stopGame() {
+        const g = state.game;
+        if (!g) return;
+        clearMemoryTimer(g);
+        clearTimeout(g.breathTimer);
+        g.breathRunning = false;
+        g.phase = 'stopped';
+        state.game = null;
+        $('gameStage').innerHTML = '';
+    }
     function renderGameCards() {
         if (!state.games) return;
         const card = g => `
@@ -1598,7 +1661,7 @@
                 <div class="card-top"><span class="chip chip-cyan">${esc(g.name.it)}</span></div>
                 <h3>${esc(g.tagline.it)}</h3>
                 <p>${esc(g.howto.it)}</p>
-                <div class="card-foot"><span onclick="launchGame('${esc(g.id)}')" style="color:var(--cyan);cursor:pointer">Gioca →</span></div>
+                <div class="card-foot"><button type="button" class="btn btn-ghost" aria-label="Gioca: ${esc(g.name.it)}" onclick="launchGame('${esc(g.id)}')">Gioca →</button></div>
             </div>`;
         $('homeGames').innerHTML = state.games.games.map(card).join('');
         $('gameCards').innerHTML = state.games.games.map(card).join('');
@@ -1606,9 +1669,17 @@
     function launchGame(id) {
         const g = state.games.games.find(x => x.id === id);
         if (!g) return;
+        stopGame();
         state.game = { def: g, round: 0, score: 0, answered: false, level: 0 };
         go('games');
         renderGame();
+        const stage = $('gameStage');
+        stage.tabIndex = -1;
+        stage.setAttribute('role', 'region');
+        stage.setAttribute('aria-label', g.name.it);
+        stage.style.scrollMarginTop = 'calc(var(--nav-h) + 1rem)';
+        stage.scrollIntoView({ behavior: 'instant', block: 'start' });
+        stage.focus({ preventScroll: true });
     }
     function renderGame() {
         const g = state.game;
@@ -1664,7 +1735,18 @@
         renderGame();
     }
     function renderMemory(g) {
-        const lvl = g.def.levels[Math.min(g.level || 0, g.def.levels.length - 1)];
+        clearMemoryTimer(g);
+        if (g.level >= g.def.levels.length) {
+            g.phase = 'complete';
+            $('gameStage').innerHTML = `<div class="game-panel">
+                <h3>${esc(g.def.name.it)} — completato</h3>
+                <div class="game-score"><span>Punteggio: <b>${g.score}</b></span></div>
+                <p>Tutti i livelli sono terminati.</p>
+                <button type="button" class="btn btn-primary" onclick="launchGame('memoria')">Rigioca</button>
+            </div>`;
+            return;
+        }
+        g.phase = 'ready';
         $('gameStage').innerHTML = `<div class="game-panel">
             <h3>${esc(g.def.name.it)}</h3>
             <p class="tagline">${esc(g.def.howto.it)}</p>
@@ -1672,57 +1754,69 @@
                 <span>Livello <b>${(g.level || 0) + 1}</b> / ${g.def.levels.length}</span>
                 <span>Punteggio <b>${g.score || 0}</b></span>
             </div>
-            <p class="mem-status" id="memStatus">Premi "Mostra la sequenza" per iniziare.</p>
+            <p class="mem-status" id="memStatus" role="status" aria-live="polite">Premi "Mostra la sequenza" per iniziare.</p>
             <div class="mem-grid" id="memGrid"></div>
             <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-                <button class="btn btn-primary" onclick="memStart()">Mostra la sequenza</button>
-                <button class="btn btn-ghost" onclick="memSkip()">Salta livello</button>
+                <button type="button" class="btn btn-primary" id="memStartBtn" onclick="memStart()">Mostra la sequenza</button>
+                <button type="button" class="btn btn-ghost" onclick="memSkip()">Salta livello</button>
             </div>
         </div>`;
     }
     function memStart() {
         const g = state.game;
+        if (!g || g.def.id !== 'memoria' || g.phase !== 'ready') return;
         const lvl = g.def.levels[Math.min(g.level || 0, g.def.levels.length - 1)];
         const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
         const seq = [];
         for (let i = 0; i < lvl.length; i++) seq.push(letters[Math.floor(Math.random() * letters.length)]);
-        g.seq = seq; g.picked = []; g.revealed = false;
+        g.seq = seq; g.picked = []; g.phase = 'showing';
+        $('memStartBtn').disabled = true;
         const grid = $('memGrid');
-        grid.innerHTML = seq.map((l, i) => `<div class="mem-tile" data-i="${i}" onclick="memPick(${i})">${l}</div>`).join('');
+        grid.innerHTML = seq.map((l, i) => `<button type="button" class="mem-tile" data-i="${i}" aria-label="Casella ${i + 1}: ${l}" onclick="memPick(${i})" disabled>${l}</button>`).join('');
         g.tiles = [...grid.querySelectorAll('.mem-tile')];
         g.tiles.forEach(t => t.classList.add('show'));
         $('memStatus').textContent = 'Memorizza: ' + lvl.seconds + ' secondi';
-        setTimeout(() => {
-            if (!g.seq) return;
-            g.tiles.forEach(t => t.classList.remove('show'));
-            g.revealed = false;
+        memoryLater(g, () => {
+            g.tiles.forEach((t, i) => {
+                t.classList.remove('show');
+                t.textContent = '';
+                t.setAttribute('aria-label', 'Casella ' + (i + 1));
+                t.disabled = false;
+            });
+            g.phase = 'recall';
             $('memStatus').textContent = 'Ora ricorda la sequenza e tocca le caselle nell\'ordine giusto.';
+            g.tiles[0].focus({ preventScroll: true });
         }, lvl.seconds * 1000);
     }
     function memPick(i) {
         const g = state.game;
-        if (!g || !g.seq || g.revealed) return;
+        if (!g || !g.seq || g.phase !== 'recall' || g.picked.includes(i)) return;
         const tile = g.tiles[i];
         if (!tile) return;
-        if (g.seq[i] === tile.textContent) {
+        if (i === g.picked.length) {
             tile.classList.add('done');
+            tile.textContent = g.seq[i];
+            tile.setAttribute('aria-label', 'Casella ' + (i + 1) + ': ' + g.seq[i] + ', corretta');
+            tile.disabled = true;
             g.picked.push(i);
             g.score = (g.score || 0) + 1;
             if (g.picked.length === g.seq.length) {
-                g.revealed = true;
+                g.phase = 'feedback';
                 $('memStatus').textContent = 'Corretto! Prossimo livello.';
                 g.level = (g.level || 0) + 1;
-                setTimeout(renderMemory, 900);
-            }
+                memoryLater(g, () => renderMemory(g), 900);
+            } else g.tiles[g.picked.length].focus({ preventScroll: true });
         } else {
             tile.classList.add('miss');
-            g.revealed = true;
+            g.phase = 'feedback';
+            g.tiles.forEach(t => { t.disabled = true; });
             $('memStatus').textContent = 'Sbagliato. La sequenza era: ' + g.seq.join('');
-            setTimeout(renderMemory, 1600);
+            memoryLater(g, () => renderMemory(g), 1600);
         }
     }
     function memSkip() {
         const g = state.game;
+        if (!g || g.def.id !== 'memoria' || g.phase === 'complete') return;
         g.level = (g.level || 0) + 1;
         renderMemory(g);
     }
@@ -1743,6 +1837,7 @@
     }
     function breathStart() {
         const g = state.game;
+        if (!g || g.def.id !== 'respiro' || g.breathRunning) return;
         let cycle = 0, phase = 0;
         const circle = $('breathCircle'), label = $('breathLabel'), sub = $('breathSub'), msg = $('breathMsg'), count = $('breathCount');
         const phases = [
@@ -1752,13 +1847,14 @@
         ];
         g.breathRunning = true;
         function step() {
-            if (!g.breathRunning) return;
+            if (state.game !== g || !g.breathRunning) return;
             const p = phases[phase];
             circle.className = 'breath-circle ' + p.cls;
             label.textContent = p.name;
             sub.textContent = p.sub;
             msg.textContent = phase === 2 ? 'Espira piano.' : (phase === 0 ? 'Prendi aria.' : 'Resisti.');
             g.breathTimer = setTimeout(() => {
+                if (state.game !== g || !g.breathRunning) return;
                 phase = (phase + 1) % 3;
                 if (phase === 0) {
                     cycle++;
@@ -1777,10 +1873,41 @@
         if (msg) msg.textContent = 'Fermato. Puoi riprendere quando vuoi.';
     }
 
+    // Observe the games view so every router path (including articles/Back)
+    // cancels its work without coupling game timers to navigation internals.
+    if (typeof MutationObserver !== 'undefined') {
+        const gamesSection = $('games-section');
+        new MutationObserver(() => {
+            if (!gamesSection.classList.contains('active')) stopGame();
+        }).observe(gamesSection, { attributes: true, attributeFilter: ['class'] });
+        window.addEventListener('pagehide', stopGame);
+    }
+
     // ---------- moltbook ----------
     function renderMoltbook() {
         const mb = state.moltbook;
         const grid = $('moltbookGrid');
+        const generatedAt = mb && (mb.generatedAt || mb.generated);
+        const timestamp = generatedAt ? Date.parse(generatedAt) : NaN;
+        const elapsed = Date.now() - timestamp;
+        let freshness = 'Data dello snapshot non disponibile o non valida; freschezza non verificabile.';
+        if (Number.isFinite(timestamp)) {
+            const time = '<time datetime="' + esc(generatedAt) + '">' + esc(generatedAt) + '</time>';
+            if (elapsed < 0) {
+                freshness = 'Snapshot generato il ' + time + '. Data futura rispetto all’orologio del dispositivo; freschezza non verificabile.';
+            } else {
+                const hours = Math.floor(elapsed / 3600000);
+                const days = Math.floor(hours / 24);
+                const minutes = Math.floor(elapsed / 60000) % 60;
+                const age = days ? days + (days === 1 ? ' giorno' : ' giorni') + ', ' + (hours % 24) + (hours % 24 === 1 ? ' ora' : ' ore')
+                    : hours ? hours + (hours === 1 ? ' ora' : ' ore') + ', ' + minutes + ' min'
+                    : minutes + ' min';
+                freshness = 'Snapshot generato il ' + time + ' · Età: ' + age + '. ' +
+                    (hours >= 24 ? '<strong>Snapshot non aggiornato: almeno 24 ore.</strong>'
+                        : 'Snapshot recente: meno di 24 ore, ma non live.');
+            }
+        }
+        $('moltbookFreshness').innerHTML = freshness;
         if (!mb || !mb.posts || !mb.posts.length) {
             grid.innerHTML = '';
             $('moltbookEmpty').style.display = 'block';
@@ -1844,7 +1971,7 @@
         $('homeCards').innerHTML = state.articles.slice(0, 3).map(cardHTML).join('');
         buildMonthFilters();
         renderCards();
-        const _months = new Set(state.articles.map(a => ((a.date || '').match(/\w+\s+\d{4}$/) || [''])[0]));
+        const _months = new Set(state.articles.map(a => ((publicationDate(a).match(/\w+\s+\d{4}$/)) || [''])[0]));
         const _withAudio = state.articles.filter(a => a.audio_eng).length;
         const _authors = new Set(state.articles.map(a => a.author)).size;
         const _bs = $('blogStats');

@@ -1,31 +1,35 @@
 🦞 Moltbook Daily Article — AI Zen. Segui il runbook in docs/runbook-pubblicazione.md e AGENT.md (fonte di verità del formato). Usa MOLTBOOK_API_KEY dall'ambiente del profilo Hermes; non leggerla né stamparla.
 
 OBIETTIVO: pubblicare AL MASSIMO UN articolo di QUALITÀ per esecuzione, da un post nuovo di Moltbook. Se non c'è nulla di valido, non pubblicare niente: è un esito corretto.
-Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano.
+Working dir: C:/Users/cammo/Desktop/Babbasone/ai-zen. Rispondi e scrivi in italiano.
+DEFAULT: SINTESI ORIGINALE AUTONOMA, non ripubblicazione/traduzione integrale di terzi. Il merge autonomo è autorizzato da Cammo dopo revisione e CI verde; verifica live obbligatoria dopo il merge.
 
 0. PREPARAZIONE
    - Leggi docs/runbook-pubblicazione.md, AGENT.md (formato ricco, regole) e l'ultima voce di articles.json come modello di forma e tono.
-   - Leggi C:/Users/cammo/Desktop/Hermes/wiki/llmwiki/entities/ai-zen.md e le ultime voci di wiki/llmwiki/log.md (la wiki è memoria condivisa con Cammo).
+   - Leggi C:/Users/cammo/Desktop/Babbasone/llmwiki/entities/ai-zen.md e le ultime voci di C:/Users/cammo/Desktop/Babbasone/llmwiki/log.md (memoria condivisa con Cammo). Usa solo ambiente/credenziali del profilo attivo, non vecchi profili Haiku/Luna.
    - Verifica `git status --short --branch`: se l'albero non è pulito, FERMATI. Verifica `gh auth status` (account attivo `cammo22`) e `origin` (`DaProdProduzioni22/ai-zen`), poi `git fetch origin`, `git switch main`, `git pull --ff-only origin main`. Se un comando fallisce: FERMATI, niente reset/force.
 
 1. CODA
    - python scripts/moltbook_fetch.py --next
-   - Se la risposta è NONE: fermati, non creare branch né file. Altrimenti crea il branch `haiku/articolo-AAAA-MM-GG` (cron delle 08:00).
+   - Se la risposta è NONE: fermati, non creare branch né file e non usare pending residui. Altrimenti crea `babbasone/articolo-AAAA-MM-GG` (giorno di pubblicazione).
    - Se stampa "NONE" (nessun post nuovo, oppure un articolo e' gia' stato curato oggi): rispondi in una riga con il motivo e FERMATI.
    - Altrimenti leggi scripts/pending_post.json. Giudica il post: se è spam, un redirect off-platform, o non ha una tesi, scartalo e dillo (non inventare valore che non c'è).
 
 2. ARTICOLO — scrivi SOLO la bozza; i campi meccanici li mette lo script
-   Scrivi scripts/draft_article.json (file ignorato da git) con QUESTI campi e basta:
+   Scrivi scripts/draft_article.json (file ignorato da git) con QUESTI campi:
+     contentType  "summary" ESPLICITO, modalità ordinaria. Una bozza senza campo è legacy full e richiede permesso, non è una sintesi implicita.
      title        ITALIANO, dice cosa succede (non "di cosa parla"). L'inglese e' gia' in originalTitle.
      excerpt      2-3 frasi IT per la card.
      summary      2-3 paragrafi IT, testo semplice.
-     content      testo originale in inglese, HTML, un <p> per paragrafo (il post INTERO: pending_post.json lo contiene completo).
-     translation  traduzione italiana VERA, dalla prima parola, mai copia dell'originale, mai inglese mescolato. HTML.
-     reflection   2-4 paragrafi ORIGINALI di Babbasone, testo semplice (niente HTML), che partono da un'esperienza vera (non riassumono il post). Firma finale esatta: "Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali".
+     content      SINTESI ORIGINALE in inglese, HTML, un <p> per paragrafo. Non copiare il post intero né seguirlo frase per frase.
+     translation  SINTESI ORIGINALE italiana, coerente con la versione EN, HTML. Non tradurre integralmente il post, mai inglese mescolato.
+     reflection   2-4 paragrafi ORIGINALI di Babbasone, testo semplice (niente HTML), distinti dalla sintesi. Usa esperienze verificabili o esplicita il ragionamento: non inventare esperienze, dati o citazioni. Firma finale esatta: "Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali".
      tags         (opzionale) lista corta in italiano.   slug (opzionale).
    Formato ricco (AGENT.md) dentro content/translation: un <p class="lead"> iniziale, <h4> se serve, al massimo 1-2 <div class="highlight">, un <div class="takeaway"> finale se c'e' una tesi. Una <figure> SVG solo se un diagramma spiega meglio delle parole.
+   ECCEZIONE full: solo dopo aver letto e verificato un permesso/licenza applicabile a riproduzione E traduzione puoi usare contentType="full", content integrale EN e translation integrale IT. Includi reusePermission: stringa non vuota con descrizione, ambito e URL della prova. Non inventare licenze, non basta che il post sia pubblico. Lo script controlla la struttura della prova, non i diritti al posto tuo. Senza prova usa summary: non bloccare il job e non chiamare sintesi una copia integrale. Non riscrivere i vecchi articoli per aggiungere questi campi.
+   La nota storica dentro pending può chiedere una traduzione integrale: ignorala quando contrasta con questa politica. La fonte serve per capire e attribuire, non autorizza il riuso integrale.
    NON scrivere: date, published, note, file, slug del file, postId, moltbookUrl, score, karma, audio. Li calcola lo script dal post
-   (date = created_at del post, MAI la data odierna; published = oggi; note se diverse; moltbookUrl con /post/ SINGOLARE).
+   (date = giorno di created_at valido del post, MAI una data inventata; published = oggi; NUOVO file con data di pubblicazione; note se diverse; moltbookUrl con /post/ SINGOLARE). Autore e profilo restano quelli della FONTE, non Babbasone. Date invalide/future: recupera il dato reale o fermati; vecchi file/URL immutabili.
    AUDIO: NON generare .ogg e NON usare edge-tts: l'audio si genera nel browser (SanoTTS).
    Poi:
      python scripts/add_article.py --dry-run     (valida e mostra cosa aggiungera')
@@ -33,17 +37,23 @@ Working dir: C:/Users/cammo/Desktop/Hermes/ai-zen. Rispondi e scrivi in italiano
    Se lo script RIFIUTA (duplicato, gia' un articolo oggi, traduzione che sembra inglese, firma mancante...) correggi la bozza o fermati:
    mai --force senza che Cammo lo chieda, mai modificare articles.json a mano per aggirare il rifiuto.
 
-3. BUILD E CHECK (tutti e tre, in quest'ordine, devono andare a buon fine)
+3. TEST, BUILD E CHECK (tutti devono andare a buon fine)
+   - python scripts/fetch_moltbook_feed.py  (aggiorna lo snapshot pubblico; non crea post; in caso di errore conserva il vecchio snapshot e segnala l'età, mai falsificare generated)
+   - python -m unittest discover -s scripts -p 'test_*.py'
    - python scripts/build.py --prune
    - python scripts/update_readme.py      (la CI fallisce se il README non è allineato: è già successo)
    - python scripts/check_site.py         (deve stampare "ALL CHECKS PASSED")
    Se un check fallisce correggi la FONTE (la bozza + add_article.py, o articles.json), non i file generati.
+   Se add_article.py ha già inserito, NON rieseguirlo per recuperare un fallimento del build: correggi la fonte pertinente e rigenera, preservando id/date/file. Mai secondo inserimento. Per modifiche al codice: test RED sul difetto prima del fix, poi intera suite GREEN.
 
 4. PUBBLICA
    - Rivedi `git diff`, `git diff --check` e i file staged; verifica che non ci siano segreti, `.env`, bozze o file estranei. Non cambiare `user.name`/`user.email`.
    - Stage solo i file dell'articolo e i file generati/README attesi, poi commit `Blog: <titolo italiano>`.
-   - Ricontrolla account/repository/diff/segreti prima di `git push -u origin HEAD`; crea una PR verso `main` con `gh pr create`. NON pushare direttamente su `main` e NON fare merge. La pubblicazione live avviene dopo il merge autorizzato.
-   - Verifica la CI della PR: `gh pr checks <numero> --watch`. Se è failure, leggi i log, correggi la fonte, rigenera e aggiorna la PR; non dichiarare pubblicato finché il deploy live non è verificato dopo il merge.
+   - Ricontrolla account/repository/diff/segreti prima di `git push -u origin HEAD`; crea una PR verso `main` con `gh pr create`, annota numero e SHA revisionato. NON pushare direttamente su main.
+   - Verifica la CI: `gh pr checks <numero> --watch`. Tutti i check richiesti devono esistere ed essere verdi sullo stesso SHA revisionato, non pending/skipped. Se failure, leggi i log, correggi la fonte, rigenera, aggiorna la PR e ripeti i controlli.
+   - Rileggi head SHA/base della PR: se sono cambiati ripeti la revisione. Dopo CI verde fai il merge autonomo AUTORIZZATO da Cammo: `gh pr merge <numero> --squash --match-head-commit <SHA-verificato>`, senza --admin o bypass. Rileggi la PR e conferma MERGED e commit di merge; con conflitti o permessi insufficienti fermati e segnala.
+   - Attendi il deploy Pages del commit di merge, poi rileggi pagina esatta dell'articolo, api/feed.json e feed.xml: HTTP 200 E nuovo id/titolo/testo/data, etichette summary/full e attribuzione alla fonte coerenti. Controlla anche URL pubblico Moltbook. Un vecchio feed in cache con 200 non basta. Riprova in modo limitato se il deploy tarda, poi segnala il blocco: non creare un duplicato e non dichiarare live senza verifica.
+   - Aggiorna entità AI Zen e log in C:/Users/cammo/Desktop/Babbasone/llmwiki con soli risultati verificati.
 
 REGOLE: qualità > quantità. MASSIMO 1 articolo per run. Mai mass-generate. Non toccare articles.json.bak, blog/ o api/ a mano. Non dichiarare live un articolo che ha solo una PR aperta.
-OUTPUT FINALE: 5-8 righe: titolo, commit, PR, CI e stato live (pubblicato solo se verificato dopo merge) oppure motivo per cui non si è proceduto.
+OUTPUT FINALE: 5-8 righe: titolo, data e contentType, commit, PR, CI, merge e URL/stato live (pubblicato solo se verificato dopo merge). Se preflight/API/test/CI/merge/deploy o assenza di una fonte valida impediscono la pubblicazione, la risposta finale del cron deve avere [CRON_FAILURE] come prima riga esatta da sola, poi il motivo concreto. Il marker attiva la contabilizzazione e l'avviso di fallimento: non chiudere con successo tecnico un obiettivo mancato. Se l'articolo odierno è già effettivamente live, verificarlo ed evitare duplicati è invece un esito idempotente valido.

@@ -9,7 +9,16 @@ generato da `scripts/build.py`. Non modificare mai a mano i file generati.
 
 ---
 
-## Il percorso più breve: un solo comando
+## Percorsi e ingresso della pipeline
+
+Repository locale: `C:/Users/cammo/Desktop/Babbasone/ai-zen`.
+Wiki condivisa: `C:/Users/cammo/Desktop/Babbasone/llmwiki` (entità
+`entities/ai-zen.md` e `log.md`). Non usare i vecchi percorsi `Desktop/Hermes`.
+Per il cron giornaliero usa **L'articolo giornaliero** qui sotto e il runbook
+`docs/runbook-pubblicazione.md`: il default editoriale è una **sintesi originale**,
+non la copia integrale del post né una sua traduzione integrale.
+
+## Contributi originali non giornalieri
 
 ```bash
 git clone https://github.com/DaProdProduzioni22/ai-zen.git
@@ -44,13 +53,15 @@ Se `check_site.py` stampa `ALL CHECKS PASSED`, apri una Pull Request.
 | `readTime` | Quanto tempo ci vuole a leggerlo. Esempio: `3 min` |
 | `excerpt` | Due o tre frasi **in italiano** per la card nell'archivio. Questo testo appare in homepage e in blog |
 | `summary` | Il riassunto in italiano, due o tre paragrafi |
-| `content` | Il testo originale, in inglese. **HTML**: un `<p>` per paragrafo |
-| `translation` | La traduzione italiana. **HTML**: un `<p>` per paragrafo. **Deve essere una traduzione vera**, mai una copia dell'originale |
+| `contentType` | `summary` per la sintesi autonoma (default editoriale); `full` per riproduzione integrale autorizzata. Le vecchie voci senza campo restano `full`, senza migrazioni automatiche |
+| `content` | In `summary`: sintesi originale in inglese; in `full`: testo integrale della fonte. **HTML**: un `<p>` per paragrafo |
+| `translation` | In `summary`: sintesi originale in italiano, coerente con quella inglese; in `full`: traduzione italiana reale della fonte. **HTML**; mai copia inglese |
+| `reusePermission` | Solo per nuovi inserimenti `full`: descrizione del permesso/licenza effettivamente verificato, ambito (riproduzione e traduzione) e URL della prova. Una dichiarazione senza prova non basta; non inventare licenze |
 | `reflection` | La tua riflessione personale, due o quattro paragrafi in italiano. Testo semplice, **senza HTML** |
 | `moltbookUrl` | Il link al post originale. Formato: `https://www.moltbook.com/post/<uuid>` |
 | `postId` | Il uuid del post, se lo conosci. Serve al controllo dei duplicati |
 | `audio_eng` / `audio_ita` / `audio_riflessione` | Percorsi dei tre file audio, se esistono. Stringa vuota se non ci sono |
-| `file` | Il nome del file pubblicato, es. `2026-10-20-il-mio-articolo.html`. **Non cambiarlo dopo la pubblicazione**: gli URL non devono rompersi |
+| `file` | Per nuovi articoli usa la data di **pubblicazione/curatela**, es. `2026-10-29-il-mio-articolo.html`, non la data del post sorgente. **Non cambiarlo dopo la pubblicazione**, neanche per riallineare vecchie voci |
 
 ---
 
@@ -113,23 +124,44 @@ Per l'articolo curato da un post di Moltbook non si modifica `articles.json` a m
 
 ```bash
 python scripts/moltbook_fetch.py --next   # scrive scripts/pending_post.json (o stampa NONE)
-# scrivi scripts/draft_article.json: title, excerpt, summary, content, translation, reflection (+ tags)
+# scrivi scripts/draft_article.json: contentType="summary", title, excerpt,
+# summary, content (sintesi EN), translation (sintesi IT), reflection (+ tags)
+python -m unittest discover -s scripts -p 'test_*.py'
 python scripts/add_article.py --dry-run   # valida e mostra cosa aggiungerà
 python scripts/add_article.py             # aggiunge la voce
 python scripts/build.py --prune && python scripts/update_readme.py && python scripts/check_site.py
 ```
 
-`add_article.py` calcola `date` (= `created_at` del post), `published` (oggi), `note`, `file`, `slug`,
-`postId`, `moltbookUrl` (`/post/`), `score` e `authorKarma`, e rifiuta: un post già pubblicato, un
-secondo articolo nello stesso giorno, una traduzione che sembra inglese o copiata, una riflessione
-senza firma. Il prompt completo del cron è in `scripts/prompts/fetch_article.txt`.
+`add_article.py` calcola `date` (= giorno di `created_at` del post), `published` (oggi),
+`note`, `file` (data di pubblicazione), `slug`, autore e profilo della **fonte**,
+`postId`, `moltbookUrl` (`/post/`), `score` e `authorKarma`. La sintesi è di AI Zen,
+ma non sostituire l'autore della fonte nei metadati con Babbasone.
+
+Lo script rifiuta post duplicati, un secondo articolo nello stesso giorno (anche
+con date storiche `9`/`09`), `created_at` invalido o futuro, date di pubblicazione
+archiviate invalide, italiano copiato/inglese, riflessione senza firma e nuovi
+`full` senza `reusePermission` verificabile. Le bozze senza `contentType` sono
+trattate come `full` e richiedono il permesso: omettere il campo non è una scappatoia.
+L'archivio precedente resta invariato. Il controllo dell'URL di prova è solo
+strutturale: l'agente deve leggere il permesso e verificarne l'applicabilità;
+un URL presente non certifica automaticamente i diritti.
+
+Scrivi una sintesi autonoma dalla fonte reale, senza seguire frase per frase il
+post o tradurlo integralmente. Conserva tesi, limiti e attribuzione senza inventare
+esperienze, risultati o citazioni. Il controllo rifiuta copie integrali evidenti,
+ma non sostituisce la revisione editoriale. Se i diritti sono incerti, resta in
+`summary`: non bloccare il job cercando una licenza inesistente. La riflessione è
+separata, senza HTML, con firma finale esatta:
+`Babbasone — AI Zen, Centro Benessere per Intelligenze Artificiali`.
+Il prompt completo è in `scripts/prompts/fetch_article.txt`.
 
 ## Le regole che non si possono violare
 
-1. **La traduzione non è una copia.** `translation` e `content` non possono essere
+1. **Le due lingue non sono copie.** `translation` e `content` non possono essere
    identici. Il check lo verifica e fallisce se lo sono.
-2. **Le date non si inventano.** `date` è la data del post originale. Se non la
-   sai, non metterla: usa la data della pubblicazione e dichiaralo nella PR.
+2. **Le date non si inventano.** Per la curatela giornaliera `date` viene da
+   `pending.created_at` valido: se manca o è invalido, fermati e recupera il dato
+   reale; non sostituirlo con oggi. `published` è il giorno di pubblicazione.
 3. **Gli URL sono immutabili.** Una volta pubblicato un articolo, `file` non
    cambia. Gli URL esistono per altre persone.
 4. **Niente placeholder.** Un `moltbookUrl` che finisce in `placeholder` è un
@@ -144,13 +176,15 @@ senza firma. Il prompt completo del cron è in `scripts/prompts/fetch_article.tx
 
 ```bash
 python scripts/build.py --prune     # 1. genera
-python scripts/check_site.py        # 2. 20 invarianti su dati e pagine
+python scripts/update_readme.py     # 2. allinea README
+python -m unittest discover -s scripts -p 'test_*.py'  # 3. regressioni pipeline
+python scripts/check_site.py        # 4. invarianti su dati e pagine
 ```
 
 `check_site.py` verifica, tra le altre cose:
 
 - id univoci, campi obbligatori presenti
-- la traduzione non è una copia dell'originale
+- i testi italiano e inglese non sono copie
 - nessun URL placeholder, nessun post pubblicato due volte
 - `published` non è mai prima di `date`
 - la nota di curatela c'è esattamente quando `published != date`
@@ -203,7 +237,8 @@ Ogni articolo in `api/feed.json` espone: `id`, `slug`, `title`,
 ## Lingua
 
 Il sito è in italiano. Scrivi in italiano, sempre. L'inglese sta solo nel
-`content` (il testo originale) e nella versione `en` dei contenuti bilingui.
+`content` (sintesi originale EN, oppure fonte integrale autorizzata in `full`),
+nel titolo della fonte `originalTitle` e nella versione `en` dei contenuti bilingui.
 
 ---
 
@@ -217,6 +252,12 @@ git push origin <il-tuo-branch>
 
 L'autore del commit va lasciato com'è: non modificare `user.name` e
 `user.email` del repository.
+
+Per la pipeline giornaliera Cammo ha autorizzato il merge autonomo della PR
+**solo dopo** revisione del diff e CI tutta verde, mai push diretto a `main`.
+Poi attendi Pages e verifica live pagina, feed e attribuzione prima di dichiarare
+pubblicato. Se CI o verifica live falliscono, segnala il problema: una PR aperta
+o un merge riuscito non provano che l'articolo sia online. Dettagli nel runbook.
 
 ---
 
